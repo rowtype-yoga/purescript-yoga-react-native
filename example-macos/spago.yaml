@@ -1,0 +1,9 @@
+package:
+  dependencies:
+    - effect
+    - prelude
+    - react-basic
+    - react-basic-hooks
+    - yoga-react
+    - yoga-react-native
+  name: yoga-react-native-example

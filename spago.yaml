@@ -1,0 +1,21 @@
+package:
+  dependencies:
+    - aff
+    - effect
+    - foreign
+    - functions
+    - nullable
+    - prelude
+    - react-basic
+    - react-basic-hooks
+    - type-equality
+    - typelevel-prelude
+    - unsafe-coerce
+  name: yoga-react-native
+workspace:
+  packageSet:
+    registry: 51.2.0
+  extraPackages:
+    yoga-react:
+      git: https://github.com/rowtype-yoga/purescript-yoga-react.git
+      ref: main
