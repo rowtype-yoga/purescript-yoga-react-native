@@ -185,18 +185,7 @@ app = component "App" \_ -> React.do
 
       , card
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Modal"
-          , smallBtn "Show Modal" (setShowModal (const true))
-          , modal { visible: showModal, animationType: "slide" }
-              ( safeAreaView {}
-                  ( view { style: tw "flex-1 justify-center items-center bg-black/50" }
-                      [ view { style: tw "bg-white rounded-2xl p-8 m-5" }
-                          [ text { style: tw "text-xl font-bold mb-4" } "Modal Content"
-                          , text { style: tw "text-base mb-4" } "This is a modal overlay"
-                          , smallBtn "Close" (setShowModal (const false))
-                          ]
-                      ]
-                  )
-              )
+          , text { style: tw $ "text-sm italic " <> tc } "(disabled — crashes on macOS)"
           ]
 
       , card
@@ -207,8 +196,7 @@ app = component "App" \_ -> React.do
 
       , card
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "InputAccessoryView"
-          , inputAccessoryView { backgroundColor: "#f0f0f0" }
-              (text { style: tw "text-sm p-2" } "Accessory bar content")
+          , text { style: tw $ "text-sm italic " <> tc } "(iOS only)"
           ]
 
       , card
@@ -513,26 +501,12 @@ app = component "App" \_ -> React.do
 
       , card
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Keyboard (onKeyDown)"
-          , view
-              { focusable: true
-              , enableFocusRing: true
+          , textInput
+              { value: if lastKey == "" then "" else "Key: " <> lastKey
+              , placeholder: "Click here and press a key"
               , onKeyDown: handler nativeEvent \(e :: { key :: String }) -> setLastKey (const e.key)
-              , keyDownEvents:
-                  [ { key: "ArrowUp", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  , { key: "ArrowDown", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  , { key: "ArrowLeft", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  , { key: "ArrowRight", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  , { key: "a", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  , { key: "s", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  , { key: "d", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  , { key: "w", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  ]
-              , style: tw $ cardBg <> " border border-gray-300 rounded-lg p-4"
+              , style: tw "border border-gray-300 rounded-lg p-3 bg-gray-50"
               }
-              [ text { style: tw tc } "Click here, then press arrow keys or WASD"
-              , text { style: tw $ "text-lg font-bold mt-2 " <> tc }
-                  (if lastKey == "" then "(no key pressed)" else "Key: " <> lastKey)
-              ]
           ]
 
       , card
