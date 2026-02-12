@@ -1,5 +1,3 @@
 import { DynamicColorMacOS } from "react-native-macos";
 
-export const dynamicColor = (colors) => ({
-  color: DynamicColorMacOS(colors),
-});
+export const dynamicColor = (colors) => DynamicColorMacOS(colors);

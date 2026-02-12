@@ -2,4 +2,6 @@ module Yoga.React.Native.ColorWithSystemEffectMacOS
   ( colorWithSystemEffect
   ) where
 
-foreign import colorWithSystemEffect :: String -> String -> String
+import Yoga.React.Native.PlatformColor (ColorValue)
+
+foreign import colorWithSystemEffect :: ColorValue -> String -> ColorValue

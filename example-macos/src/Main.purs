@@ -13,7 +13,8 @@ import Effect.Class.Console (log)
 import Data.Function.Uncurried (mkFn1, mkFn2)
 import Effect.Uncurried (mkEffectFn1)
 import React.Basic (JSX, fragment)
-import React.Basic.Events (handler_)
+import React.Basic.Events (handler, handler_)
+import Yoga.React.Native.Events (nativeEvent)
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (registerComponent, string, view, text, textInput, pressable, scrollView, image, activityIndicator, flatList, switch, button, touchableOpacity, touchableHighlight, touchableWithoutFeedback, modal, safeAreaView, keyboardAvoidingView, imageBackground, inputAccessoryView, sectionList, refreshControl, statusBar, tw, uri)
@@ -57,6 +58,9 @@ app = component "App" \_ -> React.do
   appState /\ setAppState <- React.useState "active"
   clipboardText /\ setClipboardText <- React.useState ""
   fsResult /\ setFsResult <- React.useState ""
+  hovered /\ setHovered <- React.useState false
+  lastKey /\ setLastKey <- React.useState ""
+  droppedFile /\ setDroppedFile <- React.useState ""
 
   fadeAnim <- Animated.useAnimatedValue 1.0
   slideAnim <- Animated.useAnimatedValue 0.0
@@ -78,10 +82,9 @@ app = component "App" \_ -> React.do
     bg = if isDark then "bg-gray-900" else "bg-gray-100"
     tc = if isDark then "text-white" else "text-gray-900"
     cardBg = if isDark then "bg-gray-800" else "bg-white"
-    -- NOTE: DynamicColorMacOS/ColorWithSystemEffectMacOS crash at runtime due to
-    -- react-native-macos normalizeColor default export bug (require vs import)
-    -- dynamicBg = DynamicColorMacOS.dynamicColor { light: "#f3f4f6", dark: "#111827" }
-    -- pressedColor = ColorWithSystemEffectMacOS.colorWithSystemEffect (PlatformColor.platformColor "controlAccentColor") "pressed"
+    dynamicBg = DynamicColorMacOS.dynamicColor { light: "#f3f4f6", dark: "#111827" }
+    accentColor = PlatformColor.platformColor "controlAccentColor"
+    pressedAccent = ColorWithSystemEffectMacOS.colorWithSystemEffect accentColor "pressed"
 
     _ = PanResponder.create {}
 
@@ -389,12 +392,12 @@ app = component "App" \_ -> React.do
 
       , card
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "DynamicColorMacOS"
-          , text { style: tw $ "text-sm italic " <> tc } "Disabled: normalizeColor bug in react-native-macos"
+          , text { style: tw $ "text-sm " <> tc } "(shown in macOS tab)"
           ]
 
       , card
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "PlatformColor + SystemEffect"
-          , text { style: tw $ "text-sm italic " <> tc } "Disabled: normalizeColor bug in react-native-macos"
+          , text { style: tw $ "text-sm " <> tc } "(shown in macOS tab)"
           ]
 
       , card
@@ -468,6 +471,112 @@ app = component "App" \_ -> React.do
           ]
       ]
 
+    macosSection = fragment
+      [ heading "macOS"
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Tooltip"
+          , view
+              { tooltip: "Hello from PureScript!"
+              , style: tw $ cardBg <> " border border-blue-300 rounded-lg p-4 items-center"
+              }
+              [ text { style: tw tc } "Hover over me for a tooltip" ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Cursor"
+          , view { style: tw "flex-row gap-3" }
+              [ view { cursor: "pointer", style: tw "bg-blue-500 p-3 rounded-lg" }
+                  [ text { style: tw "text-white text-sm" } "pointer" ]
+              , view { cursor: "grab", style: tw "bg-green-500 p-3 rounded-lg" }
+                  [ text { style: tw "text-white text-sm" } "grab" ]
+              , view { cursor: "crosshair", style: tw "bg-purple-500 p-3 rounded-lg" }
+                  [ text { style: tw "text-white text-sm" } "crosshair" ]
+              , view { cursor: "not-allowed", style: tw "bg-red-500 p-3 rounded-lg" }
+                  [ text { style: tw "text-white text-sm" } "not-allowed" ]
+              , view { cursor: "text", style: tw "bg-yellow-500 p-3 rounded-lg" }
+                  [ text { style: tw "text-white text-sm" } "text" ]
+              ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Hover (onMouseEnter / onMouseLeave)"
+          , view
+              { onMouseEnter: handler_ (setHovered (const true))
+              , onMouseLeave: handler_ (setHovered (const false))
+              , style: tw $ (if hovered then "bg-blue-500" else cardBg) <> " border border-gray-300 rounded-lg p-4 items-center"
+              }
+              [ text { style: tw $ if hovered then "text-white" else tc }
+                  (if hovered then "Mouse is inside!" else "Hover over me")
+              ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Keyboard (onKeyDown)"
+          , view
+              { focusable: true
+              , enableFocusRing: true
+              , onKeyDown: handler nativeEvent \e -> setLastKey (const e.key)
+              , keyDownEvents:
+                  let
+                    ke k = { key: k, altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  in
+                    [ ke "ArrowUp", ke "ArrowDown", ke "ArrowLeft", ke "ArrowRight" ]
+              , style: tw $ cardBg <> " border border-gray-300 rounded-lg p-4"
+              }
+              [ text { style: tw tc } "Click here and press arrow keys"
+              , text { style: tw $ "text-lg font-bold mt-2 " <> tc }
+                  (if lastKey == "" then "(no key pressed)" else "Key: " <> lastKey)
+              ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Drag & Drop"
+          , view
+              { draggedTypes: [ "fileUrl" ]
+              , onDrop: handler nativeEvent \e -> setDroppedFile (const (unsafeStringify e))
+              , onDragEnter: handler_ (pure unit)
+              , onDragLeave: handler_ (pure unit)
+              , style: tw $ cardBg <> " border-2 border-dashed border-gray-400 rounded-lg p-6 items-center"
+              }
+              [ text { style: tw $ "text-sm " <> tc } "Drop a file here"
+              , text { style: tw $ "text-xs mt-2 " <> tc }
+                  (if droppedFile == "" then "" else "Dropped: " <> droppedFile)
+              ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Vibrancy"
+          , view
+              { allowsVibrancy: true
+              , style: tw "bg-gray-500/30 rounded-lg p-4 items-center"
+              }
+              [ text { style: tw tc } "allowsVibrancy: true" ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "DynamicColorMacOS"
+          , view { style: Style.style { backgroundColor: dynamicBg } }
+              [ text { style: tw "p-3" } "Adapts to light/dark mode" ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "PlatformColor + SystemEffect"
+          , view { style: Style.style { backgroundColor: pressedAccent } }
+              [ text { style: tw "p-3 text-white" } "Accent color with pressed effect" ]
+          ]
+
+      , card
+          [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "acceptsFirstMouse"
+          , pressable
+              { acceptsFirstMouse: true
+              , onPress: handler_ (Alert.alert "Click" "Received even when window was in background")
+              , style: tw "bg-blue-500 p-3 rounded-lg"
+              }
+              [ text { style: tw "text-white text-center" } "Click me even when unfocused" ]
+          ]
+      ]
+
     styledSection = fragment
       [ heading "Styled Helpers"
       , Styled.col "gap-3"
@@ -495,6 +604,7 @@ app = component "App" \_ -> React.do
               , sectionBtn "Info" "info"
               , sectionBtn "Animated" "animated"
               , sectionBtn "Lists" "lists"
+              , sectionBtn "macOS" "macos"
               , sectionBtn "Styled" "styled"
               ]
           , case showSection of
@@ -505,6 +615,7 @@ app = component "App" \_ -> React.do
                     "apis" -> apisSection
                     "info" -> infoSection
                     "animated" -> animatedSection
+                    "macos" -> macosSection
                     "styled" -> styledSection
                     _ -> componentsSection
                 ]
@@ -512,3 +623,4 @@ app = component "App" \_ -> React.do
       )
 
 foreign import unsafeLength :: forall a. Array a -> Int
+foreign import unsafeStringify :: forall a. a -> String

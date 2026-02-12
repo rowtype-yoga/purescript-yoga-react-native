@@ -25,23 +25,43 @@ const InputAccessoryView = "InputAccessoryView";
 
 // Animated
 const AnimatedValue = class {
-  constructor(n) { this._value = n; }
-  setValue(n) { this._value = n; }
-  setOffset(n) { this._offset = n; }
+  constructor(n) {
+    this._value = n;
+  }
+  setValue(n) {
+    this._value = n;
+  }
+  setOffset(n) {
+    this._offset = n;
+  }
   flattenOffset() {}
   extractOffset() {}
-  stopAnimation(cb) { if (cb) cb(this._value); }
-  resetAnimation(cb) { if (cb) cb(this._value); }
-  interpolate(config) { return { ...config, _interpolated: true }; }
+  stopAnimation(cb) {
+    if (cb) cb(this._value);
+  }
+  resetAnimation(cb) {
+    if (cb) cb(this._value);
+  }
+  interpolate(config) {
+    return { ...config, _interpolated: true };
+  }
 };
 
 const AnimatedValueXY = class {
-  constructor({ x, y }) { this.x = new AnimatedValue(x); this.y = new AnimatedValue(y); }
-  setValue(xy) { this.x.setValue(xy.x); this.y.setValue(xy.y); }
+  constructor({ x, y }) {
+    this.x = new AnimatedValue(x);
+    this.y = new AnimatedValue(y);
+  }
+  setValue(xy) {
+    this.x.setValue(xy.x);
+    this.y.setValue(xy.y);
+  }
 };
 
 const mockCompositeAnimation = () => ({
-  start: (cb) => { if (cb) cb({ finished: true }); },
+  start: (cb) => {
+    if (cb) cb({ finished: true });
+  },
   stop: () => {},
   reset: () => {},
 });
@@ -134,7 +154,9 @@ const AccessibilityInfo = {
 
 // ActionSheetIOS
 const ActionSheetIOS = {
-  showActionSheetWithOptions: (options, callback) => { callback(0); },
+  showActionSheetWithOptions: (options, callback) => {
+    callback(0);
+  },
   dismissActionSheet: () => {},
 };
 
@@ -142,9 +164,24 @@ const ActionSheetIOS = {
 const LayoutAnimation = {
   configureNext: (config) => {},
   Presets: {
-    easeInEaseOut: { duration: 300, create: { type: "easeInEaseOut", property: "opacity" }, update: { type: "easeInEaseOut" }, delete: { type: "easeInEaseOut", property: "opacity" } },
-    linear: { duration: 500, create: { type: "linear", property: "opacity" }, update: { type: "linear" }, delete: { type: "linear", property: "opacity" } },
-    spring: { duration: 700, create: { type: "spring", property: "scaleXY" }, update: { type: "spring" }, delete: { type: "spring", property: "scaleXY" } },
+    easeInEaseOut: {
+      duration: 300,
+      create: { type: "easeInEaseOut", property: "opacity" },
+      update: { type: "easeInEaseOut" },
+      delete: { type: "easeInEaseOut", property: "opacity" },
+    },
+    linear: {
+      duration: 500,
+      create: { type: "linear", property: "opacity" },
+      update: { type: "linear" },
+      delete: { type: "linear", property: "opacity" },
+    },
+    spring: {
+      duration: 700,
+      create: { type: "spring", property: "scaleXY" },
+      update: { type: "spring" },
+      delete: { type: "spring", property: "scaleXY" },
+    },
   },
 };
 
@@ -157,7 +194,7 @@ const I18nManager = {
 };
 
 // PlatformColor
-const PlatformColor = (color) => `PlatformColor(${color})`;
+const PlatformColor = (color) => ({ semantic: [color] });
 
 // Alert
 const Alert = {
@@ -189,7 +226,12 @@ const Dimensions = {
   get: (dim) => ({ width: 375, height: 812, scale: 2, fontScale: 1 }),
 };
 
-const useWindowDimensions = () => ({ width: 375, height: 812, scale: 2, fontScale: 1 });
+const useWindowDimensions = () => ({
+  width: 375,
+  height: 812,
+  scale: 2,
+  fontScale: 1,
+});
 
 // Keyboard
 const Keyboard = {
@@ -215,7 +257,8 @@ const Platform = {
 
 // Share
 const Share = {
-  share: (content) => Promise.resolve({ action: "sharedAction", activityType: "" }),
+  share: (content) =>
+    Promise.resolve({ action: "sharedAction", activityType: "" }),
 };
 
 // AppRegistry
@@ -224,12 +267,48 @@ const AppRegistry = {
 };
 
 export {
-  View, Text, TextInput, ScrollView, Pressable, Image, ActivityIndicator,
-  FlatList, Switch, Button, TouchableOpacity, TouchableHighlight,
-  TouchableWithoutFeedback, Modal, SafeAreaView, KeyboardAvoidingView,
-  ImageBackground, SectionList, RefreshControl, StatusBar, InputAccessoryView,
-  Animated, useAnimatedValue, Easing, StyleSheet, PanResponder, PixelRatio,
-  AccessibilityInfo, ActionSheetIOS, LayoutAnimation, I18nManager, PlatformColor,
-  Alert, Appearance, useColorScheme, AppState, Clipboard, Dimensions,
-  useWindowDimensions, Keyboard, Linking, Platform, Share, AppRegistry,
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Pressable,
+  Image,
+  ActivityIndicator,
+  FlatList,
+  Switch,
+  Button,
+  TouchableOpacity,
+  TouchableHighlight,
+  TouchableWithoutFeedback,
+  Modal,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  ImageBackground,
+  SectionList,
+  RefreshControl,
+  StatusBar,
+  InputAccessoryView,
+  Animated,
+  useAnimatedValue,
+  Easing,
+  StyleSheet,
+  PanResponder,
+  PixelRatio,
+  AccessibilityInfo,
+  ActionSheetIOS,
+  LayoutAnimation,
+  I18nManager,
+  PlatformColor,
+  Alert,
+  Appearance,
+  useColorScheme,
+  AppState,
+  Clipboard,
+  Dimensions,
+  useWindowDimensions,
+  Keyboard,
+  Linking,
+  Platform,
+  Share,
+  AppRegistry,
 };

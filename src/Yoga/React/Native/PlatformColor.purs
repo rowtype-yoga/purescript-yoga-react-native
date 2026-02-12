@@ -1,5 +1,8 @@
 module Yoga.React.Native.PlatformColor
-  ( platformColor
+  ( ColorValue
+  , platformColor
   ) where
 
-foreign import platformColor :: String -> String
+foreign import data ColorValue :: Type
+
+foreign import platformColor :: String -> ColorValue
