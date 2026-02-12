@@ -1,0 +1,18 @@
+import { Easing } from "react-native";
+export const step0 = Easing.step0;
+export const step1 = Easing.step1;
+export const linear = Easing.linear;
+export const ease = Easing.ease;
+export const quad = Easing.quad;
+export const cubic = Easing.cubic;
+export const poly = (n) => Easing.poly(n);
+export const sin = Easing.sin;
+export const circle = Easing.circle;
+export const exp = Easing.exp;
+export const elastic = (b) => Easing.elastic(b);
+export const back = (s) => Easing.back(s);
+export const bounce = Easing.bounce;
+export const bezier = (x1) => (y1) => (x2) => (y2) => Easing.bezier(x1, y1, x2, y2);
+export const easeIn = (fn) => Easing.in(fn);
+export const easeOut = (fn) => Easing.out(fn);
+export const easeInOut = (fn) => Easing.inOut(fn);

@@ -19,8 +19,12 @@ module Yoga.React.Native
   , module Yoga.React.Native.SectionList
   , module Yoga.React.Native.RefreshControl
   , module Yoga.React.Native.StatusBar
+  , module Yoga.React.Native.InputAccessoryView
   , module Yoga.React.Native.Style
   , module Yoga.React.Native.Internal
+  , module Yoga.React.Native.Events
+  , module Yoga.React.Native.DynamicColorMacOS
+  , module Yoga.React.Native.ColorWithSystemEffectMacOS
   , string
   , registerComponent
   ) where
@@ -32,9 +36,13 @@ import Effect.Uncurried (EffectFn2, runEffectFn2)
 import React.Basic (JSX)
 import Yoga.React.Native.ActivityIndicator (activityIndicator, ActivityIndicatorAttributes)
 import Yoga.React.Native.Button (button, ButtonAttributes)
+import Yoga.React.Native.ColorWithSystemEffectMacOS (colorWithSystemEffect)
+import Yoga.React.Native.DynamicColorMacOS (dynamicColor)
+import Yoga.React.Native.Events (nativeEvent)
 import Yoga.React.Native.FlatList (flatList, FlatListAttributes)
 import Yoga.React.Native.Image (image, ImageAttributes, ImageSource, uri)
 import Yoga.React.Native.ImageBackground (imageBackground, imageBackground_, ImageBackgroundAttributes)
+import Yoga.React.Native.InputAccessoryView (inputAccessoryView, inputAccessoryView_, InputAccessoryViewAttributes)
 import Yoga.React.Native.Internal (class IsJSX, FFINativeComponent, FFINativeComponent_)
 import Yoga.React.Native.KeyboardAvoidingView (keyboardAvoidingView, keyboardAvoidingView_, KeyboardAvoidingViewAttributes)
 import Yoga.React.Native.Modal (modal, modal_, ModalAttributes)

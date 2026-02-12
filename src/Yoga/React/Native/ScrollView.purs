@@ -1,6 +1,6 @@
 module Yoga.React.Native.ScrollView (scrollView, scrollView_, ScrollViewAttributes) where
 
-import React.Basic (ReactComponent)
+import React.Basic (JSX, ReactComponent)
 import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, FFINativeComponent_, createNativeElement, createNativeElement_)
@@ -23,4 +23,5 @@ type ScrollViewAttributes = BaseAttributes
   , pagingEnabled :: Boolean
   , bounces :: Boolean
   , onScroll :: EventHandler
+  , refreshControl :: JSX
   )

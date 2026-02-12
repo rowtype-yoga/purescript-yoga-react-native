@@ -1,0 +1,21 @@
+import RNFS from "react-native-fs";
+export const documentDirectoryPath = RNFS.DocumentDirectoryPath;
+export const cachesDirectoryPath = RNFS.CachesDirectoryPath;
+export const temporaryDirectoryPath = RNFS.TemporaryDirectoryPath;
+export const downloadDirectoryPath = RNFS.DownloadDirectoryPath || "";
+export const libraryDirectoryPath = RNFS.LibraryDirectoryPath || "";
+const mkAff = (promise) => (onError, onSuccess) => {
+  promise.then(onSuccess, onError);
+  return (cancelError, onCancelerError, onCancelerSuccess) => onCancelerSuccess();
+};
+export const readFileImpl = (path) => (encoding) => mkAff(RNFS.readFile(path, encoding));
+export const writeFileImpl = (path) => (contents) => (encoding) => mkAff(RNFS.writeFile(path, contents, encoding));
+export const appendFileImpl = (path) => (contents) => (encoding) => mkAff(RNFS.appendFile(path, contents, encoding));
+export const existsImpl = (path) => mkAff(RNFS.exists(path));
+export const unlinkImpl = (path) => mkAff(RNFS.unlink(path));
+export const readDirImpl = (path) => mkAff(RNFS.readDir(path).then((items) => items.map((item) => ({ name: item.name, path: item.path, size: item.size, isFile: item.isFile(), isDirectory: item.isDirectory() }))));
+export const mkdirImpl = (path) => mkAff(RNFS.mkdir(path));
+export const statImpl = (path) => mkAff(RNFS.stat(path).then((s) => ({ name: s.name || "", path: s.path, size: s.size, mode: s.mode, ctime: s.ctime, mtime: s.mtime, isFile: s.isFile(), isDirectory: s.isDirectory() })));
+export const hashImpl = (path) => (algorithm) => mkAff(RNFS.hash(path, algorithm));
+export const copyFileImpl = (src) => (dest) => mkAff(RNFS.copyFile(src, dest));
+export const moveFileImpl = (src) => (dest) => mkAff(RNFS.moveFile(src, dest));

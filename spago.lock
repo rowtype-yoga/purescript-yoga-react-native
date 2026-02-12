@@ -26,10 +26,17 @@
         "path": "example-macos",
         "core": {
           "dependencies": [
+            "aff",
+            "arrays",
+            "console",
             "effect",
+            "foldable-traversable",
+            "maybe",
+            "nullable",
             "prelude",
             "react-basic",
             "react-basic-hooks",
+            "tuples",
             "yoga-react",
             "yoga-react-native"
           ]

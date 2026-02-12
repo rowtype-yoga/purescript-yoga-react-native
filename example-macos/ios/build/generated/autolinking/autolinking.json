@@ -1,20 +1,45 @@
 {
-  "root": "/Users/mark/Developer/purescript-yoga-react/example-macos",
-  "reactNativePath": "/Users/mark/Developer/purescript-yoga-react/example-macos/node_modules/react-native",
+  "root": "/Users/mark/Developer/purescript-yoga-react-native/example-macos",
+  "reactNativePath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native",
   "reactNativeVersion": "0.81",
   "dependencies": {
+    "react-native-fs": {
+      "root": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-fs",
+      "name": "react-native-fs",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-fs/RNFS.podspec",
+          "version": "2.20.0",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-fs/android",
+          "packageImportPath": "import com.rnfs.RNFSPackage;",
+          "packageInstance": "new RNFSPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "cmakeListsPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-fs/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        },
+        "macos": null
+      }
+    },
     "react-native-safe-area-context": {
-      "root": "/Users/mark/Developer/purescript-yoga-react/example-macos/node_modules/react-native-safe-area-context",
+      "root": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-safe-area-context",
       "name": "react-native-safe-area-context",
       "platforms": {
         "ios": {
-          "podspecPath": "/Users/mark/Developer/purescript-yoga-react/example-macos/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec",
+          "podspecPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec",
           "version": "5.6.2",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "/Users/mark/Developer/purescript-yoga-react/example-macos/node_modules/react-native-safe-area-context/android",
+          "sourceDir": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-safe-area-context/android",
           "packageImportPath": "import com.th3rdwave.safeareacontext.SafeAreaContextPackage;",
           "packageInstance": "new SafeAreaContextPackage()",
           "buildTypes": [],
@@ -23,7 +48,7 @@
             "RNCSafeAreaProviderComponentDescriptor",
             "RNCSafeAreaViewComponentDescriptor"
           ],
-          "cmakeListsPath": "/Users/mark/Developer/purescript-yoga-react/example-macos/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -195,7 +220,7 @@
         {
           "name": "--path <path>",
           "description": "Path to the React Native project root.",
-          "default": "/Users/mark/Developer/purescript-yoga-react/example-macos"
+          "default": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/macos"
         },
         {
           "name": "--platform <string>",
@@ -573,7 +598,7 @@
   "assets": [],
   "project": {
     "ios": {
-      "sourceDir": "/Users/mark/Developer/purescript-yoga-react/example-macos/ios",
+      "sourceDir": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/ios",
       "xcodeProject": {
         "name": "YogaReactExample.xcodeproj",
         "path": ".",
@@ -582,7 +607,7 @@
       "assets": []
     },
     "android": {
-      "sourceDir": "/Users/mark/Developer/purescript-yoga-react/example-macos/android",
+      "sourceDir": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/android",
       "appName": "app",
       "packageName": "com.yogareactexample",
       "applicationId": "com.yogareactexample",
@@ -590,11 +615,11 @@
       "assets": []
     },
     "macos": {
-      "sourceDir": "/Users/mark/Developer/purescript-yoga-react/example-macos/macos",
+      "sourceDir": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/macos",
       "xcodeProject": {
-        "name": "YogaReactExample.xcodeproj",
+        "name": "YogaReactExample.xcworkspace",
         "path": ".",
-        "isWorkspace": false
+        "isWorkspace": true
       },
       "assets": []
     }
