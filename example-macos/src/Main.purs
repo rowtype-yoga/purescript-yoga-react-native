@@ -78,8 +78,10 @@ app = component "App" \_ -> React.do
     bg = if isDark then "bg-gray-900" else "bg-gray-100"
     tc = if isDark then "text-white" else "text-gray-900"
     cardBg = if isDark then "bg-gray-800" else "bg-white"
-    dynamicBg = DynamicColorMacOS.dynamicColor { light: "#f3f4f6", dark: "#111827" }
-    pressedColor = ColorWithSystemEffectMacOS.colorWithSystemEffect (PlatformColor.platformColor "controlAccentColor") "pressed"
+    -- NOTE: DynamicColorMacOS/ColorWithSystemEffectMacOS crash at runtime due to
+    -- react-native-macos normalizeColor default export bug (require vs import)
+    -- dynamicBg = DynamicColorMacOS.dynamicColor { light: "#f3f4f6", dark: "#111827" }
+    -- pressedColor = ColorWithSystemEffectMacOS.colorWithSystemEffect (PlatformColor.platformColor "controlAccentColor") "pressed"
 
     _ = PanResponder.create {}
 
@@ -387,12 +389,12 @@ app = component "App" \_ -> React.do
 
       , card
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "DynamicColorMacOS"
-          , view { style: dynamicBg } [ string "Adapts to light/dark" ]
+          , text { style: tw $ "text-sm italic " <> tc } "Disabled: normalizeColor bug in react-native-macos"
           ]
 
       , card
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "PlatformColor + SystemEffect"
-          , text { style: tw $ "text-sm " <> tc } ("Pressed accent: " <> pressedColor)
+          , text { style: tw $ "text-sm italic " <> tc } "Disabled: normalizeColor bug in react-native-macos"
           ]
 
       , card
@@ -411,23 +413,23 @@ app = component "App" \_ -> React.do
           [ text { style: tw $ "text-base font-semibold mb-2 " <> tc } "Fade & Slide"
           , view { style: tw "flex-row gap-2 mb-3" }
               [ smallBtn "Fade Out" do
-                  let anim = Animated.timing fadeAnim { toValue: 0.0, duration: 500, useNativeDriver: true }
+                  let anim = Animated.timing fadeAnim { toValue: 0.0, duration: 500, useNativeDriver: false }
                   Animated.start anim
               , smallBtn "Fade In" do
-                  let anim = Animated.timing fadeAnim { toValue: 1.0, duration: 500, useNativeDriver: true }
+                  let anim = Animated.timing fadeAnim { toValue: 1.0, duration: 500, useNativeDriver: false }
                   Animated.start anim
               , smallBtn "Slide" do
                   let
                     anim = Animated.sequence
-                      [ Animated.timing slideAnim { toValue: 100.0, duration: 300, easing: Easing.easeInOut Easing.quad, useNativeDriver: true }
-                      , Animated.timing slideAnim { toValue: 0.0, duration: 300, easing: Easing.easeInOut Easing.quad, useNativeDriver: true }
+                      [ Animated.timing slideAnim { toValue: 100.0, duration: 300, easing: Easing.easeInOut Easing.quad, useNativeDriver: false }
+                      , Animated.timing slideAnim { toValue: 0.0, duration: 300, easing: Easing.easeInOut Easing.quad, useNativeDriver: false }
                       ]
                   Animated.start anim
               , smallBtn "Spring" do
-                  let anim = Animated.spring slideAnim { toValue: 50.0, useNativeDriver: true }
+                  let anim = Animated.spring slideAnim { toValue: 50.0, useNativeDriver: false }
                   Animated.startWithCallback anim
                     ( mkEffectFn1 \_ -> do
-                        let back' = Animated.spring slideAnim { toValue: 0.0, useNativeDriver: true }
+                        let back' = Animated.spring slideAnim { toValue: 0.0, useNativeDriver: false }
                         Animated.start back'
                     )
               ]
