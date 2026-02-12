@@ -516,15 +516,20 @@ app = component "App" \_ -> React.do
           , view
               { focusable: true
               , enableFocusRing: true
-              , onKeyDown: handler nativeEvent \e -> setLastKey (const e.key)
+              , onKeyDown: handler nativeEvent \(e :: { key :: String }) -> setLastKey (const e.key)
               , keyDownEvents:
-                  let
-                    ke k = { key: k, altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
-                  in
-                    [ ke "ArrowUp", ke "ArrowDown", ke "ArrowLeft", ke "ArrowRight" ]
+                  [ { key: "ArrowUp", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  , { key: "ArrowDown", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  , { key: "ArrowLeft", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  , { key: "ArrowRight", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  , { key: "a", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  , { key: "s", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  , { key: "d", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  , { key: "w", altKey: false, ctrlKey: false, metaKey: false, shiftKey: false }
+                  ]
               , style: tw $ cardBg <> " border border-gray-300 rounded-lg p-4"
               }
-              [ text { style: tw tc } "Click here and press arrow keys"
+              [ text { style: tw tc } "Click here, then press arrow keys or WASD"
               , text { style: tw $ "text-lg font-bold mt-2 " <> tc }
                   (if lastKey == "" then "(no key pressed)" else "Key: " <> lastKey)
               ]
