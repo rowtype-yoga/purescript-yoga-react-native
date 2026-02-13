@@ -320,8 +320,7 @@ app = component "App" \_ -> React.do
               [ sectionBtn "Components" "components"
               ]
           , scrollView { style: tw "flex-1 px-4 pt-3" }
-              [ componentsSection
-              , view { style: tw "h-4" } []
+              [ heading "Just a heading test"
               ]
           ]
       )
