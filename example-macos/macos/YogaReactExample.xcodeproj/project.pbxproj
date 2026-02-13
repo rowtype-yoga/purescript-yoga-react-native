@@ -18,6 +18,7 @@
 		AA0000072437B4B30078DB4F /* RCTMacOSControlsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */; };
 		BE70DEDEE32B54947FC49AFF /* libPods-YogaReactExample-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */; };
 		DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F264B867F71A9A4C58140DE /* PrivacyInfo.xcprivacy */; };
+		BB0000012437B4B30078DB4F /* windy_tree.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000002437B4B30078DB4F /* windy_tree.riv */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTMacOSControlsManager.m; sourceTree = "<group>"; };
 		C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-YogaReactExample-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		BB0000002437B4B30078DB4F /* windy_tree.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = windy_tree.riv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +85,7 @@
 				AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */,
 				AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */,
 				AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */,
+				BB0000002437B4B30078DB4F /* windy_tree.riv */,
 			);
 			path = "YogaReactExample-macOS";
 			sourceTree = "<group>";
@@ -222,6 +225,7 @@
 				514201522437B4B40078DB4F /* Assets.xcassets in Resources */,
 				514201552437B4B40078DB4F /* Main.storyboard in Resources */,
 				DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */,
+				BB0000012437B4B30078DB4F /* windy_tree.riv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
