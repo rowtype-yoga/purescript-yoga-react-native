@@ -365,7 +365,7 @@ app = component "App" \_ -> React.do
 
       , card
           [ label' "Share"
-          , accentBtn "Share" (launchAff_ $ void $ Share.share { message: "Check out PureScript!", title: "PureScript", url: "https://purescript.org" })
+          , caption "(iOS only)"
           ]
 
       , card
