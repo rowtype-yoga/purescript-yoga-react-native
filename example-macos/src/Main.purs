@@ -120,14 +120,14 @@ app = component "App" \_ -> React.do
           ]
       , allowsVibrancy: true
       }
-      [ sidebarHeader "FAVORITES"
-      , sidebarItem "Desktop" (homePath <> "/Desktop") (sidebarIcon "#007AFF" "D")
-      , sidebarItem "Documents" (homePath <> "/Documents") (sidebarIcon "#007AFF" "D")
-      , sidebarItem "Downloads" (homePath <> "/Downloads") (sidebarIcon "#007AFF" "↓")
-      , sidebarItem "Home" homePath (sidebarIcon "#8E8E93" "⌂")
-      , sidebarHeader "LOCATIONS"
-      , sidebarItem "Macintosh HD" "/" (sidebarIcon "#FF9500" "◻")
+      [ sidebarHeader "APP"
+      , sidebarItem "Documents" FS.documentDirectoryPath (sidebarIcon "#007AFF" "D")
+      , sidebarItem "Caches" FS.cachesDirectoryPath (sidebarIcon "#8E8E93" "C")
+      , sidebarItem "Temp" FS.temporaryDirectoryPath (sidebarIcon "#FF9500" "T")
+      , sidebarHeader "SYSTEM"
       , sidebarItem "tmp" "/tmp" (sidebarIcon "#8E8E93" "T")
+      , sidebarItem "usr" "/usr" (sidebarIcon "#8E8E93" "U")
+      , sidebarItem "var" "/var" (sidebarIcon "#8E8E93" "V")
       ]
 
     -- Toolbar
