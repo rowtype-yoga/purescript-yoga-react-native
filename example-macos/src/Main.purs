@@ -123,6 +123,7 @@ app = component "App" \_ -> React.do
             [ tw "px-4 py-2 rounded-lg"
             , Style.style { backgroundColor: "#007AFF" }
             ]
+        , tooltip: lbl
         }
         [ text { style: tw "text-white text-sm font-semibold text-center" } lbl ]
 
