@@ -11,22 +11,22 @@
 
 @implementation RCTSFSymbolView
 
-- (instancetype)init {
-  if (self = [super init]) {
-    _imageView = [[NSImageView alloc] init];
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _imageView = [[NSImageView alloc] initWithFrame:self.bounds];
     _imageView.imageScaling = NSImageScaleProportionallyUpOrDown;
-    _imageView.translatesAutoresizingMaskIntoConstraints = NO;
+    _imageView.imageAlignment = NSImageAlignCenter;
+    _imageView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [self addSubview:_imageView];
-    [NSLayoutConstraint activateConstraints:@[
-      [_imageView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
-      [_imageView.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-      [_imageView.widthAnchor constraintEqualToAnchor:self.widthAnchor],
-      [_imageView.heightAnchor constraintEqualToAnchor:self.heightAnchor],
-    ]];
     _size = 16.0;
-    _weight = 0.0; // regular
+    _weight = 0.0;
   }
   return self;
+}
+
+- (void)layout {
+  [super layout];
+  _imageView.frame = self.bounds;
 }
 
 - (void)updateImage {
@@ -36,7 +36,6 @@
                              accessibilityDescription:_name];
   if (!image) return;
 
-  // Apply point size and weight via symbol configuration
   NSFontWeight fontWeight = NSFontWeightRegular;
   if (_weight < -0.3) fontWeight = NSFontWeightLight;
   else if (_weight < 0) fontWeight = NSFontWeightRegular;
@@ -83,7 +82,7 @@
 RCT_EXPORT_MODULE(SFSymbol)
 
 - (NSView *)view {
-  return [[RCTSFSymbolView alloc] init];
+  return [[RCTSFSymbolView alloc] initWithFrame:CGRectZero];
 }
 
 RCT_EXPORT_VIEW_PROPERTY(name, NSString)
@@ -92,7 +91,6 @@ RCT_EXPORT_VIEW_PROPERTY(weight, CGFloat)
 RCT_CUSTOM_VIEW_PROPERTY(color, NSString, RCTSFSymbolView) {
   if (json) {
     NSString *hex = [json description];
-    // Parse hex color string like "#007AFF"
     unsigned int rgb = 0;
     NSString *clean = [hex stringByReplacingOccurrencesOfString:@"#" withString:@""];
     [[NSScanner scannerWithString:clean] scanHexInt:&rgb];
