@@ -895,13 +895,6 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   return contain;
 }
 
-- (void)setFit:(NSString *)fit {
-  if ([_fit isEqualToString:fit]) return;
-  _fit = fit;
-  if (_resourceName.length > 0) [self loadFromResource];
-  else if (_url.length > 0) [self loadFromURL];
-}
-
 - (void)setResourceName:(NSString *)resourceName {
   if ([_resourceName isEqualToString:resourceName]) return;
   _resourceName = resourceName;
@@ -920,10 +913,10 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   NSString *name = [_resourceName copy];
   NSString *sm = [_stateMachineName copy];
   NSString *ab = [_artboardName copy];
+  enum RiveFit f = [self parseFit];
   BOOL ap = _autoplay;
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-    enum RiveFit f = [weakSelf parseFit];
     RiveViewModel *vm = [[RiveViewModel alloc]
       initWithFileName:name
              extension:@"riv"
@@ -950,10 +943,10 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   NSString *u = [_url copy];
   NSString *sm = [_stateMachineName copy];
   NSString *ab = [_artboardName copy];
+  enum RiveFit f = [self parseFit];
   BOOL ap = _autoplay;
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-    enum RiveFit f = [weakSelf parseFit];
     RiveViewModel *vm = [[RiveViewModel alloc]
       initWithWebURL:u
     stateMachineName:sm
