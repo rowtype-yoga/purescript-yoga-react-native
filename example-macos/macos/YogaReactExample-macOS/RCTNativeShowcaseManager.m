@@ -891,6 +891,7 @@
 
 @interface RCTNativeShowcaseView : NSView
 @property (nonatomic, strong) NSVisualEffectView *backgroundView;
+@property (nonatomic, strong) NSSegmentedControl *segmentedControl;
 @property (nonatomic, strong) NSTabView *tabView;
 @end
 
@@ -898,18 +899,26 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    // System background that adapts to light/dark mode
+    // System background
     _backgroundView = [[NSVisualEffectView alloc] initWithFrame:self.bounds];
     _backgroundView.material = NSVisualEffectMaterialWindowBackground;
     _backgroundView.blendingMode = NSVisualEffectBlendingModeBehindWindow;
-    _backgroundView.state = NSVisualEffectStateFollowsWindowActiveState;
+    _backgroundView.state = NSVisualEffectStateActive;
     _backgroundView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [self addSubview:_backgroundView];
 
-    _tabView = [[NSTabView alloc] initWithFrame:self.bounds];
-    _tabView.tabViewType = NSTopTabsBezelBorder;
-    _tabView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-    _tabView.controlSize = NSControlSizeRegular;
+    // Segmented control for tab switching
+    _segmentedControl = [NSSegmentedControl segmentedControlWithLabels:@[@"Controls", @"Inspector", @"Text Editor", @"Browser", @"Settings"]
+                                                         trackingMode:NSSegmentSwitchTrackingSelectOne
+                                                               target:self
+                                                               action:@selector(tabChanged:)];
+    _segmentedControl.selectedSegment = 0;
+    _segmentedControl.segmentStyle = NSSegmentStyleAutomatic;
+    [_backgroundView addSubview:_segmentedControl];
+
+    // Borderless tab view (no built-in tab bar or bezel)
+    _tabView = [[NSTabView alloc] initWithFrame:NSZeroRect];
+    _tabView.tabViewType = NSNoTabsNoBorder;
 
     [self addTab:@"Controls" view:[[RCTControlsGalleryView alloc] initWithFrame:NSZeroRect]];
     [self addTab:@"Inspector" view:[[RCTInspectorView alloc] initWithFrame:NSZeroRect]];
@@ -920,6 +929,10 @@
     [_backgroundView addSubview:_tabView];
   }
   return self;
+}
+
+- (void)tabChanged:(NSSegmentedControl *)sender {
+  [_tabView selectTabViewItemAtIndex:sender.selectedSegment];
 }
 
 - (void)addTab:(NSString *)label view:(NSView *)view {
@@ -934,8 +947,7 @@
   if (self.window) {
     self.window.toolbar = nil;
     self.window.title = @"Native macOS Showcase";
-    // Ensure window has proper appearance for dark/light mode
-    self.window.appearance = nil; // follow system
+    self.window.appearance = nil;
   }
 }
 
@@ -945,8 +957,19 @@
 }
 - (void)layout {
   [super layout];
-  _backgroundView.frame = self.bounds;
-  _tabView.frame = _backgroundView.bounds;
+  NSRect b = self.bounds;
+  _backgroundView.frame = b;
+
+  // Center the segmented control at top
+  CGFloat segH = 28;
+  CGFloat topPad = 12;
+  [_segmentedControl sizeToFit];
+  NSSize segSize = _segmentedControl.frame.size;
+  _segmentedControl.frame = NSMakeRect((b.size.width - segSize.width) / 2, b.size.height - segH - topPad, segSize.width, segH);
+
+  // Tab view fills below the segmented control
+  CGFloat contentTop = b.size.height - segH - topPad - 8;
+  _tabView.frame = NSMakeRect(0, 0, b.size.width, contentTop);
 }
 @end
 
