@@ -17,8 +17,6 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    self.wantsLayer = YES;
-
     _tabView = [[NSTabView alloc] initWithFrame:self.bounds];
     _tabView.tabViewType = NSNoTabsNoBorder;
     _tabView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
@@ -203,10 +201,9 @@
   return pane;
 }
 
-- (BOOL)isOpaque { return YES; }
-- (void)drawRect:(NSRect)dirtyRect {
-  [[NSColor windowBackgroundColor] setFill];
-  NSRectFill(dirtyRect);
+- (BOOL)wantsUpdateLayer { return YES; }
+- (void)updateLayer {
+  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
 }
 - (void)layout { [super layout]; _tabView.frame = self.bounds; }
 
@@ -252,8 +249,6 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    self.wantsLayer = YES;
-
     _scrollView = [[NSScrollView alloc] initWithFrame:self.bounds];
     _scrollView.hasVerticalScroller = YES;
     _scrollView.hasHorizontalScroller = NO;
@@ -305,10 +300,9 @@
   return self;
 }
 
-- (BOOL)isOpaque { return YES; }
-- (void)drawRect:(NSRect)dirtyRect {
-  [[NSColor windowBackgroundColor] setFill];
-  NSRectFill(dirtyRect);
+- (BOOL)wantsUpdateLayer { return YES; }
+- (void)updateLayer {
+  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
@@ -328,8 +322,6 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    self.wantsLayer = YES;
-
     _splitView = [[NSSplitView alloc] initWithFrame:self.bounds];
     _splitView.vertical = YES;
     _splitView.dividerStyle = NSSplitViewDividerStyleThin;
@@ -552,10 +544,9 @@
   *y -= 26;
 }
 
-- (BOOL)isOpaque { return YES; }
-- (void)drawRect:(NSRect)dirtyRect {
-  [[NSColor windowBackgroundColor] setFill];
-  NSRectFill(dirtyRect);
+- (BOOL)wantsUpdateLayer { return YES; }
+- (void)updateLayer {
+  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
@@ -574,8 +565,6 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    self.wantsLayer = YES;
-
     NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:self.bounds];
     scroll.hasVerticalScroller = YES;
     scroll.autohidesScrollers = YES;
@@ -775,10 +764,9 @@
   *y -= 30;
 }
 
-- (BOOL)isOpaque { return YES; }
-- (void)drawRect:(NSRect)dirtyRect {
-  [[NSColor windowBackgroundColor] setFill];
-  NSRectFill(dirtyRect);
+- (BOOL)wantsUpdateLayer { return YES; }
+- (void)updateLayer {
+  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
@@ -803,12 +791,8 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    self.wantsLayer = YES;
-
     // Toolbar
     _toolbar = [[NSView alloc] initWithFrame:NSZeroRect];
-    _toolbar.wantsLayer = YES;
-    _toolbar.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
     _toolbar.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin;
 
     NSButton *back = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:@"chevron.left" accessibilityDescription:@"Back"] target:self action:@selector(goBack)];
@@ -895,10 +879,9 @@
   _urlBar.stringValue = webView.URL.absoluteString ?: @"";
 }
 
-- (BOOL)isOpaque { return YES; }
-- (void)drawRect:(NSRect)dirtyRect {
-  [[NSColor windowBackgroundColor] setFill];
-  NSRectFill(dirtyRect);
+- (BOOL)wantsUpdateLayer { return YES; }
+- (void)updateLayer {
+  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
 }
 @end
 
@@ -956,10 +939,9 @@
   }
 }
 
-- (BOOL)isOpaque { return YES; }
-- (void)drawRect:(NSRect)dirtyRect {
-  [[NSColor windowBackgroundColor] setFill];
-  NSRectFill(dirtyRect);
+- (BOOL)wantsUpdateLayer { return YES; }
+- (void)updateLayer {
+  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
