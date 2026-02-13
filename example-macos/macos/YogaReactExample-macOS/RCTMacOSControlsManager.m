@@ -898,32 +898,56 @@ RCT_EXPORT_MODULE(MacOSScrollView)
 - (void)loadFromResource {
   if (_resourceName.length == 0) return;
   [self clearRiveView];
-  _viewModel = [[RiveViewModel alloc]
-    initWithFileName:_resourceName
-           extension:@"riv"
-                  in:[NSBundle mainBundle]
-    stateMachineName:_stateMachineName
-                 fit:contain
-           alignment:center
-            autoPlay:_autoplay
-       artboardName:_artboardName
-             loadCdn:YES
-        customLoader:nil];
-  [self attachRiveView];
+  NSString *name = [_resourceName copy];
+  NSString *sm = [_stateMachineName copy];
+  NSString *ab = [_artboardName copy];
+  BOOL ap = _autoplay;
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    RiveViewModel *vm = [[RiveViewModel alloc]
+      initWithFileName:name
+             extension:@"riv"
+                    in:[NSBundle mainBundle]
+      stateMachineName:sm
+                   fit:contain
+             alignment:center
+              autoPlay:ap
+         artboardName:ab
+               loadCdn:YES
+          customLoader:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (!strongSelf) return;
+      strongSelf.viewModel = vm;
+      [strongSelf attachRiveView];
+    });
+  });
 }
 
 - (void)loadFromURL {
   if (_url.length == 0) return;
   [self clearRiveView];
-  _viewModel = [[RiveViewModel alloc]
-    initWithWebURL:_url
-  stateMachineName:_stateMachineName
-               fit:contain
-         alignment:center
-          autoPlay:_autoplay
-           loadCdn:YES
-      artboardName:_artboardName];
-  [self attachRiveView];
+  NSString *u = [_url copy];
+  NSString *sm = [_stateMachineName copy];
+  NSString *ab = [_artboardName copy];
+  BOOL ap = _autoplay;
+  __weak typeof(self) weakSelf = self;
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    RiveViewModel *vm = [[RiveViewModel alloc]
+      initWithWebURL:u
+    stateMachineName:sm
+                 fit:contain
+           alignment:center
+            autoPlay:ap
+             loadCdn:YES
+        artboardName:ab];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (!strongSelf) return;
+      strongSelf.viewModel = vm;
+      [strongSelf attachRiveView];
+    });
+  });
 }
 
 - (void)clearRiveView {
@@ -940,6 +964,10 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   _riveView.frame = self.bounds;
   _riveView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
   [self addSubview:_riveView];
+}
+
+- (void)dealloc {
+  [self clearRiveView];
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
