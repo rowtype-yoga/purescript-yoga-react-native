@@ -18,7 +18,6 @@ import Yoga.React.Native.MacOS.DatePicker (nativeDatePicker)
 import Yoga.React.Native.MacOS.LevelIndicator (nativeLevelIndicator)
 import Yoga.React.Native.MacOS.PopUp (nativePopUp)
 import Yoga.React.Native.MacOS.Progress (nativeProgress)
-import Yoga.React.Native.MacOS.Segmented (nativeSegmented)
 import Yoga.React.Native.MacOS.Slider (nativeSlider)
 import Yoga.React.Native.MacOS.Switch (nativeSwitch)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
@@ -26,6 +25,8 @@ import Yoga.React.Native.MacOS.TextEditor (nativeTextEditor)
 import Yoga.React.Native.MacOS.WebView (nativeWebView)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.MacOS.Rive (nativeRiveView_)
+import Yoga.React.Native.MacOS.Toolbar (nativeToolbar)
+import Yoga.React.Native.MacOS.VisualEffect (nativeVisualEffect)
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
@@ -33,7 +34,7 @@ main = registerComponent "YogaReactExample" \_ -> app {}
 
 app :: {} -> JSX
 app = component "App" \_ -> React.do
-  activeTab /\ setActiveTab <- useState' 0
+  activeTab /\ setActiveTab <- useState' "controls"
   sliderValue /\ setSliderValue <- useState' 50.0
   switchOn /\ setSwitchOn <- useState' false
   selectedColor /\ setSelectedColor <- useState' "#FF6600"
@@ -51,48 +52,60 @@ app = component "App" \_ -> React.do
   let cardBg = if isDark then "#2A2A2A" else "#F0F0F0"
   let bg = if isDark then "#1E1E1E" else "#FFFFFF"
   pure do
-    safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: bg } }
-      ( view { style: tw "flex-1" <> Style.style { backgroundColor: bg } }
-          [ nativeSegmented
-              { style: Style.style { height: 32.0, marginHorizontal: 16.0, marginTop: 12.0 }
-              , labels: [ "Controls", "Editor", "Browser", "Rive" ]
-              , selectedIndex: activeTab
-              , onChange: extractInt "selectedIndex" setActiveTab
-              }
-          , view { style: tw "flex-1 mt-3" }
-              [ if activeTab == 0 then controlsTab
-                  { sliderValue
-                  , setSliderValue
-                  , switchOn
-                  , setSwitchOn
-                  , selectedColor
-                  , setSelectedColor
-                  , popUpIndex
-                  , setPopUpIndex
-                  , popUpTitle
-                  , setPopUpTitle
-                  , searchText
-                  , setSearchText
-                  , buttonStatus
-                  , setButtonStatus
-                  , dateText
-                  , setDateText
-                  , fg
-                  , dimFg
-                  , cardBg
+    nativeVisualEffect
+      { materialName: "windowBackground"
+      , style: tw "flex-1"
+      }
+      ( safeAreaView { style: tw "flex-1" }
+          ( view { style: tw "flex-1" }
+              [ nativeToolbar
+                  { items:
+                      [ { id: "controls", label: "Controls", sfSymbol: "slider.horizontal.3" }
+                      , { id: "editor", label: "Editor", sfSymbol: "doc.richtext" }
+                      , { id: "browser", label: "Browser", sfSymbol: "globe" }
+                      , { id: "rive", label: "Rive", sfSymbol: "play.circle" }
+                      ]
+                  , selectedItem: activeTab
+                  , toolbarStyle: "unified"
+                  , windowTitle: "PureScript React Native"
+                  , onSelectItem: extractString "itemId" setActiveTab
+                  , style: Style.style { height: 0.0, width: 0.0 }
                   }
-                else if activeTab == 1 then editorTab { fg }
-                else if activeTab == 2 then browserTab
-                  { browserUrl
-                  , setBrowserUrl
-                  , urlBarText
-                  , setUrlBarText
-                  , fg
-                  , dimFg
-                  }
-                else riveTab { fg, bg }
+              , view { style: tw "flex-1" }
+                  [ if activeTab == "controls" then controlsTab
+                      { sliderValue
+                      , setSliderValue
+                      , switchOn
+                      , setSwitchOn
+                      , selectedColor
+                      , setSelectedColor
+                      , popUpIndex
+                      , setPopUpIndex
+                      , popUpTitle
+                      , setPopUpTitle
+                      , searchText
+                      , setSearchText
+                      , buttonStatus
+                      , setButtonStatus
+                      , dateText
+                      , setDateText
+                      , fg
+                      , dimFg
+                      , cardBg
+                      }
+                    else if activeTab == "editor" then editorTab { fg }
+                    else if activeTab == "browser" then browserTab
+                      { browserUrl
+                      , setBrowserUrl
+                      , urlBarText
+                      , setUrlBarText
+                      , fg
+                      , dimFg
+                      }
+                    else riveTab { fg, bg }
+                  ]
               ]
-          ]
+          )
       )
 
 -- Helpers for extracting native event values

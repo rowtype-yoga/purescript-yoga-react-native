@@ -966,6 +966,10 @@ RCT_EXPORT_MODULE(MacOSScrollView)
 }
 
 - (void)clearRiveView {
+  if (_mouseMonitor) {
+    [NSEvent removeMonitor:_mouseMonitor];
+    _mouseMonitor = nil;
+  }
   if (_riveView) {
     [_riveView removeFromSuperview];
     _riveView = nil;
@@ -979,33 +983,18 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   _riveView.frame = self.bounds;
   _riveView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
   [self addSubview:_riveView];
+  [self installMouseMonitor];
 }
 
-- (void)viewDidMoveToWindow {
-  [super viewDidMoveToWindow];
-  if (self.window && !_mouseMonitor) {
-    __weak typeof(self) weakSelf = self;
-    _mouseMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
-      __strong typeof(weakSelf) strongSelf = weakSelf;
-      if (!strongSelf || !strongSelf.riveView || !strongSelf.viewModel) return event;
-      RiveModel *model = strongSelf.viewModel.riveModel;
-      if (!model) return event;
-      RiveStateMachineInstance *sm = [model valueForKey:@"stateMachine"];
-      RiveArtboard *ab = [model valueForKey:@"artboard"];
-      if (!sm || !ab) return event;
-      CGPoint loc = [strongSelf.riveView convertPoint:event.locationInWindow fromView:nil];
-      loc.y = strongSelf.riveView.bounds.size.height - loc.y;
-      CGPoint artLoc = [strongSelf.riveView artboardLocationFromTouchLocation:loc
-                                                                   inArtboard:[ab bounds]
-                                                                          fit:strongSelf.viewModel.fit
-                                                                    alignment:strongSelf.viewModel.alignment];
-      [sm touchMovedAtLocation:artLoc];
-      return event;
-    }];
-  } else if (!self.window && _mouseMonitor) {
-    [NSEvent removeMonitor:_mouseMonitor];
-    _mouseMonitor = nil;
-  }
+- (void)installMouseMonitor {
+  if (_mouseMonitor) return;
+  __weak typeof(self) weakSelf = self;
+  _mouseMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    if (!strongSelf || !strongSelf.riveView) return event;
+    [strongSelf.riveView mouseMoved:event];
+    return event;
+  }];
 }
 
 - (void)dealloc {
@@ -1033,4 +1022,191 @@ RCT_EXPORT_VIEW_PROPERTY(stateMachineName, NSString)
 RCT_EXPORT_VIEW_PROPERTY(artboardName, NSString)
 RCT_EXPORT_VIEW_PROPERTY(autoplay, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(fit, NSString)
+@end
+
+// 15. VisualEffectView
+// ============================================================
+
+@interface RCTVisualEffectView : NSVisualEffectView
+@property (nonatomic, copy) NSString *materialName;
+@property (nonatomic, copy) NSString *blendingModeName;
+@property (nonatomic, copy) NSString *stateName;
+@end
+
+@implementation RCTVisualEffectView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    self.material = NSVisualEffectMaterialWindowBackground;
+    self.blendingMode = NSVisualEffectBlendingModeBehindWindow;
+    self.state = NSVisualEffectStateActive;
+    self.wantsLayer = YES;
+  }
+  return self;
+}
+
+- (void)setMaterialName:(NSString *)materialName {
+  _materialName = materialName;
+  if ([materialName isEqualToString:@"sidebar"])           self.material = NSVisualEffectMaterialSidebar;
+  else if ([materialName isEqualToString:@"headerView"])   self.material = NSVisualEffectMaterialHeaderView;
+  else if ([materialName isEqualToString:@"titlebar"])     self.material = NSVisualEffectMaterialTitlebar;
+  else if ([materialName isEqualToString:@"hudWindow"])    self.material = NSVisualEffectMaterialHUDWindow;
+  else if ([materialName isEqualToString:@"contentBackground"]) self.material = NSVisualEffectMaterialContentBackground;
+  else if ([materialName isEqualToString:@"menu"])         self.material = NSVisualEffectMaterialMenu;
+  else if ([materialName isEqualToString:@"popover"])      self.material = NSVisualEffectMaterialPopover;
+  else if ([materialName isEqualToString:@"sheet"])        self.material = NSVisualEffectMaterialSheet;
+  else if ([materialName isEqualToString:@"underWindowBackground"]) self.material = NSVisualEffectMaterialUnderWindowBackground;
+  else self.material = NSVisualEffectMaterialWindowBackground;
+}
+
+- (void)setBlendingModeName:(NSString *)blendingModeName {
+  _blendingModeName = blendingModeName;
+  if ([blendingModeName isEqualToString:@"withinWindow"]) self.blendingMode = NSVisualEffectBlendingModeWithinWindow;
+  else self.blendingMode = NSVisualEffectBlendingModeBehindWindow;
+}
+
+- (void)setStateName:(NSString *)stateName {
+  _stateName = stateName;
+  if ([stateName isEqualToString:@"inactive"])       self.state = NSVisualEffectStateInactive;
+  else if ([stateName isEqualToString:@"followsWindow"]) self.state = NSVisualEffectStateFollowsWindowActiveState;
+  else self.state = NSVisualEffectStateActive;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTVisualEffectViewManager : RCTViewManager @end
+@implementation RCTVisualEffectViewManager
+RCT_EXPORT_MODULE(MacOSVisualEffectView)
+- (NSView *)view { return [[RCTVisualEffectView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(materialName, NSString)
+RCT_EXPORT_VIEW_PROPERTY(blendingModeName, NSString)
+RCT_EXPORT_VIEW_PROPERTY(stateName, NSString)
+@end
+
+// 16. Toolbar
+// ============================================================
+
+@interface RCTToolbarView : NSView <NSToolbarDelegate>
+@property (nonatomic, strong) NSToolbar *toolbar;
+@property (nonatomic, copy) NSArray *items;
+@property (nonatomic, copy) NSString *selectedItem;
+@property (nonatomic, copy) NSString *toolbarStyle;
+@property (nonatomic, copy) NSString *windowTitle;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectItem;
+@end
+
+@implementation RCTToolbarView
+
+- (void)setItems:(NSArray *)items {
+  _items = items;
+  [self rebuildToolbar];
+}
+
+- (void)setSelectedItem:(NSString *)selectedItem {
+  if ([_selectedItem isEqualToString:selectedItem]) return;
+  _selectedItem = selectedItem;
+  if (_toolbar) _toolbar.selectedItemIdentifier = selectedItem;
+}
+
+- (void)setToolbarStyle:(NSString *)toolbarStyle {
+  _toolbarStyle = toolbarStyle;
+  if (self.window) [self applyToolbarStyle];
+}
+
+- (void)setWindowTitle:(NSString *)windowTitle {
+  _windowTitle = windowTitle;
+  if (self.window) self.window.title = windowTitle ?: @"";
+}
+
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+  if (self.window) {
+    [self rebuildToolbar];
+  }
+}
+
+- (void)rebuildToolbar {
+  if (!self.window || !_items || _items.count == 0) return;
+  _toolbar = [[NSToolbar alloc] initWithIdentifier:@"MacOSToolbar"];
+  _toolbar.delegate = self;
+  _toolbar.displayMode = NSToolbarDisplayModeIconAndLabel;
+  _toolbar.allowsUserCustomization = NO;
+  if (_selectedItem) _toolbar.selectedItemIdentifier = _selectedItem;
+  self.window.toolbar = _toolbar;
+  [self applyToolbarStyle];
+  if (_windowTitle) self.window.title = _windowTitle;
+}
+
+- (void)applyToolbarStyle {
+  if (!self.window) return;
+  NSString *s = _toolbarStyle ?: @"unified";
+  if ([s isEqualToString:@"expanded"])       self.window.toolbarStyle = NSWindowToolbarStyleExpanded;
+  else if ([s isEqualToString:@"preference"]) self.window.toolbarStyle = NSWindowToolbarStylePreference;
+  else if ([s isEqualToString:@"unifiedCompact"]) self.window.toolbarStyle = NSWindowToolbarStyleUnifiedCompact;
+  else self.window.toolbarStyle = NSWindowToolbarStyleUnified;
+}
+
+- (void)handleItemClick:(NSToolbarItem *)sender {
+  if (_selectedItem && [_selectedItem isEqualToString:sender.itemIdentifier]) return;
+  _selectedItem = sender.itemIdentifier;
+  _toolbar.selectedItemIdentifier = _selectedItem;
+  if (_onSelectItem) _onSelectItem(@{@"itemId": sender.itemIdentifier});
+}
+
+// NSToolbarDelegate
+- (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
+  NSMutableArray *ids = [NSMutableArray new];
+  for (NSDictionary *item in _items) [ids addObject:item[@"id"]];
+  return ids;
+}
+
+- (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
+  NSMutableArray *ids = [NSMutableArray new];
+  for (NSDictionary *item in _items) [ids addObject:item[@"id"]];
+  return ids;
+}
+
+- (NSArray<NSToolbarItemIdentifier> *)toolbarSelectableItemIdentifiers:(NSToolbar *)toolbar {
+  NSMutableArray *ids = [NSMutableArray new];
+  for (NSDictionary *item in _items) [ids addObject:item[@"id"]];
+  return ids;
+}
+
+- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
+  NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+  for (NSDictionary *d in _items) {
+    if ([d[@"id"] isEqualToString:itemIdentifier]) {
+      item.label = d[@"label"] ?: itemIdentifier;
+      NSString *sfSymbol = d[@"sfSymbol"];
+      if (sfSymbol) item.image = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:item.label];
+      break;
+    }
+  }
+  item.target = self;
+  item.action = @selector(handleItemClick:);
+  return item;
+}
+
+- (void)removeFromSuperview {
+  if (self.window.toolbar == _toolbar) self.window.toolbar = nil;
+  [super removeFromSuperview];
+}
+
+- (void)dealloc {
+  if (self.window.toolbar == _toolbar) self.window.toolbar = nil;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTToolbarViewManager : RCTViewManager @end
+@implementation RCTToolbarViewManager
+RCT_EXPORT_MODULE(MacOSToolbar)
+- (NSView *)view { return [[RCTToolbarView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(items, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(selectedItem, NSString)
+RCT_EXPORT_VIEW_PROPERTY(toolbarStyle, NSString)
+RCT_EXPORT_VIEW_PROPERTY(windowTitle, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
 @end
