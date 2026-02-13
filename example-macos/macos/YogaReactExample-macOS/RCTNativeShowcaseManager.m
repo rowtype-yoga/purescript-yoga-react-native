@@ -203,7 +203,7 @@
 
 - (BOOL)wantsUpdateLayer { return YES; }
 - (void)updateLayer {
-  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
+  self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
 }
 - (void)layout { [super layout]; _tabView.frame = self.bounds; }
 
@@ -302,7 +302,7 @@
 
 - (BOOL)wantsUpdateLayer { return YES; }
 - (void)updateLayer {
-  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
+  self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
@@ -546,7 +546,7 @@
 
 - (BOOL)wantsUpdateLayer { return YES; }
 - (void)updateLayer {
-  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
+  self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
@@ -766,7 +766,7 @@
 
 - (BOOL)wantsUpdateLayer { return YES; }
 - (void)updateLayer {
-  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
+  self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
@@ -881,7 +881,7 @@
 
 - (BOOL)wantsUpdateLayer { return YES; }
 - (void)updateLayer {
-  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
+  self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
 }
 @end
 
@@ -941,7 +941,7 @@
 
 - (BOOL)wantsUpdateLayer { return YES; }
 - (void)updateLayer {
-  self.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
+  self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
 }
 - (void)layout {
   [super layout];
