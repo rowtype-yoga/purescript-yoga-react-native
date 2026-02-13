@@ -987,7 +987,19 @@ RCT_EXPORT_MODULE(MacOSScrollView)
     __weak typeof(self) weakSelf = self;
     _mouseMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
       __strong typeof(weakSelf) strongSelf = weakSelf;
-      if (strongSelf.riveView) [strongSelf.riveView mouseMoved:event];
+      if (!strongSelf || !strongSelf.riveView || !strongSelf.viewModel) return event;
+      RiveModel *model = strongSelf.viewModel.riveModel;
+      if (!model) return event;
+      RiveStateMachineInstance *sm = [model valueForKey:@"stateMachine"];
+      RiveArtboard *ab = [model valueForKey:@"artboard"];
+      if (!sm || !ab) return event;
+      CGPoint loc = [strongSelf.riveView convertPoint:event.locationInWindow fromView:nil];
+      loc.y = strongSelf.riveView.bounds.size.height - loc.y;
+      CGPoint artLoc = [strongSelf.riveView artboardLocationFromTouchLocation:loc
+                                                                   inArtboard:[ab bounds]
+                                                                          fit:strongSelf.viewModel.fit
+                                                                    alignment:strongSelf.viewModel.alignment];
+      [sm touchMovedAtLocation:artLoc];
       return event;
     }];
   } else if (!self.window && _mouseMonitor) {
