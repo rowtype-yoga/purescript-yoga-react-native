@@ -2,6 +2,7 @@
 #import <React/RCTBridge.h>
 #import <AppKit/AppKit.h>
 #import <WebKit/WebKit.h>
+@import RiveRuntime;
 
 // ============================================================
 // 1. NSButton
@@ -857,4 +858,104 @@ RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
 @implementation RCTNativeScrollViewManager
 RCT_EXPORT_MODULE(MacOSScrollView)
 - (NSView *)view { return [[RCTNativeScrollView alloc] initWithFrame:CGRectZero]; }
+@end
+
+// ============================================================
+// 14. RiveView
+// ============================================================
+
+@interface RCTNativeRiveView : NSView
+@property (nonatomic, strong) RiveViewModel *viewModel;
+@property (nonatomic, strong) RiveView *riveView;
+@property (nonatomic, copy) NSString *resourceName;
+@property (nonatomic, copy) NSString *url;
+@property (nonatomic, copy) NSString *stateMachineName;
+@property (nonatomic, copy) NSString *artboardName;
+@property (nonatomic, assign) BOOL autoplay;
+@end
+
+@implementation RCTNativeRiveView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _autoplay = YES;
+  }
+  return self;
+}
+
+- (void)setResourceName:(NSString *)resourceName {
+  if ([_resourceName isEqualToString:resourceName]) return;
+  _resourceName = resourceName;
+  [self loadFromResource];
+}
+
+- (void)setUrl:(NSString *)url {
+  if ([_url isEqualToString:url]) return;
+  _url = url;
+  [self loadFromURL];
+}
+
+- (void)loadFromResource {
+  if (_resourceName.length == 0) return;
+  [self clearRiveView];
+  _viewModel = [[RiveViewModel alloc]
+    initWithFileName:_resourceName
+           extension:@"riv"
+                  in:[NSBundle mainBundle]
+    stateMachineName:_stateMachineName
+                 fit:contain
+           alignment:center
+            autoPlay:_autoplay
+       artboardName:_artboardName
+             loadCdn:YES
+        customLoader:nil];
+  [self attachRiveView];
+}
+
+- (void)loadFromURL {
+  if (_url.length == 0) return;
+  [self clearRiveView];
+  _viewModel = [[RiveViewModel alloc]
+    initWithWebURL:_url
+  stateMachineName:_stateMachineName
+               fit:contain
+         alignment:center
+          autoPlay:_autoplay
+           loadCdn:YES
+      artboardName:_artboardName];
+  [self attachRiveView];
+}
+
+- (void)clearRiveView {
+  if (_riveView) {
+    [_riveView removeFromSuperview];
+    _riveView = nil;
+  }
+  _viewModel = nil;
+}
+
+- (void)attachRiveView {
+  if (!_viewModel) return;
+  _riveView = [_viewModel createRiveView];
+  _riveView.frame = self.bounds;
+  _riveView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+  [self addSubview:_riveView];
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+- (void)layout {
+  [super layout];
+  _riveView.frame = self.bounds;
+}
+@end
+
+@interface RCTNativeRiveViewManager : RCTViewManager @end
+@implementation RCTNativeRiveViewManager
+RCT_EXPORT_MODULE(MacOSRiveView)
+- (NSView *)view { return [[RCTNativeRiveView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(resourceName, NSString)
+RCT_EXPORT_VIEW_PROPERTY(url, NSString)
+RCT_EXPORT_VIEW_PROPERTY(stateMachineName, NSString)
+RCT_EXPORT_VIEW_PROPERTY(artboardName, NSString)
+RCT_EXPORT_VIEW_PROPERTY(autoplay, BOOL)
 @end

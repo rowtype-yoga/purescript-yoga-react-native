@@ -12,6 +12,8 @@ target 'YogaReactExample-macOS' do
   platform :macos, '14.0'
   use_native_modules!
 
+  pod 'RiveRuntime'
+
   # Flags change depending on the env values.
   flags = get_default_flags()
 
