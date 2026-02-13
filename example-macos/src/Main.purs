@@ -70,6 +70,16 @@ app = component "App" \_ -> React.do
     folderCount = length (filter _.isDirectory entries)
     statusText = show folderCount <> " folders, " <> show fileCount <> " files"
 
+    -- Small colored icon (like Finder sidebar)
+    sidebarIcon color glyph =
+      view
+        { style: Style.styles
+            [ tw "items-center justify-center mr-2 rounded"
+            , Style.style { width: 18.0, height: 18.0, backgroundColor: color }
+            ]
+        }
+        [ text { style: Style.styles [ tw "text-center", Style.style { color: "#ffffff", fontSize: 10.0, lineHeight: 18.0 } ] } glyph ]
+
     -- Sidebar
     sidebarItem label path icon =
       pressable
@@ -88,7 +98,7 @@ app = component "App" \_ -> React.do
                 }
             ]
         }
-        [ text { style: tw "text-sm mr-2" } icon
+        [ icon
         , text
             { style: Style.styles
                 [ tw "text-sm"
@@ -111,13 +121,13 @@ app = component "App" \_ -> React.do
       , allowsVibrancy: true
       }
       [ sidebarHeader "FAVORITES"
-      , sidebarItem "Desktop" (homePath <> "/Desktop") "🖥"
-      , sidebarItem "Documents" (homePath <> "/Documents") "📄"
-      , sidebarItem "Downloads" (homePath <> "/Downloads") "⬇"
-      , sidebarItem "Home" homePath "🏠"
+      , sidebarItem "Desktop" (homePath <> "/Desktop") (sidebarIcon "#007AFF" "D")
+      , sidebarItem "Documents" (homePath <> "/Documents") (sidebarIcon "#007AFF" "D")
+      , sidebarItem "Downloads" (homePath <> "/Downloads") (sidebarIcon "#007AFF" "↓")
+      , sidebarItem "Home" homePath (sidebarIcon "#8E8E93" "⌂")
       , sidebarHeader "LOCATIONS"
-      , sidebarItem "Macintosh HD" "/" "💾"
-      , sidebarItem "tmp" "/tmp" "📁"
+      , sidebarItem "Macintosh HD" "/" (sidebarIcon "#FF9500" "◻")
+      , sidebarItem "tmp" "/tmp" (sidebarIcon "#8E8E93" "T")
       ]
 
     -- Toolbar
@@ -171,8 +181,7 @@ app = component "App" \_ -> React.do
             ]
         }
         [ -- Icon
-          text { style: tw "text-base mr-3" }
-            (if item.isDirectory then "📁" else fileIcon item.name)
+          fileIconView item
         , -- Name
           view { style: tw "flex-1" }
             [ text
@@ -212,20 +221,31 @@ app = component "App" \_ -> React.do
             (if item.isDirectory then "Folder" else fileKind item.name)
         ]
 
-    fileIcon name = case extensionOf name of
-      "purs" -> "📜"
-      "js" -> "📜"
-      "ts" -> "📜"
-      "json" -> "📋"
-      "md" -> "📝"
-      "txt" -> "📝"
-      "png" -> "🖼"
-      "jpg" -> "🖼"
-      "gif" -> "🖼"
-      "pdf" -> "📕"
-      "zip" -> "📦"
-      "gz" -> "📦"
-      _ -> "📄"
+    contentIcon color glyph =
+      view
+        { style: Style.styles
+            [ tw "items-center justify-center mr-3 rounded"
+            , Style.style { width: 20.0, height: 20.0, backgroundColor: color }
+            ]
+        }
+        [ text { style: Style.styles [ tw "text-center", Style.style { color: "#ffffff", fontSize: 11.0, lineHeight: 20.0 } ] } glyph ]
+
+    fileIconView item
+      | item.isDirectory = contentIcon "#007AFF" "▸"
+      | otherwise = case extensionOf item.name of
+          "purs" -> contentIcon "#8B5CF6" "λ"
+          "js" -> contentIcon "#F7DF1E" "J"
+          "ts" -> contentIcon "#3178C6" "T"
+          "json" -> contentIcon "#8E8E93" "{ }"
+          "md" -> contentIcon "#1d1d1f" "M"
+          "txt" -> contentIcon "#8E8E93" "A"
+          "png" -> contentIcon "#34C759" "◻"
+          "jpg" -> contentIcon "#34C759" "◻"
+          "gif" -> contentIcon "#34C759" "◻"
+          "pdf" -> contentIcon "#FF3B30" "P"
+          "zip" -> contentIcon "#FF9500" "Z"
+          "gz" -> contentIcon "#FF9500" "Z"
+          _ -> contentIcon "#c7c7cc" "—"
 
     fileKind name = case extensionOf name of
       "purs" -> "PureScript"
@@ -254,7 +274,7 @@ app = component "App" \_ -> React.do
           , Style.style { backgroundColor: "#fafafa", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#d1d1d6" }
           ]
       }
-      [ text { style: tw "text-sm mr-3" } " "
+      [ view { style: Style.style { width: 20.0, marginRight: 12.0 } } []
       , view { style: tw "flex-1" }
           [ text { style: Style.styles [ tw "text-xs font-semibold", Style.style { color: "#8e8e93" } ] } "Name" ]
       , text { style: Style.styles [ tw "text-xs font-semibold mr-4", Style.style { color: "#8e8e93", width: 70.0 } ] } "Size"
