@@ -35,6 +35,7 @@ app = component "App" \_ -> React.do
   pathInput /\ setPathInput <- React.useState ""
 
   let
+    -- Navigation
     navigateTo path = do
       setLoading (const true)
       setSelectedItem (const Nothing)
@@ -51,7 +52,7 @@ app = component "App" \_ -> React.do
           Left _ -> do
             setEntries (const [])
             setLoading (const false)
-            setErrorMsg (const (Just "No permission to read this folder"))
+            setErrorMsg (const (Just "The folder can\x2019t be opened because you don\x2019t have permission to see its contents."))
 
     compareDirItems a b = case a.isDirectory, b.isDirectory of
       true, false -> LT
@@ -67,109 +68,294 @@ app = component "App" \_ -> React.do
 
     length' = lengthStr
 
+    -- Formatting
     formatSize bytes
-      | bytes < 1024.0 = show (round bytes) <> " B"
-      | bytes < 1048576.0 = show (round (bytes / 1024.0)) <> " KB"
-      | bytes < 1073741824.0 = show (round (bytes / 1048576.0)) <> " MB"
-      | otherwise = show (round (bytes / 1073741824.0)) <> " GB"
-
-    round n = do
-      let i = floor n
-      i
+      | bytes < 1024.0 = show (floor bytes) <> " bytes"
+      | bytes < 1048576.0 = show (floor (bytes / 1024.0)) <> " KB"
+      | bytes < 1073741824.0 = show (floor (bytes / 1048576.0)) <> " MB"
+      | otherwise = show (floor (bytes / 1073741824.0)) <> " GB"
 
     fileCount = length (filter _.isFile entries)
     folderCount = length (filter _.isDirectory entries)
     statusText = show folderCount <> " folders, " <> show fileCount <> " files"
 
-    -- Sidebar icon — colored text glyph (no background box)
-    sidebarIcon color glyph =
-      text { style: Style.styles [ tw "mr-2 text-center", Style.style { color, fontSize: 14.0, width: 18.0 } ] } glyph
+    -- Icon builders
+    folderIcon =
+      view { style: Style.style { width: 20.0, height: 16.0, marginRight: 8.0 } }
+        [ -- Folder tab
+          view
+            { style: Style.style
+                { position: "absolute"
+                , top: 0.0
+                , left: 0.0
+                , width: 9.0
+                , height: 4.0
+                , backgroundColor: "#5AC8FA"
+                , borderTopLeftRadius: 2.0
+                , borderTopRightRadius: 2.0
+                }
+            }
+            []
+        , -- Folder body
+          view
+            { style: Style.style
+                { position: "absolute"
+                , top: 3.0
+                , left: 0.0
+                , right: 0.0
+                , bottom: 0.0
+                , backgroundColor: "#5AC8FA"
+                , borderRadius: 2.0
+                }
+            }
+            []
+        ]
+
+    fileIcon color =
+      view { style: Style.style { width: 18.0, height: 20.0, marginRight: 8.0 } }
+        [ -- Page body
+          view
+            { style: Style.style
+                { position: "absolute"
+                , top: 0.0
+                , left: 0.0
+                , width: 18.0
+                , height: 20.0
+                , backgroundColor: "#ffffff"
+                , borderRadius: 2.0
+                , borderWidth: 0.5
+                , borderColor: "#d1d1d6"
+                }
+            }
+            []
+        , -- Color bar at bottom
+          view
+            { style: Style.style
+                { position: "absolute"
+                , bottom: 0.0
+                , left: 0.0
+                , right: 0.0
+                , height: 4.0
+                , backgroundColor: color
+                , borderBottomLeftRadius: 2.0
+                , borderBottomRightRadius: 2.0
+                }
+            }
+            []
+        ]
+
+    fileIconView item
+      | item.isDirectory = folderIcon
+      | otherwise = fileIcon (fileColor item.name)
+
+    fileColor name = case extensionOf name of
+      "purs" -> "#8B5CF6"
+      "js" -> "#F7DF1E"
+      "ts" -> "#3178C6"
+      "json" -> "#FF9500"
+      "md" -> "#1d1d1f"
+      "txt" -> "#8E8E93"
+      "png" -> "#34C759"
+      "jpg" -> "#34C759"
+      "gif" -> "#34C759"
+      "svg" -> "#FF9500"
+      "pdf" -> "#FF3B30"
+      "zip" -> "#8E8E93"
+      "gz" -> "#8E8E93"
+      "lock" -> "#8E8E93"
+      _ -> "#c7c7cc"
+
+    fileKind name = case extensionOf name of
+      "purs" -> "PureScript Source"
+      "js" -> "JavaScript"
+      "ts" -> "TypeScript"
+      "json" -> "JSON Document"
+      "md" -> "Markdown"
+      "txt" -> "Plain Text"
+      "png" -> "PNG Image"
+      "jpg" -> "JPEG Image"
+      "gif" -> "GIF Image"
+      "svg" -> "SVG Image"
+      "pdf" -> "PDF Document"
+      "zip" -> "ZIP Archive"
+      "gz" -> "GZip Archive"
+      "lock" -> "Lock File"
+      "" -> "Document"
+      ext -> ext <> " File"
+
+    extensionOf name = case lastIndexOf (Pattern ".") name of
+      Nothing -> ""
+      Just i -> drop (i + 1) name
 
     -- Sidebar
+    sidebarIcon color glyph =
+      view { style: Style.style { width: 18.0, height: 18.0, marginRight: 6.0, alignItems: "center", justifyContent: "center" } }
+        [ text { style: Style.style { color, fontSize: 13.0, lineHeight: 18.0 } } glyph ]
+
     sidebarItem label path icon =
       pressable
         { onPress: handler_ (navigateTo path)
-        , onMouseEnter: handler_ (setHoveredSidebar (const (Just path)))
+        , onMouseEnter: handler_ (setHoveredSidebar (const (Just label)))
         , onMouseLeave: handler_ (setHoveredSidebar (const Nothing))
         , cursor: "pointer"
         , tooltip: path
         , style: Style.styles
-            [ tw "flex-row items-center px-3 py-1 mx-2 rounded"
-            , Style.style
-                { backgroundColor:
-                    if currentPath == path then "#007AFF"
-                    else if hoveredSidebar == Just path then "#e8e8ed"
+            [ Style.style
+                { flexDirection: "row"
+                , alignItems: "center"
+                , paddingHorizontal: 8.0
+                , paddingVertical: 3.0
+                , marginHorizontal: 8.0
+                , borderRadius: 5.0
+                , backgroundColor:
+                    if currentPath == path then "rgba(0,0,0,0.1)"
+                    else if hoveredSidebar == Just label then "rgba(0,0,0,0.04)"
                     else "transparent"
                 }
             ]
         }
         [ icon
         , text
-            { style: Style.styles
-                [ tw "text-sm"
-                , Style.style
-                    { color: if currentPath == path then "#ffffff" else "#1d1d1f" }
-                ]
+            { style: Style.style
+                { fontSize: 13.0
+                , color: "#1d1d1f"
+                , letterSpacing: -0.08
+                }
             }
             label
         ]
 
     sidebarHeader label =
-      text { style: Style.styles [ tw "text-xs font-semibold px-4 pt-4 pb-1", Style.style { color: "#8e8e93" } ] }
+      text
+        { style: Style.style
+            { fontSize: 11.0
+            , fontWeight: "600"
+            , color: "#8e8e93"
+            , paddingHorizontal: 16.0
+            , paddingTop: 16.0
+            , paddingBottom: 4.0
+            , letterSpacing: 0.06
+            }
+        }
         label
 
     sidebar = view
-      { style: Style.styles
-          [ tw "pt-2 pb-4"
-          , Style.style { width: 200.0, backgroundColor: "#f2f2f7", borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: "#d1d1d6" }
-          ]
+      { style: Style.style
+          { width: 200.0
+          , backgroundColor: "rgba(246,246,246,0.92)"
+          , borderRightWidth: StyleSheet.hairlineWidth
+          , borderRightColor: "#c6c6c8"
+          , paddingTop: 4.0
+          , paddingBottom: 8.0
+          }
       , allowsVibrancy: true
       }
-      [ sidebarHeader "APP"
-      , sidebarItem "Documents" FS.documentDirectoryPath (sidebarIcon "#007AFF" "⊡")
-      , sidebarItem "Caches" FS.cachesDirectoryPath (sidebarIcon "#8E8E93" "⊘")
-      , sidebarItem "Temp" FS.temporaryDirectoryPath (sidebarIcon "#FF9500" "⊙")
-      , sidebarHeader "SYSTEM"
-      , sidebarItem "tmp" "/tmp" (sidebarIcon "#8E8E93" "⊞")
-      , sidebarItem "usr" "/usr" (sidebarIcon "#8E8E93" "⊞")
-      , sidebarItem "var" "/var" (sidebarIcon "#8E8E93" "⊞")
+      [ sidebarHeader "Favorites"
+      , sidebarItem "Documents" FS.documentDirectoryPath (sidebarIcon "#3B82F6" "\x1F4C1")
+      , sidebarItem "Caches" FS.cachesDirectoryPath (sidebarIcon "#6B7280" "\x1F5C4")
+      , sidebarItem "Temp" FS.temporaryDirectoryPath (sidebarIcon "#F59E0B" "\x1F4C2")
+      , sidebarHeader "Locations"
+      , sidebarItem "Root" "/" (sidebarIcon "#6B7280" "\x1F4BD")
+      , sidebarItem "tmp" "/tmp" (sidebarIcon "#6B7280" "\x1F4BE")
+      , sidebarItem "usr" "/usr" (sidebarIcon "#6B7280" "\x1F4BE")
       ]
 
     -- Toolbar
     toolbar = view
-      { style: Style.styles
-          [ tw "flex-row items-center px-3 py-2"
-          , Style.style { backgroundColor: "#f2f2f7", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#d1d1d6", height: 38.0 }
-          ]
+      { style: Style.style
+          { flexDirection: "row"
+          , alignItems: "center"
+          , paddingHorizontal: 8.0
+          , height: 38.0
+          , backgroundColor: "rgba(246,246,246,0.92)"
+          , borderBottomWidth: StyleSheet.hairlineWidth
+          , borderBottomColor: "#c6c6c8"
+          }
       }
-      [ pressable
+      [ -- Back/forward buttons
+        pressable
           { onPress: handler_ (navigateTo (parentPath currentPath))
           , cursor: "pointer"
-          , tooltip: "Go to parent folder (⌫)"
-          , style: Style.styles
-              [ tw "px-2 py-1 rounded mr-2"
-              , Style.style { backgroundColor: "#e5e5ea" }
-              ]
+          , tooltip: "Back"
+          , style: Style.style
+              { width: 28.0
+              , height: 24.0
+              , borderRadius: 5.0
+              , alignItems: "center"
+              , justifyContent: "center"
+              , backgroundColor: "transparent"
+              , marginRight: 2.0
+              }
           }
-          [ text { style: Style.styles [ tw "text-sm", Style.style { color: "#1d1d1f" } ] } "◀" ]
-      , textInput
-          { value: pathInput
-          , onChangeText: mkEffectFn1 \t -> setPathInput (const t)
-          , onSubmitEditing: handler_ (navigateTo pathInput)
-          , style: Style.styles
-              [ tw "flex-1 text-sm rounded px-2 py-1 mr-2"
-              , Style.style
-                  { backgroundColor: "#ffffff"
-                  , borderWidth: StyleSheet.hairlineWidth
-                  , borderColor: "#c6c6c8"
+          [ text { style: Style.style { fontSize: 15.0, color: "#007AFF" } } "\x276E" ]
+      , -- Path bar
+        view
+          { style: Style.style
+              { flex: 1.0
+              , marginHorizontal: 8.0
+              }
+          }
+          [ textInput
+              { value: pathInput
+              , onChangeText: mkEffectFn1 \t -> setPathInput (const t)
+              , onSubmitEditing: handler_ (navigateTo pathInput)
+              , style: Style.style
+                  { fontSize: 12.0
+                  , height: 22.0
+                  , borderRadius: 5.0
+                  , paddingHorizontal: 8.0
+                  , backgroundColor: "rgba(0,0,0,0.04)"
                   , color: "#1d1d1f"
+                  , textAlign: "center"
                   }
-              ]
+              }
+          ]
+      , -- Item count
+        text
+          { style: Style.style
+              { fontSize: 11.0
+              , color: "#8e8e93"
+              , marginLeft: 8.0
+              }
           }
-      , text { style: Style.styles [ tw "text-xs", Style.style { color: "#8e8e93" } ] } statusText
+          statusText
       ]
 
+    -- Column headers
+    columnHeaders = view
+      { style: Style.style
+          { flexDirection: "row"
+          , alignItems: "center"
+          , paddingHorizontal: 12.0
+          , paddingVertical: 4.0
+          , borderBottomWidth: StyleSheet.hairlineWidth
+          , borderBottomColor: "#d1d1d6"
+          , backgroundColor: "#fafafa"
+          }
+      }
+      [ view { style: Style.style { width: 28.0 } } []
+      , view { style: Style.style { flex: 1.0 } }
+          [ colHeaderText "Name" ]
+      , view { style: Style.style { width: 90.0 } }
+          [ colHeaderText "Size" ]
+      , view { style: Style.style { width: 120.0 } }
+          [ colHeaderText "Kind" ]
+      ]
+
+    colHeaderText label =
+      text
+        { style: Style.style
+            { fontSize: 11.0
+            , fontWeight: "500"
+            , color: "#8e8e93"
+            }
+        }
+        label
+
     -- File row
+    isSelected item = selectedItem == Just item.name
+    isHovered item = hoveredItem == Just item.name
+
     fileRow item =
       pressable
         { onPress: handler_ do
@@ -182,112 +368,57 @@ app = component "App" \_ -> React.do
         , onMouseLeave: handler_ (setHoveredItem (const Nothing))
         , cursor: if item.isDirectory then "pointer" else "default"
         , tooltip: item.path
-        , style: Style.styles
-            [ tw "flex-row items-center px-4 py-2"
-            , Style.style
-                { backgroundColor:
-                    if selectedItem == Just item.name then "#007AFF"
-                    else if hoveredItem == Just item.name then "#f5f5f5"
-                    else "transparent"
-                , borderBottomWidth: StyleSheet.hairlineWidth
-                , borderBottomColor: "#ebebeb"
-                }
-            ]
+        , style: Style.style
+            { flexDirection: "row"
+            , alignItems: "center"
+            , paddingHorizontal: 12.0
+            , height: 24.0
+            , backgroundColor:
+                if isSelected item then "#0058D0"
+                else if isHovered item then "rgba(0,0,0,0.04)"
+                else "transparent"
+            , borderRadius: if isSelected item then 4.0 else 0.0
+            , marginHorizontal: if isSelected item then 4.0 else 0.0
+            }
         }
         [ -- Icon
           fileIconView item
         , -- Name
-          view { style: tw "flex-1" }
+          view { style: Style.style { flex: 1.0 } }
             [ text
-                { style: Style.styles
-                    [ tw "text-sm"
-                    , Style.style
-                        { color:
-                            if selectedItem == Just item.name then "#ffffff"
-                            else if item.isDirectory then "#007AFF"
-                            else "#1d1d1f"
-                        }
-                    ]
+                { style: Style.style
+                    { fontSize: 13.0
+                    , color:
+                        if isSelected item then "#ffffff"
+                        else "#1d1d1f"
+                    , letterSpacing: -0.08
+                    }
+                , numberOfLines: 1
                 }
                 item.name
             ]
         , -- Size
-          text
-            { style: Style.styles
-                [ tw "text-xs mr-4"
-                , Style.style
-                    { color: if selectedItem == Just item.name then "#ffffffcc" else "#8e8e93"
-                    , width: 70.0
+          view { style: Style.style { width: 90.0 } }
+            [ text
+                { style: Style.style
+                    { fontSize: 11.0
+                    , color: if isSelected item then "rgba(255,255,255,0.8)" else "#8e8e93"
                     }
-                ]
-            }
-            (if item.isDirectory then "--" else formatSize item.size)
+                }
+                (if item.isDirectory then "--" else formatSize item.size)
+            ]
         , -- Kind
-          text
-            { style: Style.styles
-                [ tw "text-xs"
-                , Style.style
-                    { color: if selectedItem == Just item.name then "#ffffffcc" else "#8e8e93"
-                    , width: 80.0
+          view { style: Style.style { width: 120.0 } }
+            [ text
+                { style: Style.style
+                    { fontSize: 11.0
+                    , color: if isSelected item then "rgba(255,255,255,0.8)" else "#8e8e93"
                     }
-                ]
-            }
-            (if item.isDirectory then "Folder" else fileKind item.name)
+                , numberOfLines: 1
+                }
+                (if item.isDirectory then "Folder" else fileKind item.name)
+            ]
         ]
-
-    contentIcon color glyph =
-      text { style: Style.styles [ tw "mr-3 text-center", Style.style { color, fontSize: 16.0, width: 20.0 } ] } glyph
-
-    fileIconView item
-      | item.isDirectory = contentIcon "#007AFF" "▶"
-      | otherwise = case extensionOf item.name of
-          "purs" -> contentIcon "#8B5CF6" "◆"
-          "js" -> contentIcon "#F7DF1E" "◆"
-          "ts" -> contentIcon "#3178C6" "◆"
-          "json" -> contentIcon "#8E8E93" "◇"
-          "md" -> contentIcon "#1d1d1f" "◇"
-          "txt" -> contentIcon "#8E8E93" "◇"
-          "png" -> contentIcon "#34C759" "◈"
-          "jpg" -> contentIcon "#34C759" "◈"
-          "gif" -> contentIcon "#34C759" "◈"
-          "pdf" -> contentIcon "#FF3B30" "◆"
-          "zip" -> contentIcon "#FF9500" "◆"
-          "gz" -> contentIcon "#FF9500" "◆"
-          _ -> contentIcon "#c7c7cc" "◇"
-
-    fileKind name = case extensionOf name of
-      "purs" -> "PureScript"
-      "js" -> "JavaScript"
-      "ts" -> "TypeScript"
-      "json" -> "JSON"
-      "md" -> "Markdown"
-      "txt" -> "Plain Text"
-      "png" -> "PNG Image"
-      "jpg" -> "JPEG Image"
-      "gif" -> "GIF Image"
-      "pdf" -> "PDF"
-      "zip" -> "Archive"
-      "gz" -> "Archive"
-      "" -> "Document"
-      ext -> ext <> " file"
-
-    extensionOf name = case lastIndexOf (Pattern ".") name of
-      Nothing -> ""
-      Just i -> drop (i + 1) name
-
-    -- Column headers
-    columnHeaders = view
-      { style: Style.styles
-          [ tw "flex-row items-center px-4 py-1"
-          , Style.style { backgroundColor: "#fafafa", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#d1d1d6" }
-          ]
-      }
-      [ view { style: Style.style { width: 20.0, marginRight: 12.0 } } []
-      , view { style: tw "flex-1" }
-          [ text { style: Style.styles [ tw "text-xs font-semibold", Style.style { color: "#8e8e93" } ] } "Name" ]
-      , text { style: Style.styles [ tw "text-xs font-semibold mr-4", Style.style { color: "#8e8e93", width: 70.0 } ] } "Size"
-      , text { style: Style.styles [ tw "text-xs font-semibold", Style.style { color: "#8e8e93", width: 80.0 } ] } "Kind"
-      ]
 
     -- Content area
     contentArea =
@@ -296,16 +427,42 @@ app = component "App" \_ -> React.do
           [ activityIndicator { size: "large", color: "#007AFF" } ]
       else case errorMsg of
         Just msg ->
-          view { style: tw "flex-1 items-center justify-center" }
-            [ text { style: Style.styles [ tw "text-base mb-2", Style.style { color: "#FF3B30" } ] } msg
-            , text { style: Style.styles [ tw "text-sm", Style.style { color: "#8e8e93" } ] }
-                "Try navigating to a different folder"
+          view
+            { style: Style.style
+                { flex: 1.0
+                , alignItems: "center"
+                , justifyContent: "center"
+                , paddingHorizontal: 40.0
+                }
+            }
+            [ text
+                { style: Style.style { fontSize: 13.0, color: "#1d1d1f", fontWeight: "600", marginBottom: 4.0 } }
+                "The folder can\x2019t be opened."
+            , text
+                { style: Style.style { fontSize: 11.0, color: "#8e8e93", textAlign: "center" } }
+                msg
             ]
         Nothing ->
-          view { style: tw "flex-1" }
+          view { style: Style.style { flex: 1.0 } }
             [ columnHeaders
-            , scrollView { style: tw "flex-1" }
+            , scrollView { style: Style.style { flex: 1.0 } }
                 (map fileRow entries)
+            , -- Status bar
+              view
+                { style: Style.style
+                    { flexDirection: "row"
+                    , alignItems: "center"
+                    , justifyContent: "center"
+                    , height: 22.0
+                    , borderTopWidth: StyleSheet.hairlineWidth
+                    , borderTopColor: "#d1d1d6"
+                    , backgroundColor: "#fafafa"
+                    }
+                }
+                [ text
+                    { style: Style.style { fontSize: 11.0, color: "#8e8e93" } }
+                    statusText
+                ]
             ]
 
   React.useEffectOnce do
@@ -314,9 +471,9 @@ app = component "App" \_ -> React.do
 
   pure do
     safeAreaView { style: tw "flex-1" }
-      ( view { style: Style.styles [ tw "flex-1", Style.style { backgroundColor: "#ffffff" } ] }
+      ( view { style: Style.style { flex: 1.0, backgroundColor: "#ffffff" } }
           [ toolbar
-          , view { style: tw "flex-row flex-1" }
+          , view { style: Style.style { flexDirection: "row", flex: 1.0 } }
               [ sidebar
               , contentArea
               ]
