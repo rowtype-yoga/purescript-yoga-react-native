@@ -310,18 +310,15 @@ app = component "App" \_ -> React.do
 
   pure do
     safeAreaView { style: tw "flex-1" }
-      ( view { style: Style.styles [ tw "flex-1", Style.style { backgroundColor: windowBg } ] }
-          [ view
-              { style: Style.styles
-                  [ tw "flex-row gap-2 p-4 pb-3"
-                  , Style.style { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: separatorClr }
-                  ]
-              }
-              [ sectionBtn "Components" "components"
-              ]
-          , scrollView { style: tw "flex-1 px-4 pt-3" }
-              [ heading "Just a heading test"
-              ]
+      ( scrollView { style: tw "flex-1 p-4" }
+          [ text { style: tw "text-2xl font-bold mb-4" } "Let bindings test"
+          , text { style: tw "text-lg mb-2" } (show count)
+          , accentBtn "+" (setCount (_ + 1))
+          , secondaryBtn "-" (setCount (_ - 1))
+          , heading "Heading helper"
+          , bodyText "Body text helper"
+          , caption "Caption helper"
+          , card [ label' "Inside a card" ]
           ]
       )
 
