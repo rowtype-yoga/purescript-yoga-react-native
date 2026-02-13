@@ -203,6 +203,11 @@
   return pane;
 }
 
+- (BOOL)isOpaque { return YES; }
+- (void)drawRect:(NSRect)dirtyRect {
+  [[NSColor windowBackgroundColor] setFill];
+  NSRectFill(dirtyRect);
+}
 - (void)layout { [super layout]; _tabView.frame = self.bounds; }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
@@ -300,6 +305,11 @@
   return self;
 }
 
+- (BOOL)isOpaque { return YES; }
+- (void)drawRect:(NSRect)dirtyRect {
+  [[NSColor windowBackgroundColor] setFill];
+  NSRectFill(dirtyRect);
+}
 - (void)layout {
   [super layout];
   _scrollView.frame = self.bounds;
@@ -542,6 +552,11 @@
   *y -= 26;
 }
 
+- (BOOL)isOpaque { return YES; }
+- (void)drawRect:(NSRect)dirtyRect {
+  [[NSColor windowBackgroundColor] setFill];
+  NSRectFill(dirtyRect);
+}
 - (void)layout {
   [super layout];
   _splitView.frame = self.bounds;
@@ -760,6 +775,11 @@
   *y -= 30;
 }
 
+- (BOOL)isOpaque { return YES; }
+- (void)drawRect:(NSRect)dirtyRect {
+  [[NSColor windowBackgroundColor] setFill];
+  NSRectFill(dirtyRect);
+}
 - (void)layout {
   [super layout];
   for (NSView *v in self.subviews) {
@@ -874,6 +894,12 @@
   [_loadingBar stopAnimation:nil];
   _urlBar.stringValue = webView.URL.absoluteString ?: @"";
 }
+
+- (BOOL)isOpaque { return YES; }
+- (void)drawRect:(NSRect)dirtyRect {
+  [[NSColor windowBackgroundColor] setFill];
+  NSRectFill(dirtyRect);
+}
 @end
 
 // ============================================================
@@ -930,6 +956,11 @@
   }
 }
 
+- (BOOL)isOpaque { return YES; }
+- (void)drawRect:(NSRect)dirtyRect {
+  [[NSColor windowBackgroundColor] setFill];
+  NSRectFill(dirtyRect);
+}
 - (void)layout {
   [super layout];
   _backgroundView.frame = self.bounds;
