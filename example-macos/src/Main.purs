@@ -121,10 +121,8 @@ app = component "App" \_ -> React.do
         { onPress: handler_ onClick
         , style: Style.styles
             [ tw "px-4 py-2 rounded-lg"
-            , Style.style { backgroundColor: accentClr }
+            , Style.style { backgroundColor: "#007AFF" }
             ]
-        , cursor: "pointer"
-        , tooltip: lbl
         }
         [ text { style: tw "text-white text-sm font-semibold text-center" } lbl ]
 
@@ -134,13 +132,11 @@ app = component "App" \_ -> React.do
         , style: Style.styles
             [ tw "px-4 py-2 rounded-lg"
             , Style.style
-                { backgroundColor: controlClr
+                { backgroundColor: "#e5e5ea"
                 , borderWidth: StyleSheet.hairlineWidth
                 , borderColor: dynamicCardBorder
                 }
             ]
-        , cursor: "pointer"
-        , tooltip: lbl
         }
         [ text { style: tw $ "text-sm font-medium " <> tc } lbl ]
 
