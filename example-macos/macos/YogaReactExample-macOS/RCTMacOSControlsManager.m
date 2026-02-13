@@ -71,6 +71,7 @@
   _button.enabled = buttonEnabled;
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _button.frame = self.bounds;
@@ -144,6 +145,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
   if (selectedIndex < _control.segmentCount) _control.selectedSegment = selectedIndex;
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _control.frame = self.bounds;
@@ -235,6 +237,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   }
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _textField.frame = self.bounds;
@@ -291,6 +294,7 @@ RCT_EXPORT_VIEW_PROPERTY(onSubmit, RCTBubblingEventBlock)
 - (void)setNumberOfTickMarks:(NSInteger)n { _numberOfTickMarks = n; _slider.numberOfTickMarks = n; }
 - (void)setAllowsTickMarkValuesOnly:(BOOL)v { _allowsTickMarkValuesOnly = v; _slider.allowsTickMarkValuesOnly = v; }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _slider.frame = self.bounds;
@@ -342,6 +346,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   _toggle.state = on ? NSControlStateValueOn : NSControlStateValueOff;
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _toggle.frame = self.bounds;
@@ -391,6 +396,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   if (_indeterminate) [_indicator startAnimation:nil];
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _indicator.frame = self.bounds;
@@ -443,6 +449,7 @@ RCT_EXPORT_VIEW_PROPERTY(spinning, BOOL)
   _picker.datePickerStyle = graphical ? NSDatePickerStyleClockAndCalendar : NSDatePickerStyleTextField;
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _picker.frame = self.bounds;
@@ -510,6 +517,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   }
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _colorWell.frame = self.bounds;
@@ -565,6 +573,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   if (selectedIndex < _popUp.numberOfItems) [_popUp selectItemAtIndex:selectedIndex];
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _popUp.frame = self.bounds;
@@ -643,6 +652,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _scrollView.frame = self.bounds;
@@ -666,7 +676,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
 @interface RCTNativeWebViewView : NSView <WKNavigationDelegate>
 @property (nonatomic, strong) WKWebView *webView;
 @property (nonatomic, copy) RCTBubblingEventBlock onNavigate;
-@property (nonatomic, copy) RCTBubblingEventBlock onPageLoad;
+@property (nonatomic, copy) RCTBubblingEventBlock onFinishLoad;
 @property (nonatomic, copy) NSString *url;
 @end
 
@@ -693,7 +703,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
-  if (_onPageLoad) _onPageLoad(@{@"url": webView.URL.absoluteString ?: @"", @"title": webView.title ?: @""});
+  if (_onFinishLoad) _onFinishLoad(@{@"url": webView.URL.absoluteString ?: @"", @"title": webView.title ?: @""});
 }
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
@@ -701,6 +711,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
   decisionHandler(WKNavigationActionPolicyAllow);
 }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _webView.frame = self.bounds;
@@ -713,7 +724,7 @@ RCT_EXPORT_MODULE(NativeWebView)
 - (NSView *)view { return [[RCTNativeWebViewView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(url, NSString)
 RCT_EXPORT_VIEW_PROPERTY(onNavigate, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onPageLoad, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onFinishLoad, RCTBubblingEventBlock)
 @end
 
 // ============================================================
@@ -751,6 +762,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPageLoad, RCTBubblingEventBlock)
 - (void)setWarningValue:(double)v { _warningValue = v; _indicator.warningValue = v; }
 - (void)setCriticalValue:(double)v { _criticalValue = v; _indicator.criticalValue = v; }
 
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _indicator.frame = self.bounds;
@@ -766,4 +778,83 @@ RCT_EXPORT_VIEW_PROPERTY(minValue, double)
 RCT_EXPORT_VIEW_PROPERTY(maxValue, double)
 RCT_EXPORT_VIEW_PROPERTY(warningValue, double)
 RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
+@end
+
+// ============================================================
+// 13. NSScrollView (container for RN children)
+// ============================================================
+
+@interface RCTFlippedDocumentView : NSView
+@end
+@implementation RCTFlippedDocumentView
+- (BOOL)isFlipped { return YES; }
+@end
+
+@interface RCTNativeScrollView : NSScrollView
+@property (nonatomic, strong) RCTFlippedDocumentView *docView;
+@end
+
+@implementation RCTNativeScrollView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _docView = [[RCTFlippedDocumentView alloc] initWithFrame:frame];
+    self.documentView = _docView;
+    self.hasVerticalScroller = YES;
+    self.hasHorizontalScroller = NO;
+    self.autohidesScrollers = YES;
+    self.drawsBackground = NO;
+  }
+  return self;
+}
+
+- (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
+  [_docView addSubview:subview];
+}
+
+- (void)removeReactSubview:(NSView *)subview {
+  [subview removeFromSuperview];
+}
+
+- (NSArray<NSView *> *)reactSubviews {
+  return _docView.subviews;
+}
+
+- (void)didUpdateReactSubviews {
+  // Called by RN after laying out subviews — schedule a
+  // size update on the next run loop so frames are final.
+  [self performSelector:@selector(updateDocumentSize) withObject:nil afterDelay:0];
+}
+
+- (void)reactSetFrame:(CGRect)frame {
+  [super reactSetFrame:frame];
+  [self performSelector:@selector(updateDocumentSize) withObject:nil afterDelay:0];
+}
+
+- (void)updateDocumentSize {
+  CGFloat maxY = 0;
+  for (NSView *child in _docView.subviews) {
+    CGFloat bottom = CGRectGetMaxY(child.frame);
+    if (bottom > maxY) maxY = bottom;
+  }
+  CGFloat w = self.bounds.size.width;
+  if (w <= 0) w = self.frame.size.width;
+  CGSize newSize = NSMakeSize(w, MAX(maxY, self.bounds.size.height));
+  if (!CGSizeEqualToSize(_docView.frame.size, newSize)) {
+    _docView.frame = NSMakeRect(0, 0, newSize.width, newSize.height);
+  }
+}
+
+- (void)layout {
+  [super layout];
+  [self updateDocumentSize];
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTNativeScrollViewManager : RCTViewManager @end
+@implementation RCTNativeScrollViewManager
+RCT_EXPORT_MODULE(MacOSScrollView)
+- (NSView *)view { return [[RCTNativeScrollView alloc] initWithFrame:CGRectZero]; }
 @end

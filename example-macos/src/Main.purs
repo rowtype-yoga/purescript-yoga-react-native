@@ -10,7 +10,7 @@ import React.Basic.Events (EventHandler, handler, handler_, unsafeEventFn)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
-import Yoga.React.Native (nativeEvent, registerComponent, safeAreaView, scrollView, text, tw, view)
+import Yoga.React.Native (nativeEvent, registerComponent, safeAreaView, text, tw, view)
 import Yoga.React.Native.Appearance (useColorScheme)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.ColorWell (nativeColorWell)
@@ -24,6 +24,7 @@ import Yoga.React.Native.MacOS.Switch (nativeSwitch)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.TextEditor (nativeTextEditor)
 import Yoga.React.Native.MacOS.WebView (nativeWebView)
+import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
@@ -47,9 +48,10 @@ app = component "App" \_ -> React.do
   let fg = if isDark then "#FFFFFF" else "#000000"
   let dimFg = if isDark then "#999999" else "#666666"
   let cardBg = if isDark then "#2A2A2A" else "#F0F0F0"
+  let bg = if isDark then "#1E1E1E" else "#FFFFFF"
   pure do
-    safeAreaView { style: tw "flex-1" }
-      ( view { style: tw "flex-1" }
+    safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: bg } }
+      ( view { style: tw "flex-1" <> Style.style { backgroundColor: bg } }
           [ nativeSegmented
               { style: Style.style { height: 32.0, marginHorizontal: 16.0, marginTop: 12.0 }
               , labels: [ "Controls", "Editor", "Browser" ]
@@ -135,133 +137,129 @@ type ControlsProps =
 controlsTab :: ControlsProps -> JSX
 controlsTab = component "ControlsTab" \p -> React.do
   pure do
-    scrollView { style: tw "flex-1 px-4" }
-      [ sectionTitle p.fg "Button"
-      , card p.cardBg
-          [ view { style: tw "flex-row items-center" }
-              [ nativeButton
-                  { title: "Say Hello"
-                  , sfSymbol: "hand.wave"
-                  , bezelStyle: "rounded"
-                  , primary: true
-                  , onPress: handler_ (p.setButtonStatus "Hello from PureScript!")
-                  , style: Style.style { height: 24.0, width: 140.0 }
-                  }
-              , nativeButton
-                  { title: "Reset"
-                  , sfSymbol: "arrow.counterclockwise"
-                  , bezelStyle: "rounded"
-                  , onPress: handler_ (p.setButtonStatus "Ready")
-                  , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
-                  }
-              , label p.dimFg p.buttonStatus
+    nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+      ( view { style: tw "px-4 pb-4" }
+          [ sectionTitle p.fg "Button"
+          , card p.cardBg
+              [ view { style: tw "flex-row items-center" }
+                  [ nativeButton
+                      { title: "Say Hello"
+                      , sfSymbol: "hand.wave"
+                      , bezelStyle: "rounded"
+                      , primary: true
+                      , onPress: handler_ (p.setButtonStatus "Hello from PureScript!")
+                      , style: Style.style { height: 24.0, width: 140.0 }
+                      }
+                  , nativeButton
+                      { title: "Reset"
+                      , sfSymbol: "arrow.counterclockwise"
+                      , bezelStyle: "rounded"
+                      , onPress: handler_ (p.setButtonStatus "Ready")
+                      , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
+                      }
+                  , label p.dimFg p.buttonStatus
+                  ]
               ]
-          ]
 
-      , sectionTitle p.fg "Switch"
-      , card p.cardBg
-          [ view { style: tw "flex-row items-center" }
-              [ nativeSwitch
-                  { on: p.switchOn
-                  , onChange: extractBool "on" p.setSwitchOn
-                  , style: Style.style { height: 24.0, width: 48.0 }
-                  }
-              , label p.dimFg (if p.switchOn then "On" else "Off")
+          , sectionTitle p.fg "Switch"
+          , card p.cardBg
+              [ view { style: tw "flex-row items-center" }
+                  [ nativeSwitch
+                      { on: p.switchOn
+                      , onChange: extractBool "on" p.setSwitchOn
+                      , style: Style.style { height: 24.0, width: 48.0 }
+                      }
+                  , label p.dimFg (if p.switchOn then "On" else "Off")
+                  ]
               ]
-          ]
 
-      , sectionTitle p.fg "Slider + Level Indicator + Progress"
-      , card p.cardBg
-          [ nativeSlider
-              { value: p.sliderValue
-              , minValue: 0.0
-              , maxValue: 100.0
-              , numberOfTickMarks: 11
-              , onChange: extractNumber "value" p.setSliderValue
-              , style: Style.style { height: 24.0 }
-              }
-          , label p.dimFg ("Value: " <> show (round p.sliderValue) <> " / 100")
-          , view { style: tw "mt-2" }
-              [ nativeLevelIndicator
+          , sectionTitle p.fg "Slider + Level Indicator + Progress"
+          , card p.cardBg
+              [ nativeSlider
+                  { value: p.sliderValue
+                  , minValue: 0.0
+                  , maxValue: 100.0
+                  , numberOfTickMarks: 11
+                  , onChange: extractNumber "value" p.setSliderValue
+                  , style: Style.style { height: 24.0 }
+                  }
+              , label p.dimFg ("Value: " <> show (round p.sliderValue) <> " / 100")
+              , nativeLevelIndicator
                   { value: p.sliderValue
                   , minValue: 0.0
                   , maxValue: 100.0
                   , warningValue: 70.0
                   , criticalValue: 90.0
-                  , style: Style.style { height: 18.0 }
+                  , style: Style.style { height: 18.0, marginTop: 8.0 }
                   }
-              ]
-          , view { style: tw "mt-2" }
-              [ nativeProgress
+              , nativeProgress
                   { value: p.sliderValue
-                  , style: Style.style { height: 18.0 }
+                  , style: Style.style { height: 18.0, marginTop: 8.0 }
                   }
               ]
-          ]
 
-      , sectionTitle p.fg "Pop Up Button"
-      , card p.cardBg
-          [ view { style: tw "flex-row items-center" }
-              [ nativePopUp
-                  { items: [ "Small", "Medium", "Large", "Extra Large" ]
-                  , selectedIndex: p.popUpIndex
-                  , onChange: handler
-                      ( nativeEvent >>> unsafeEventFn \e ->
-                          { idx: (getFieldInt "selectedIndex" e), title: (getFieldStr "title" e) }
-                      )
-                      \r -> do
-                        p.setPopUpIndex r.idx
-                        p.setPopUpTitle r.title
-                  , style: Style.style { height: 24.0, width: 160.0 }
+          , sectionTitle p.fg "Pop Up Button"
+          , card p.cardBg
+              [ view { style: tw "flex-row items-center" }
+                  [ nativePopUp
+                      { items: [ "Small", "Medium", "Large", "Extra Large" ]
+                      , selectedIndex: p.popUpIndex
+                      , onChange: handler
+                          ( nativeEvent >>> unsafeEventFn \e ->
+                              { idx: (getFieldInt "selectedIndex" e), title: (getFieldStr "title" e) }
+                          )
+                          \r -> do
+                            p.setPopUpIndex r.idx
+                            p.setPopUpTitle r.title
+                      , style: Style.style { height: 24.0, width: 160.0 }
+                      }
+                  , label p.dimFg ("Selected: " <> p.popUpTitle)
+                  ]
+              ]
+
+          , sectionTitle p.fg "Color Well"
+          , card p.cardBg
+              [ view { style: tw "flex-row items-center" }
+                  [ nativeColorWell
+                      { color: p.selectedColor
+                      , minimal: true
+                      , onChange: extractString "color" p.setSelectedColor
+                      , style: Style.style { height: 32.0, width: 48.0 }
+                      }
+                  , view
+                      { style: tw "ml-3 rounded" <> Style.style
+                          { width: 24.0, height: 24.0, backgroundColor: p.selectedColor }
+                      }
+                      []
+                  , label p.dimFg p.selectedColor
+                  ]
+              ]
+
+          , sectionTitle p.fg "Date Picker"
+          , card p.cardBg
+              [ nativeDatePicker
+                  { graphical: false
+                  , onChange: extractString "date" p.setDateText
+                  , style: Style.style { height: 24.0, width: 200.0 }
                   }
-              , label p.dimFg ("Selected: " <> p.popUpTitle)
+              , if p.dateText == "" then mempty
+                else label p.dimFg ("Picked: " <> p.dateText)
+              ]
+
+          , sectionTitle p.fg "Text Field"
+          , card p.cardBg
+              [ nativeTextField
+                  { placeholder: "Type something..."
+                  , search: true
+                  , text: p.searchText
+                  , onChangeText: extractString "text" p.setSearchText
+                  , style: Style.style { height: 24.0 }
+                  }
+              , if p.searchText == "" then mempty
+                else label p.dimFg ("You typed: " <> p.searchText)
               ]
           ]
-
-      , sectionTitle p.fg "Color Well"
-      , card p.cardBg
-          [ view { style: tw "flex-row items-center" }
-              [ nativeColorWell
-                  { color: p.selectedColor
-                  , minimal: true
-                  , onChange: extractString "color" p.setSelectedColor
-                  , style: Style.style { height: 32.0, width: 48.0 }
-                  }
-              , view
-                  { style: tw "ml-3 rounded" <> Style.style
-                      { width: 24.0, height: 24.0, backgroundColor: p.selectedColor }
-                  }
-                  []
-              , label p.dimFg p.selectedColor
-              ]
-          ]
-
-      , sectionTitle p.fg "Date Picker"
-      , card p.cardBg
-          [ nativeDatePicker
-              { graphical: false
-              , onChange: extractString "date" p.setDateText
-              , style: Style.style { height: 24.0, width: 200.0 }
-              }
-          , if p.dateText == "" then mempty
-            else label p.dimFg ("Picked: " <> p.dateText)
-          ]
-
-      , sectionTitle p.fg "Text Field"
-      , card p.cardBg
-          [ nativeTextField
-              { placeholder: "Type something..."
-              , search: true
-              , text: p.searchText
-              , onChangeText: extractString "text" p.setSearchText
-              , style: Style.style { height: 24.0 }
-              }
-          , if p.searchText == "" then mempty
-            else label p.dimFg ("You typed: " <> p.searchText)
-          ]
-
-      , view { style: tw "h-8" } []
-      ]
+      )
 
 -- Tab 1: Editor
 editorTab :: { fg :: String } -> JSX
@@ -302,7 +300,7 @@ browserTab = component "BrowserTab" \p -> React.do
           }
       , nativeWebView
           { url: p.browserUrl
-          , onPageLoad: handler
+          , onFinishLoad: handler
               ( nativeEvent >>> unsafeEventFn \e ->
                   { url: getFieldStr "url" e, title: getFieldStr "title" e }
               )
@@ -318,7 +316,7 @@ sectionTitle color title =
 
 card :: String -> Array JSX -> JSX
 card bg children =
-  view { style: tw "rounded-lg p-3 mb-2" <> Style.style { backgroundColor: bg } }
+  view { style: tw "rounded-lg p-3 mb-2" <> Style.style { backgroundColor: bg, overflow: "hidden" } }
     children
 
 label :: String -> String -> JSX

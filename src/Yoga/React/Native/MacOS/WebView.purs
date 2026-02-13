@@ -13,5 +13,5 @@ nativeWebView = createNativeElement_ _webViewImpl
 type NativeWebViewAttributes = BaseAttributes
   ( url :: String
   , onNavigate :: EventHandler
-  , onPageLoad :: EventHandler
+  , onFinishLoad :: EventHandler
   )
