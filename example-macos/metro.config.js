@@ -12,12 +12,6 @@ const config = {
   resolver: {
     unstable_enableSymlinks: true,
     nodeModulesPaths: [path.resolve(__dirname, "node_modules")],
-    extraNodeModules: {
-      "react-native": path.resolve(
-        __dirname,
-        "node_modules/react-native-macos"
-      ),
-    },
   },
 };
 

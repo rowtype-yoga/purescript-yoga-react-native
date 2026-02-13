@@ -2,7 +2,7 @@
  * @format
  */
 
-import { AppRegistry, Text, View, LogBox } from "react-native";
+import { AppRegistry, Text, View, LogBox, PlatformColor } from "react-native";
 import React from "react";
 import { main } from "./output/Main/index.js";
 
@@ -18,6 +18,12 @@ ErrorUtils.setGlobalHandler((error, isFatal) => {
 });
 
 try {
+  const pc = PlatformColor("controlAccentColor");
+  console.log("=== PlatformColor test ===");
+  console.log("type:", typeof pc);
+  console.log("keys:", Object.keys(pc));
+  console.log("JSON:", JSON.stringify(pc));
+  console.log("semantic:", pc.semantic);
   console.log("=== CALLING MAIN ===");
   main();
   console.log("=== MAIN COMPLETED ===");
