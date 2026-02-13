@@ -314,10 +314,7 @@ browserTab = component "BrowserTab" \p -> React.do
 -- UI helpers
 sectionTitle :: String -> String -> JSX
 sectionTitle color title =
-  text
-    { style: tw "text-sm font-semibold mt-4 mb-1" <> Style.style { color }
-    , children: [ React.string title ]
-    }
+  text { style: tw "text-sm font-semibold mt-4 mb-1" <> Style.style { color } } title
 
 card :: String -> Array JSX -> JSX
 card bg children =
@@ -326,10 +323,7 @@ card bg children =
 
 label :: String -> String -> JSX
 label color str =
-  text
-    { style: tw "ml-3 text-sm" <> Style.style { color }
-    , children: [ React.string str ]
-    }
+  text { style: tw "ml-3 text-sm" <> Style.style { color } } str
 
 round :: Number -> Int
 round n = unsafeRound n
