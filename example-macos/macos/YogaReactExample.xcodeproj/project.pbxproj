@@ -13,6 +13,7 @@
 		514201582437B4B40078DB4F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 514201572437B4B40078DB4F /* main.m */; };
 		AA0000012437B4B30078DB4F /* RCTSFSymbolViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002437B4B30078DB4F /* RCTSFSymbolViewManager.m */; };
 		AA0000032437B4B30078DB4F /* RCTFinderViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */; };
+		AA0000052437B4B30078DB4F /* RCTNativeShowcaseManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */; };
 		5D0045734F6C5D73F8546B05 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F264B867F71A9A4C58140DE /* PrivacyInfo.xcprivacy */; };
 		BE70DEDEE32B54947FC49AFF /* libPods-YogaReactExample-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */; };
 		DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F264B867F71A9A4C58140DE /* PrivacyInfo.xcprivacy */; };
@@ -32,6 +33,7 @@
 		514201592437B4B40078DB4F /* YogaReactExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = YogaReactExample.entitlements; sourceTree = "<group>"; };
 		AA0000002437B4B30078DB4F /* RCTSFSymbolViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTSFSymbolViewManager.m; sourceTree = "<group>"; };
 		AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTFinderViewManager.m; sourceTree = "<group>"; };
+		AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNativeShowcaseManager.m; sourceTree = "<group>"; };
 		6219FEE28F8561D55869D1DF /* Pods-YogaReactExample-macOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YogaReactExample-macOS.release.xcconfig"; path = "Target Support Files/Pods-YogaReactExample-macOS/Pods-YogaReactExample-macOS.release.xcconfig"; sourceTree = "<group>"; };
 		C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-YogaReactExample-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -77,6 +79,7 @@
 				514201592437B4B40078DB4F /* YogaReactExample.entitlements */,
 				AA0000002437B4B30078DB4F /* RCTSFSymbolViewManager.m */,
 				AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */,
+				AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */,
 			);
 			path = "YogaReactExample-macOS";
 			sourceTree = "<group>";
@@ -338,6 +341,7 @@
 				5142014D2437B4B30078DB4F /* AppDelegate.mm in Sources */,
 				AA0000012437B4B30078DB4F /* RCTSFSymbolViewManager.m in Sources */,
 				AA0000032437B4B30078DB4F /* RCTFinderViewManager.m in Sources */,
+				AA0000052437B4B30078DB4F /* RCTNativeShowcaseManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
