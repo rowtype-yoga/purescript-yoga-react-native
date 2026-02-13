@@ -666,7 +666,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
 @interface RCTNativeWebViewView : NSView <WKNavigationDelegate>
 @property (nonatomic, strong) WKWebView *webView;
 @property (nonatomic, copy) RCTBubblingEventBlock onNavigate;
-@property (nonatomic, copy) RCTBubblingEventBlock onLoad;
+@property (nonatomic, copy) RCTBubblingEventBlock onPageLoad;
 @property (nonatomic, copy) NSString *url;
 @end
 
@@ -693,7 +693,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
-  if (_onLoad) _onLoad(@{@"url": webView.URL.absoluteString ?: @"", @"title": webView.title ?: @""});
+  if (_onPageLoad) _onPageLoad(@{@"url": webView.URL.absoluteString ?: @"", @"title": webView.title ?: @""});
 }
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
@@ -713,7 +713,7 @@ RCT_EXPORT_MODULE(NativeWebView)
 - (NSView *)view { return [[RCTNativeWebViewView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(url, NSString)
 RCT_EXPORT_VIEW_PROPERTY(onNavigate, RCTBubblingEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onLoad, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onPageLoad, RCTBubblingEventBlock)
 @end
 
 // ============================================================
