@@ -318,6 +318,8 @@ app = component "App" \_ -> React.do
           , caption "Caption helper"
           , card [ label' "Inside a card" ]
           , text { style: tw "text-lg" } ("platformColor debug: " <> unsafeStringify accentClr)
+          , view { style: Style.style { backgroundColor: accentClr, padding: 10.0 } }
+              [ text { style: tw "text-white" } "platformColor bg test" ]
           ]
       )
 
