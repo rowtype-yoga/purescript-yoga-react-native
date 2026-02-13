@@ -317,7 +317,7 @@ app = component "App" \_ -> React.do
           , bodyText "Body text helper"
           , caption "Caption helper"
           , card [ label' "Inside a card" ]
-          , text { style: tw "text-lg" } "platformColor removed for now"
+          , text { style: tw "text-lg" } ("platformColor debug: " <> unsafeStringify accentClr)
           ]
       )
 
