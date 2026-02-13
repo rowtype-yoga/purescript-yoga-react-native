@@ -390,8 +390,7 @@
   NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
   scroll.hasVerticalScroller = YES;
   scroll.autohidesScrollers = YES;
-  scroll.drawsBackground = YES;
-  scroll.backgroundColor = [NSColor controlBackgroundColor];
+  scroll.drawsBackground = NO;
   scroll.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 
   NSView *content = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 260, 600)];
@@ -568,8 +567,7 @@
     NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:self.bounds];
     scroll.hasVerticalScroller = YES;
     scroll.autohidesScrollers = YES;
-    scroll.drawsBackground = YES;
-    scroll.backgroundColor = [NSColor controlBackgroundColor];
+    scroll.drawsBackground = NO;
     scroll.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 
     NSView *c = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 600, 780)];
@@ -767,6 +765,22 @@
 - (BOOL)wantsUpdateLayer { return YES; }
 - (void)updateLayer {
   self.layer.backgroundColor = [NSColor controlBackgroundColor].CGColor;
+  NSLog(@"[SHOWCASE] ControlsGallery updateLayer called, bg=%@, frame=%@", self.layer.backgroundColor, NSStringFromRect(self.frame));
+}
+
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+  if (self.window) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+      NSLog(@"[SHOWCASE] ControlsGallery frame=%@ layer.bg=%@", NSStringFromRect(self.frame), self.layer.backgroundColor);
+      NSLog(@"[SHOWCASE] ControlsGallery superview=%@ superview.frame=%@ superview.layer.bg=%@",
+            [self.superview class], NSStringFromRect(self.superview.frame), self.superview.layer.backgroundColor);
+      // Check scrollview
+      for (NSView *sub in self.subviews) {
+        NSLog(@"[SHOWCASE] ControlsGallery child: %@ frame=%@ layer.bg=%@", [sub class], NSStringFromRect(sub.frame), sub.layer.backgroundColor);
+      }
+    });
+  }
 }
 - (void)layout {
   [super layout];
@@ -948,6 +962,26 @@
     self.window.toolbar = nil;
     self.window.title = @"Native macOS Showcase";
     self.window.appearance = nil;
+
+    // Debug: log view hierarchy
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+      NSLog(@"[SHOWCASE] self.frame=%@ self.bounds=%@", NSStringFromRect(self.frame), NSStringFromRect(self.bounds));
+      NSLog(@"[SHOWCASE] self.superview=%@ superview.frame=%@", self.superview, NSStringFromRect(self.superview.frame));
+      NSLog(@"[SHOWCASE] self.layer.backgroundColor=%@", self.layer.backgroundColor);
+      NSLog(@"[SHOWCASE] backgroundView.frame=%@", NSStringFromRect(self->_backgroundView.frame));
+      NSLog(@"[SHOWCASE] segmentedControl.frame=%@", NSStringFromRect(self->_segmentedControl.frame));
+      NSLog(@"[SHOWCASE] tabView.frame=%@", NSStringFromRect(self->_tabView.frame));
+      NSLog(@"[SHOWCASE] self.effectiveAppearance=%@", self.effectiveAppearance.name);
+
+      // Walk up the view tree
+      NSView *v = self.superview;
+      int depth = 0;
+      while (v && depth < 10) {
+        NSLog(@"[SHOWCASE] parent[%d] %@ frame=%@ layer.bg=%@ wantsLayer=%d", depth, [v class], NSStringFromRect(v.frame), v.layer.backgroundColor, v.wantsLayer);
+        v = v.superview;
+        depth++;
+      }
+    });
   }
 }
 
