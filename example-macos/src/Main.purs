@@ -17,6 +17,7 @@ import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (registerComponent, view, text, textInput, pressable, scrollView, safeAreaView, activityIndicator, tw)
 import Yoga.React.Native.FS as FS
+import Yoga.React.Native.SFSymbol (sfSymbol)
 import Yoga.React.Native.Style as Style
 import Yoga.React.Native.StyleSheet as StyleSheet
 
@@ -79,91 +80,37 @@ app = component "App" \_ -> React.do
     folderCount = length (filter _.isDirectory entries)
     statusText = show folderCount <> " folders, " <> show fileCount <> " files"
 
-    -- Icon builders
-    folderIcon =
-      view { style: Style.style { width: 20.0, height: 16.0, marginRight: 8.0 } }
-        [ -- Folder tab
-          view
-            { style: Style.style
-                { position: "absolute"
-                , top: 0.0
-                , left: 0.0
-                , width: 9.0
-                , height: 4.0
-                , backgroundColor: "#5AC8FA"
-                , borderTopLeftRadius: 2.0
-                , borderTopRightRadius: 2.0
-                }
-            }
-            []
-        , -- Folder body
-          view
-            { style: Style.style
-                { position: "absolute"
-                , top: 3.0
-                , left: 0.0
-                , right: 0.0
-                , bottom: 0.0
-                , backgroundColor: "#5AC8FA"
-                , borderRadius: 2.0
-                }
-            }
-            []
-        ]
+    -- SF Symbol icon helpers
+    icon name color size =
+      sfSymbol { name, color, size, style: Style.style { width: size + 4.0, height: size + 4.0 } }
 
-    fileIcon color =
-      view { style: Style.style { width: 18.0, height: 20.0, marginRight: 8.0 } }
-        [ -- Page body
-          view
-            { style: Style.style
-                { position: "absolute"
-                , top: 0.0
-                , left: 0.0
-                , width: 18.0
-                , height: 20.0
-                , backgroundColor: "#ffffff"
-                , borderRadius: 2.0
-                , borderWidth: 0.5
-                , borderColor: "#d1d1d6"
-                }
-            }
-            []
-        , -- Color bar at bottom
-          view
-            { style: Style.style
-                { position: "absolute"
-                , bottom: 0.0
-                , left: 0.0
-                , right: 0.0
-                , height: 4.0
-                , backgroundColor: color
-                , borderBottomLeftRadius: 2.0
-                , borderBottomRightRadius: 2.0
-                }
-            }
-            []
-        ]
+    sidebarSF name color =
+      view { style: Style.style { width: 20.0, height: 20.0, marginRight: 6.0, alignItems: "center", justifyContent: "center" } }
+        [ icon name color 14.0 ]
 
+    contentSF name color =
+      view { style: Style.style { width: 20.0, height: 20.0, marginRight: 8.0, alignItems: "center", justifyContent: "center" } }
+        [ icon name color 15.0 ]
+
+    -- File/folder icons using SF Symbols
     fileIconView item
-      | item.isDirectory = folderIcon
-      | otherwise = fileIcon (fileColor item.name)
-
-    fileColor name = case extensionOf name of
-      "purs" -> "#8B5CF6"
-      "js" -> "#F7DF1E"
-      "ts" -> "#3178C6"
-      "json" -> "#FF9500"
-      "md" -> "#1d1d1f"
-      "txt" -> "#8E8E93"
-      "png" -> "#34C759"
-      "jpg" -> "#34C759"
-      "gif" -> "#34C759"
-      "svg" -> "#FF9500"
-      "pdf" -> "#FF3B30"
-      "zip" -> "#8E8E93"
-      "gz" -> "#8E8E93"
-      "lock" -> "#8E8E93"
-      _ -> "#c7c7cc"
+      | item.isDirectory = contentSF "folder.fill" "#48A5F5"
+      | otherwise = case extensionOf item.name of
+          "purs" -> contentSF "doc.text.fill" "#8B5CF6"
+          "js" -> contentSF "doc.text.fill" "#F7DF1E"
+          "ts" -> contentSF "doc.text.fill" "#3178C6"
+          "json" -> contentSF "doc.text.fill" "#FF9500"
+          "md" -> contentSF "doc.richtext.fill" "#1d1d1f"
+          "txt" -> contentSF "doc.text" "#8E8E93"
+          "png" -> contentSF "photo.fill" "#34C759"
+          "jpg" -> contentSF "photo.fill" "#34C759"
+          "gif" -> contentSF "photo.fill" "#34C759"
+          "svg" -> contentSF "photo" "#FF9500"
+          "pdf" -> contentSF "doc.richtext.fill" "#FF3B30"
+          "zip" -> contentSF "doc.zipper" "#8E8E93"
+          "gz" -> contentSF "doc.zipper" "#8E8E93"
+          "lock" -> contentSF "lock.fill" "#8E8E93"
+          _ -> contentSF "doc.fill" "#c7c7cc"
 
     fileKind name = case extensionOf name of
       "purs" -> "PureScript Source"
@@ -188,33 +135,27 @@ app = component "App" \_ -> React.do
       Just i -> drop (i + 1) name
 
     -- Sidebar
-    sidebarIcon color glyph =
-      view { style: Style.style { width: 18.0, height: 18.0, marginRight: 6.0, alignItems: "center", justifyContent: "center" } }
-        [ text { style: Style.style { color, fontSize: 13.0, lineHeight: 18.0 } } glyph ]
-
-    sidebarItem label path icon =
+    sidebarItem label path sideIcon =
       pressable
         { onPress: handler_ (navigateTo path)
         , onMouseEnter: handler_ (setHoveredSidebar (const (Just label)))
         , onMouseLeave: handler_ (setHoveredSidebar (const Nothing))
         , cursor: "pointer"
         , tooltip: path
-        , style: Style.styles
-            [ Style.style
-                { flexDirection: "row"
-                , alignItems: "center"
-                , paddingHorizontal: 8.0
-                , paddingVertical: 3.0
-                , marginHorizontal: 8.0
-                , borderRadius: 5.0
-                , backgroundColor:
-                    if currentPath == path then "rgba(0,0,0,0.1)"
-                    else if hoveredSidebar == Just label then "rgba(0,0,0,0.04)"
-                    else "transparent"
-                }
-            ]
+        , style: Style.style
+            { flexDirection: "row"
+            , alignItems: "center"
+            , paddingHorizontal: 8.0
+            , paddingVertical: 3.0
+            , marginHorizontal: 8.0
+            , borderRadius: 5.0
+            , backgroundColor:
+                if currentPath == path then "rgba(0,0,0,0.1)"
+                else if hoveredSidebar == Just label then "rgba(0,0,0,0.04)"
+                else "transparent"
+            }
         }
-        [ icon
+        [ sideIcon
         , text
             { style: Style.style
                 { fontSize: 13.0
@@ -251,13 +192,13 @@ app = component "App" \_ -> React.do
       , allowsVibrancy: true
       }
       [ sidebarHeader "Favorites"
-      , sidebarItem "Documents" FS.documentDirectoryPath (sidebarIcon "#3B82F6" "\x1F4C1")
-      , sidebarItem "Caches" FS.cachesDirectoryPath (sidebarIcon "#6B7280" "\x1F5C4")
-      , sidebarItem "Temp" FS.temporaryDirectoryPath (sidebarIcon "#F59E0B" "\x1F4C2")
+      , sidebarItem "Documents" FS.documentDirectoryPath (sidebarSF "folder.fill" "#48A5F5")
+      , sidebarItem "Caches" FS.cachesDirectoryPath (sidebarSF "archivebox.fill" "#8E8E93")
+      , sidebarItem "Temp" FS.temporaryDirectoryPath (sidebarSF "clock.fill" "#FF9500")
       , sidebarHeader "Locations"
-      , sidebarItem "Root" "/" (sidebarIcon "#6B7280" "\x1F4BD")
-      , sidebarItem "tmp" "/tmp" (sidebarIcon "#6B7280" "\x1F4BE")
-      , sidebarItem "usr" "/usr" (sidebarIcon "#6B7280" "\x1F4BE")
+      , sidebarItem "Root" "/" (sidebarSF "externaldrive.fill" "#8E8E93")
+      , sidebarItem "tmp" "/tmp" (sidebarSF "folder.fill" "#8E8E93")
+      , sidebarItem "usr" "/usr" (sidebarSF "folder.fill" "#8E8E93")
       ]
 
     -- Toolbar
@@ -272,7 +213,7 @@ app = component "App" \_ -> React.do
           , borderBottomColor: "#c6c6c8"
           }
       }
-      [ -- Back/forward buttons
+      [ -- Back button with SF Symbol
         pressable
           { onPress: handler_ (navigateTo (parentPath currentPath))
           , cursor: "pointer"
@@ -287,14 +228,9 @@ app = component "App" \_ -> React.do
               , marginRight: 2.0
               }
           }
-          [ text { style: Style.style { fontSize: 15.0, color: "#007AFF" } } "\x276E" ]
+          [ icon "chevron.left" "#007AFF" 14.0 ]
       , -- Path bar
-        view
-          { style: Style.style
-              { flex: 1.0
-              , marginHorizontal: 8.0
-              }
-          }
+        view { style: Style.style { flex: 1.0, marginHorizontal: 8.0 } }
           [ textInput
               { value: pathInput
               , onChangeText: mkEffectFn1 \t -> setPathInput (const t)
@@ -312,12 +248,7 @@ app = component "App" \_ -> React.do
           ]
       , -- Item count
         text
-          { style: Style.style
-              { fontSize: 11.0
-              , color: "#8e8e93"
-              , marginLeft: 8.0
-              }
-          }
+          { style: Style.style { fontSize: 11.0, color: "#8e8e93", marginLeft: 8.0 } }
           statusText
       ]
 
@@ -381,10 +312,8 @@ app = component "App" \_ -> React.do
             , marginHorizontal: if isSelected item then 4.0 else 0.0
             }
         }
-        [ -- Icon
-          fileIconView item
-        , -- Name
-          view { style: Style.style { flex: 1.0 } }
+        [ fileIconView item
+        , view { style: Style.style { flex: 1.0 } }
             [ text
                 { style: Style.style
                     { fontSize: 13.0
@@ -397,8 +326,7 @@ app = component "App" \_ -> React.do
                 }
                 item.name
             ]
-        , -- Size
-          view { style: Style.style { width: 90.0 } }
+        , view { style: Style.style { width: 90.0 } }
             [ text
                 { style: Style.style
                     { fontSize: 11.0
@@ -407,8 +335,7 @@ app = component "App" \_ -> React.do
                 }
                 (if item.isDirectory then "--" else formatSize item.size)
             ]
-        , -- Kind
-          view { style: Style.style { width: 120.0 } }
+        , view { style: Style.style { width: 120.0 } }
             [ text
                 { style: Style.style
                     { fontSize: 11.0
@@ -435,8 +362,9 @@ app = component "App" \_ -> React.do
                 , paddingHorizontal: 40.0
                 }
             }
-            [ text
-                { style: Style.style { fontSize: 13.0, color: "#1d1d1f", fontWeight: "600", marginBottom: 4.0 } }
+            [ icon "exclamationmark.triangle.fill" "#FF9500" 32.0
+            , text
+                { style: Style.style { fontSize: 13.0, color: "#1d1d1f", fontWeight: "600", marginBottom: 4.0, marginTop: 12.0 } }
                 "The folder can\x2019t be opened."
             , text
                 { style: Style.style { fontSize: 11.0, color: "#8e8e93", textAlign: "center" } }
