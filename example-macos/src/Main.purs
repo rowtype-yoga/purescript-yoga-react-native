@@ -124,6 +124,7 @@ app = component "App" \_ -> React.do
             , Style.style { backgroundColor: "#007AFF" }
             ]
         , cursor: "pointer"
+        , tooltip: lbl
         }
         [ text { style: tw "text-white text-sm font-semibold text-center" } lbl ]
 
