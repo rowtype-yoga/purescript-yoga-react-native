@@ -17,5 +17,6 @@ type NativeRiveViewAttributes = BaseAttributes
   , url :: String
   , artboardName :: String
   , stateMachineName :: String
+  , fit :: String
   , autoplay :: Boolean
   )

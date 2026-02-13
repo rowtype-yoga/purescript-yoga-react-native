@@ -871,6 +871,7 @@ RCT_EXPORT_MODULE(MacOSScrollView)
 @property (nonatomic, copy) NSString *url;
 @property (nonatomic, copy) NSString *stateMachineName;
 @property (nonatomic, copy) NSString *artboardName;
+@property (nonatomic, copy) NSString *fit;
 @property (nonatomic, assign) BOOL autoplay;
 @end
 
@@ -879,8 +880,26 @@ RCT_EXPORT_MODULE(MacOSScrollView)
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
     _autoplay = YES;
+    _fit = @"contain";
   }
   return self;
+}
+
+- (enum RiveFit)parseFit {
+  if ([_fit isEqualToString:@"cover"]) return cover;
+  if ([_fit isEqualToString:@"fill"]) return fill;
+  if ([_fit isEqualToString:@"fitWidth"]) return fitWidth;
+  if ([_fit isEqualToString:@"fitHeight"]) return fitHeight;
+  if ([_fit isEqualToString:@"scaleDown"]) return scaleDown;
+  if ([_fit isEqualToString:@"noFit"]) return noFit;
+  return contain;
+}
+
+- (void)setFit:(NSString *)fit {
+  if ([_fit isEqualToString:fit]) return;
+  _fit = fit;
+  if (_resourceName.length > 0) [self loadFromResource];
+  else if (_url.length > 0) [self loadFromURL];
 }
 
 - (void)setResourceName:(NSString *)resourceName {
@@ -904,12 +923,13 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   BOOL ap = _autoplay;
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    enum RiveFit f = [weakSelf parseFit];
     RiveViewModel *vm = [[RiveViewModel alloc]
       initWithFileName:name
              extension:@"riv"
                     in:[NSBundle mainBundle]
       stateMachineName:sm
-                   fit:contain
+                   fit:f
              alignment:center
               autoPlay:ap
          artboardName:ab
@@ -933,10 +953,11 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   BOOL ap = _autoplay;
   __weak typeof(self) weakSelf = self;
   dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+    enum RiveFit f = [weakSelf parseFit];
     RiveViewModel *vm = [[RiveViewModel alloc]
       initWithWebURL:u
     stateMachineName:sm
-                 fit:contain
+                 fit:f
            alignment:center
             autoPlay:ap
              loadCdn:YES
@@ -986,4 +1007,5 @@ RCT_EXPORT_VIEW_PROPERTY(url, NSString)
 RCT_EXPORT_VIEW_PROPERTY(stateMachineName, NSString)
 RCT_EXPORT_VIEW_PROPERTY(artboardName, NSString)
 RCT_EXPORT_VIEW_PROPERTY(autoplay, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(fit, NSString)
 @end

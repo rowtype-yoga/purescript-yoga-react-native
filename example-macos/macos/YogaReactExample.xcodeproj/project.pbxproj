@@ -19,6 +19,9 @@
 		BE70DEDEE32B54947FC49AFF /* libPods-YogaReactExample-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */; };
 		DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F264B867F71A9A4C58140DE /* PrivacyInfo.xcprivacy */; };
 		BB0000012437B4B30078DB4F /* windy_tree.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000002437B4B30078DB4F /* windy_tree.riv */; };
+		BB0000032437B4B30078DB4F /* light_switch.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000022437B4B30078DB4F /* light_switch.riv */; };
+		BB0000052437B4B30078DB4F /* rating_animation.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000042437B4B30078DB4F /* rating_animation.riv */; };
+		BB0000072437B4B30078DB4F /* switch_event_example.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000062437B4B30078DB4F /* switch_event_example.riv */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +44,9 @@
 		C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-YogaReactExample-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		BB0000002437B4B30078DB4F /* windy_tree.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = windy_tree.riv; sourceTree = "<group>"; };
+		BB0000022437B4B30078DB4F /* light_switch.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = light_switch.riv; sourceTree = "<group>"; };
+		BB0000042437B4B30078DB4F /* rating_animation.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = rating_animation.riv; sourceTree = "<group>"; };
+		BB0000062437B4B30078DB4F /* switch_event_example.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = switch_event_example.riv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +92,9 @@
 				AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */,
 				AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */,
 				BB0000002437B4B30078DB4F /* windy_tree.riv */,
+				BB0000022437B4B30078DB4F /* light_switch.riv */,
+				BB0000042437B4B30078DB4F /* rating_animation.riv */,
+				BB0000062437B4B30078DB4F /* switch_event_example.riv */,
 			);
 			path = "YogaReactExample-macOS";
 			sourceTree = "<group>";
@@ -226,6 +235,9 @@
 				514201552437B4B40078DB4F /* Main.storyboard in Resources */,
 				DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */,
 				BB0000012437B4B30078DB4F /* windy_tree.riv in Resources */,
+				BB0000032437B4B30078DB4F /* light_switch.riv in Resources */,
+				BB0000052437B4B30078DB4F /* rating_animation.riv in Resources */,
+				BB0000072437B4B30078DB4F /* switch_event_example.riv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

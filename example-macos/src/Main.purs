@@ -315,16 +315,37 @@ browserTab = component "BrowserTab" \p -> React.do
 riveTab :: { fg :: String, bg :: String } -> JSX
 riveTab = component "RiveTab" \p -> React.do
   pure do
-    view { style: tw "flex-1 px-4" }
-      [ sectionTitle p.fg "Rive Animation"
-      , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
-          "Windy Tree — loaded from app bundle via native RiveRuntime"
-      , nativeRiveView_
-          { resourceName: "windy_tree"
-          , autoplay: true
-          , style: tw "flex-1" <> Style.style { minHeight: 400.0, backgroundColor: p.bg }
-          }
-      ]
+    nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+      ( view { style: tw "px-4 pb-4" }
+          [ sectionTitle p.fg "Interactive Rive Animations"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+              "Click the stars to rate! State machine handles interaction."
+          , nativeRiveView_
+              { resourceName: "rating_animation"
+              , stateMachineName: "State Machine 1"
+              , fit: "contain"
+              , autoplay: true
+              , style: Style.style { height: 200.0 }
+              }
+          , sectionTitle p.fg "Light Switch"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+              "Click to toggle"
+          , nativeRiveView_
+              { resourceName: "switch_event_example"
+              , stateMachineName: "State Machine 1"
+              , fit: "contain"
+              , autoplay: true
+              , style: Style.style { height: 200.0 }
+              }
+          , sectionTitle p.fg "Windy Tree"
+          , nativeRiveView_
+              { resourceName: "windy_tree"
+              , fit: "cover"
+              , autoplay: true
+              , style: tw "flex-1" <> Style.style { minHeight: 300.0, backgroundColor: p.bg }
+              }
+          ]
+      )
 
 -- UI helpers
 sectionTitle :: String -> String -> JSX
