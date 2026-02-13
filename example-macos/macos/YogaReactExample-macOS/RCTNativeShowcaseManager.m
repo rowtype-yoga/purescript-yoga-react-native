@@ -17,6 +17,8 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+
     _tabView = [[NSTabView alloc] initWithFrame:self.bounds];
     _tabView.tabViewType = NSNoTabsNoBorder;
     _tabView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
@@ -245,6 +247,8 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+
     _scrollView = [[NSScrollView alloc] initWithFrame:self.bounds];
     _scrollView.hasVerticalScroller = YES;
     _scrollView.hasHorizontalScroller = NO;
@@ -314,6 +318,8 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+
     _splitView = [[NSSplitView alloc] initWithFrame:self.bounds];
     _splitView.vertical = YES;
     _splitView.dividerStyle = NSSplitViewDividerStyleThin;
@@ -382,7 +388,8 @@
   NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
   scroll.hasVerticalScroller = YES;
   scroll.autohidesScrollers = YES;
-  scroll.drawsBackground = NO;
+  scroll.drawsBackground = YES;
+  scroll.backgroundColor = [NSColor controlBackgroundColor];
   scroll.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 
   NSView *content = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 260, 600)];
@@ -552,9 +559,13 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+
     NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:self.bounds];
     scroll.hasVerticalScroller = YES;
     scroll.autohidesScrollers = YES;
+    scroll.drawsBackground = YES;
+    scroll.backgroundColor = [NSColor controlBackgroundColor];
     scroll.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 
     NSView *c = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 600, 780)];
@@ -772,8 +783,12 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+
     // Toolbar
     _toolbar = [[NSView alloc] initWithFrame:NSZeroRect];
+    _toolbar.wantsLayer = YES;
+    _toolbar.layer.backgroundColor = [NSColor windowBackgroundColor].CGColor;
     _toolbar.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin;
 
     NSButton *back = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:@"chevron.left" accessibilityDescription:@"Back"] target:self action:@selector(goBack)];
@@ -866,6 +881,7 @@
 // ============================================================
 
 @interface RCTNativeShowcaseView : NSView
+@property (nonatomic, strong) NSVisualEffectView *backgroundView;
 @property (nonatomic, strong) NSTabView *tabView;
 @end
 
@@ -873,6 +889,14 @@
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    // System background that adapts to light/dark mode
+    _backgroundView = [[NSVisualEffectView alloc] initWithFrame:self.bounds];
+    _backgroundView.material = NSVisualEffectMaterialWindowBackground;
+    _backgroundView.blendingMode = NSVisualEffectBlendingModeBehindWindow;
+    _backgroundView.state = NSVisualEffectStateFollowsWindowActiveState;
+    _backgroundView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [self addSubview:_backgroundView];
+
     _tabView = [[NSTabView alloc] initWithFrame:self.bounds];
     _tabView.tabViewType = NSTopTabsBezelBorder;
     _tabView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
@@ -884,7 +908,7 @@
     [self addTab:@"Browser" view:[[RCTWebBrowserView alloc] initWithFrame:NSZeroRect]];
     [self addTab:@"Settings" view:[[RCTPreferencesView alloc] initWithFrame:NSZeroRect]];
 
-    [self addSubview:_tabView];
+    [_backgroundView addSubview:_tabView];
   }
   return self;
 }
@@ -901,12 +925,15 @@
   if (self.window) {
     self.window.toolbar = nil;
     self.window.title = @"Native macOS Showcase";
+    // Ensure window has proper appearance for dark/light mode
+    self.window.appearance = nil; // follow system
   }
 }
 
 - (void)layout {
   [super layout];
-  _tabView.frame = self.bounds;
+  _backgroundView.frame = self.bounds;
+  _tabView.frame = _backgroundView.bounds;
 }
 @end
 
