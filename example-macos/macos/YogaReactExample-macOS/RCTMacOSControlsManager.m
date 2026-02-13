@@ -867,7 +867,7 @@ RCT_EXPORT_MODULE(MacOSScrollView)
 @interface RCTNativeRiveView : NSView
 @property (nonatomic, strong) RiveViewModel *viewModel;
 @property (nonatomic, strong) RiveView *riveView;
-@property (nonatomic, strong) NSTrackingArea *mouseTrackingArea;
+@property (nonatomic, strong) id mouseMonitor;
 @property (nonatomic, copy) NSString *resourceName;
 @property (nonatomic, copy) NSString *url;
 @property (nonatomic, copy) NSString *stateMachineName;
@@ -981,28 +981,26 @@ RCT_EXPORT_MODULE(MacOSScrollView)
   [self addSubview:_riveView];
 }
 
-- (void)updateTrackingAreas {
-  [super updateTrackingAreas];
-  if (_mouseTrackingArea) {
-    [self removeTrackingArea:_mouseTrackingArea];
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+  if (self.window && !_mouseMonitor) {
+    __weak typeof(self) weakSelf = self;
+    _mouseMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMouseMoved handler:^NSEvent *(NSEvent *event) {
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (strongSelf.riveView) [strongSelf.riveView mouseMoved:event];
+      return event;
+    }];
+  } else if (!self.window && _mouseMonitor) {
+    [NSEvent removeMonitor:_mouseMonitor];
+    _mouseMonitor = nil;
   }
-  _mouseTrackingArea = [[NSTrackingArea alloc]
-    initWithRect:self.bounds
-         options:(NSTrackingMouseMoved | NSTrackingMouseEnteredAndExited | NSTrackingActiveInKeyWindow)
-           owner:self
-        userInfo:nil];
-  [self addTrackingArea:_mouseTrackingArea];
-}
-
-- (void)mouseMoved:(NSEvent *)event {
-  if (_riveView) [_riveView mouseMoved:event];
-}
-
-- (void)mouseExited:(NSEvent *)event {
-  if (_riveView) [_riveView mouseExited:event];
 }
 
 - (void)dealloc {
+  if (_mouseMonitor) {
+    [NSEvent removeMonitor:_mouseMonitor];
+    _mouseMonitor = nil;
+  }
   [self clearRiveView];
 }
 
