@@ -25,6 +25,7 @@ import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.TextEditor (nativeTextEditor)
 import Yoga.React.Native.MacOS.WebView (nativeWebView)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
+import Yoga.React.Native.MacOS.Rive (nativeRiveView_)
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
@@ -54,7 +55,7 @@ app = component "App" \_ -> React.do
       ( view { style: tw "flex-1" <> Style.style { backgroundColor: bg } }
           [ nativeSegmented
               { style: Style.style { height: 32.0, marginHorizontal: 16.0, marginTop: 12.0 }
-              , labels: [ "Controls", "Editor", "Browser" ]
+              , labels: [ "Controls", "Editor", "Browser", "Rive" ]
               , selectedIndex: activeTab
               , onChange: extractInt "selectedIndex" setActiveTab
               }
@@ -81,7 +82,7 @@ app = component "App" \_ -> React.do
                   , cardBg
                   }
                 else if activeTab == 1 then editorTab { fg }
-                else browserTab
+                else if activeTab == 2 then browserTab
                   { browserUrl
                   , setBrowserUrl
                   , urlBarText
@@ -89,6 +90,7 @@ app = component "App" \_ -> React.do
                   , fg
                   , dimFg
                   }
+                else riveTab { fg, bg }
               ]
           ]
       )
@@ -306,6 +308,21 @@ browserTab = component "BrowserTab" \p -> React.do
               )
               \r -> p.setUrlBarText r.url
           , style: tw "flex-1" <> Style.style { minHeight: 400.0 }
+          }
+      ]
+
+-- Tab 3: Rive Animation
+riveTab :: { fg :: String, bg :: String } -> JSX
+riveTab = component "RiveTab" \p -> React.do
+  pure do
+    view { style: tw "flex-1 px-4" }
+      [ sectionTitle p.fg "Rive Animation"
+      , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+          "Windy Tree — loaded from app bundle via native RiveRuntime"
+      , nativeRiveView_
+          { resourceName: "windy_tree"
+          , autoplay: true
+          , style: tw "flex-1" <> Style.style { minHeight: 400.0, backgroundColor: p.bg }
           }
       ]
 
