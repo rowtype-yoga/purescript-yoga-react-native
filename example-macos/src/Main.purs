@@ -317,8 +317,8 @@ app = component "App" \_ -> React.do
           , bodyText "Body text helper"
           , caption "Caption helper"
           , card [ label' "Inside a card" ]
-          , view { style: Style.style { backgroundColor: accentClr, padding: 10.0 } }
-              [ text { style: tw "text-white" } "platformColor test" ]
+          , view { style: Style.style { backgroundColor: accentClr } }
+              [ text { style: tw "text-white" } "platformColor via style (no styles)" ]
           ]
       )
 
