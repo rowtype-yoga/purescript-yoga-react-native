@@ -317,7 +317,27 @@ riveTab = component "RiveTab" \p -> React.do
   pure do
     nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
       ( view { style: tw "px-4 pb-4" }
-          [ sectionTitle p.fg "Interactive Rive Animations"
+          [ sectionTitle p.fg "Mouse Tracking"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+              "Move your cursor over the cat — it follows your mouse!"
+          , nativeRiveView_
+              { resourceName: "cat_following_mouse"
+              , stateMachineName: "State Machine 1"
+              , fit: "contain"
+              , autoplay: true
+              , style: Style.style { height: 300.0 }
+              }
+          , sectionTitle p.fg "Cursor Tracking"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+              "Shapes follow your cursor via Pointer Move listeners"
+          , nativeRiveView_
+              { resourceName: "cursor_tracking"
+              , stateMachineName: "State Machine 1"
+              , fit: "contain"
+              , autoplay: true
+              , style: Style.style { height: 300.0 }
+              }
+          , sectionTitle p.fg "Interactive Rive Animations"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
               "Click the stars to rate! State machine handles interaction."
           , nativeRiveView_

@@ -22,6 +22,8 @@
 		BB0000032437B4B30078DB4F /* light_switch.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000022437B4B30078DB4F /* light_switch.riv */; };
 		BB0000052437B4B30078DB4F /* rating_animation.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000042437B4B30078DB4F /* rating_animation.riv */; };
 		BB0000072437B4B30078DB4F /* switch_event_example.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000062437B4B30078DB4F /* switch_event_example.riv */; };
+		BB0000092437B4B30078DB4F /* cat_following_mouse.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000082437B4B30078DB4F /* cat_following_mouse.riv */; };
+		BB00000B2437B4B30078DB4F /* cursor_tracking.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB00000A2437B4B30078DB4F /* cursor_tracking.riv */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +49,8 @@
 		BB0000022437B4B30078DB4F /* light_switch.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = light_switch.riv; sourceTree = "<group>"; };
 		BB0000042437B4B30078DB4F /* rating_animation.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = rating_animation.riv; sourceTree = "<group>"; };
 		BB0000062437B4B30078DB4F /* switch_event_example.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = switch_event_example.riv; sourceTree = "<group>"; };
+		BB0000082437B4B30078DB4F /* cat_following_mouse.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cat_following_mouse.riv; sourceTree = "<group>"; };
+		BB00000A2437B4B30078DB4F /* cursor_tracking.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cursor_tracking.riv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +99,8 @@
 				BB0000022437B4B30078DB4F /* light_switch.riv */,
 				BB0000042437B4B30078DB4F /* rating_animation.riv */,
 				BB0000062437B4B30078DB4F /* switch_event_example.riv */,
+				BB0000082437B4B30078DB4F /* cat_following_mouse.riv */,
+				BB00000A2437B4B30078DB4F /* cursor_tracking.riv */,
 			);
 			path = "YogaReactExample-macOS";
 			sourceTree = "<group>";
@@ -238,6 +244,8 @@
 				BB0000032437B4B30078DB4F /* light_switch.riv in Resources */,
 				BB0000052437B4B30078DB4F /* rating_animation.riv in Resources */,
 				BB0000072437B4B30078DB4F /* switch_event_example.riv in Resources */,
+				BB0000092437B4B30078DB4F /* cat_following_mouse.riv in Resources */,
+				BB00000B2437B4B30078DB4F /* cursor_tracking.riv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
