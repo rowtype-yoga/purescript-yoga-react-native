@@ -121,7 +121,7 @@ app = component "App" \_ -> React.do
         { onPress: handler_ onClick
         , style: Style.styles
             [ tw "px-4 py-2 rounded-lg"
-            , Style.style { backgroundColor: accentClr }
+            , Style.style { backgroundColor: "#007AFF" }
             ]
         , cursor: "pointer"
         , tooltip: lbl
@@ -134,7 +134,7 @@ app = component "App" \_ -> React.do
         , style: Style.styles
             [ tw "px-4 py-2 rounded-lg"
             , Style.style
-                { backgroundColor: controlClr
+                { backgroundColor: "#e5e5ea"
                 , borderWidth: StyleSheet.hairlineWidth
                 , borderColor: dynamicCardBorder
                 }
@@ -317,6 +317,8 @@ app = component "App" \_ -> React.do
           , bodyText "Body text helper"
           , caption "Caption helper"
           , card [ label' "Inside a card" ]
+          , view { style: Style.style { backgroundColor: accentClr, padding: 10.0 } }
+              [ text { style: tw "text-white" } "platformColor test" ]
           ]
       )
 
