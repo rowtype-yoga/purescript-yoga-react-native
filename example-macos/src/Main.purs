@@ -3,17 +3,19 @@ module Main where
 import Prelude
 
 import Data.Array (filter, length, sortBy)
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), lastIndexOf, drop, take)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Effect.Aff (launchAff_)
+import Effect.Aff (launchAff_, try)
 import Effect.Class (liftEffect)
+import Effect.Uncurried (mkEffectFn1)
 import React.Basic (JSX)
 import React.Basic.Events (handler_)
 import React.Basic.Hooks as React
 import Yoga.React (component)
-import Yoga.React.Native (registerComponent, view, text, pressable, scrollView, safeAreaView, activityIndicator, tw)
+import Yoga.React.Native (registerComponent, view, text, textInput, pressable, scrollView, safeAreaView, activityIndicator, tw)
 import Yoga.React.Native.FS as FS
 import Yoga.React.Native.Style as Style
 import Yoga.React.Native.StyleSheet as StyleSheet
@@ -29,18 +31,27 @@ app = component "App" \_ -> React.do
   loading /\ setLoading <- React.useState true
   hoveredItem /\ setHoveredItem <- React.useState (Nothing :: Maybe String)
   hoveredSidebar /\ setHoveredSidebar <- React.useState (Nothing :: Maybe String)
+  errorMsg /\ setErrorMsg <- React.useState (Nothing :: Maybe String)
+  pathInput /\ setPathInput <- React.useState ""
 
   let
     navigateTo path = do
       setLoading (const true)
       setSelectedItem (const Nothing)
+      setErrorMsg (const Nothing)
       setCurrentPath (const path)
+      setPathInput (const path)
       launchAff_ do
-        items <- FS.readDir path
-        let sorted = sortBy compareDirItems items
-        liftEffect do
-          setEntries (const sorted)
-          setLoading (const false)
+        result <- try (FS.readDir path)
+        liftEffect case result of
+          Right items -> do
+            let sorted = sortBy compareDirItems items
+            setEntries (const sorted)
+            setLoading (const false)
+          Left _ -> do
+            setEntries (const [])
+            setLoading (const false)
+            setErrorMsg (const (Just "No permission to read this folder"))
 
     compareDirItems a b = case a.isDirectory, b.isDirectory of
       true, false -> LT
@@ -70,15 +81,9 @@ app = component "App" \_ -> React.do
     folderCount = length (filter _.isDirectory entries)
     statusText = show folderCount <> " folders, " <> show fileCount <> " files"
 
-    -- Small colored icon (like Finder sidebar)
+    -- Sidebar icon — colored text glyph (no background box)
     sidebarIcon color glyph =
-      view
-        { style: Style.styles
-            [ tw "items-center justify-center mr-2 rounded"
-            , Style.style { width: 18.0, height: 18.0, backgroundColor: color }
-            ]
-        }
-        [ text { style: Style.styles [ tw "text-center", Style.style { color: "#ffffff", fontSize: 10.0, lineHeight: 18.0 } ] } glyph ]
+      text { style: Style.styles [ tw "mr-2 text-center", Style.style { color, fontSize: 14.0, width: 18.0 } ] } glyph
 
     -- Sidebar
     sidebarItem label path icon =
@@ -121,37 +126,46 @@ app = component "App" \_ -> React.do
       , allowsVibrancy: true
       }
       [ sidebarHeader "APP"
-      , sidebarItem "Documents" FS.documentDirectoryPath (sidebarIcon "#007AFF" "D")
-      , sidebarItem "Caches" FS.cachesDirectoryPath (sidebarIcon "#8E8E93" "C")
-      , sidebarItem "Temp" FS.temporaryDirectoryPath (sidebarIcon "#FF9500" "T")
+      , sidebarItem "Documents" FS.documentDirectoryPath (sidebarIcon "#007AFF" "⊡")
+      , sidebarItem "Caches" FS.cachesDirectoryPath (sidebarIcon "#8E8E93" "⊘")
+      , sidebarItem "Temp" FS.temporaryDirectoryPath (sidebarIcon "#FF9500" "⊙")
       , sidebarHeader "SYSTEM"
-      , sidebarItem "tmp" "/tmp" (sidebarIcon "#8E8E93" "T")
-      , sidebarItem "usr" "/usr" (sidebarIcon "#8E8E93" "U")
-      , sidebarItem "var" "/var" (sidebarIcon "#8E8E93" "V")
+      , sidebarItem "tmp" "/tmp" (sidebarIcon "#8E8E93" "⊞")
+      , sidebarItem "usr" "/usr" (sidebarIcon "#8E8E93" "⊞")
+      , sidebarItem "var" "/var" (sidebarIcon "#8E8E93" "⊞")
       ]
 
     -- Toolbar
     toolbar = view
       { style: Style.styles
-          [ tw "flex-row items-center px-4 py-2"
+          [ tw "flex-row items-center px-3 py-2"
           , Style.style { backgroundColor: "#f2f2f7", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#d1d1d6", height: 38.0 }
           ]
       }
       [ pressable
           { onPress: handler_ (navigateTo (parentPath currentPath))
           , cursor: "pointer"
-          , tooltip: "Go to parent folder"
+          , tooltip: "Go to parent folder (⌫)"
           , style: Style.styles
-              [ tw "px-2 py-1 rounded mr-3"
+              [ tw "px-2 py-1 rounded mr-2"
               , Style.style { backgroundColor: "#e5e5ea" }
               ]
           }
-          [ text { style: tw "text-sm" } "◀" ]
-      , view { style: tw "flex-1" }
-          [ text
-              { style: Style.styles [ tw "text-sm font-medium", Style.style { color: "#1d1d1f" } ] }
-              currentPath
-          ]
+          [ text { style: Style.styles [ tw "text-sm", Style.style { color: "#1d1d1f" } ] } "◀" ]
+      , textInput
+          { value: pathInput
+          , onChangeText: mkEffectFn1 \t -> setPathInput (const t)
+          , onSubmitEditing: handler_ (navigateTo pathInput)
+          , style: Style.styles
+              [ tw "flex-1 text-sm rounded px-2 py-1 mr-2"
+              , Style.style
+                  { backgroundColor: "#ffffff"
+                  , borderWidth: StyleSheet.hairlineWidth
+                  , borderColor: "#c6c6c8"
+                  , color: "#1d1d1f"
+                  }
+              ]
+          }
       , text { style: Style.styles [ tw "text-xs", Style.style { color: "#8e8e93" } ] } statusText
       ]
 
@@ -222,30 +236,24 @@ app = component "App" \_ -> React.do
         ]
 
     contentIcon color glyph =
-      view
-        { style: Style.styles
-            [ tw "items-center justify-center mr-3 rounded"
-            , Style.style { width: 20.0, height: 20.0, backgroundColor: color }
-            ]
-        }
-        [ text { style: Style.styles [ tw "text-center", Style.style { color: "#ffffff", fontSize: 11.0, lineHeight: 20.0 } ] } glyph ]
+      text { style: Style.styles [ tw "mr-3 text-center", Style.style { color, fontSize: 16.0, width: 20.0 } ] } glyph
 
     fileIconView item
-      | item.isDirectory = contentIcon "#007AFF" "▸"
+      | item.isDirectory = contentIcon "#007AFF" "▶"
       | otherwise = case extensionOf item.name of
-          "purs" -> contentIcon "#8B5CF6" "λ"
-          "js" -> contentIcon "#F7DF1E" "J"
-          "ts" -> contentIcon "#3178C6" "T"
-          "json" -> contentIcon "#8E8E93" "{ }"
-          "md" -> contentIcon "#1d1d1f" "M"
-          "txt" -> contentIcon "#8E8E93" "A"
-          "png" -> contentIcon "#34C759" "◻"
-          "jpg" -> contentIcon "#34C759" "◻"
-          "gif" -> contentIcon "#34C759" "◻"
-          "pdf" -> contentIcon "#FF3B30" "P"
-          "zip" -> contentIcon "#FF9500" "Z"
-          "gz" -> contentIcon "#FF9500" "Z"
-          _ -> contentIcon "#c7c7cc" "—"
+          "purs" -> contentIcon "#8B5CF6" "◆"
+          "js" -> contentIcon "#F7DF1E" "◆"
+          "ts" -> contentIcon "#3178C6" "◆"
+          "json" -> contentIcon "#8E8E93" "◇"
+          "md" -> contentIcon "#1d1d1f" "◇"
+          "txt" -> contentIcon "#8E8E93" "◇"
+          "png" -> contentIcon "#34C759" "◈"
+          "jpg" -> contentIcon "#34C759" "◈"
+          "gif" -> contentIcon "#34C759" "◈"
+          "pdf" -> contentIcon "#FF3B30" "◆"
+          "zip" -> contentIcon "#FF9500" "◆"
+          "gz" -> contentIcon "#FF9500" "◆"
+          _ -> contentIcon "#c7c7cc" "◇"
 
     fileKind name = case extensionOf name of
       "purs" -> "PureScript"
@@ -286,12 +294,19 @@ app = component "App" \_ -> React.do
       if loading then
         view { style: tw "flex-1 items-center justify-center" }
           [ activityIndicator { size: "large", color: "#007AFF" } ]
-      else
-        view { style: tw "flex-1" }
-          [ columnHeaders
-          , scrollView { style: tw "flex-1" }
-              (map fileRow entries)
-          ]
+      else case errorMsg of
+        Just msg ->
+          view { style: tw "flex-1 items-center justify-center" }
+            [ text { style: Style.styles [ tw "text-base mb-2", Style.style { color: "#FF3B30" } ] } msg
+            , text { style: Style.styles [ tw "text-sm", Style.style { color: "#8e8e93" } ] }
+                "Try navigating to a different folder"
+            ]
+        Nothing ->
+          view { style: tw "flex-1" }
+            [ columnHeaders
+            , scrollView { style: tw "flex-1" }
+                (map fileRow entries)
+            ]
 
   React.useEffectOnce do
     navigateTo FS.documentDirectoryPath
