@@ -2,6 +2,7 @@ module Main where
 
 import Prelude
 
+import Data.Array (snoc, mapWithIndex)
 import Data.Nullable (toNullable)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -69,6 +70,7 @@ app = component "App" \_ -> React.do
                       , { id: "browser", label: "Browser", sfSymbol: "globe" }
                       , { id: "rive", label: "Rive", sfSymbol: "play.circle" }
                       , { id: "system", label: "System", sfSymbol: "gearshape.2" }
+                      , { id: "chat", label: "Chat", sfSymbol: "bubble.left.and.bubble.right" }
                       ]
                   , selectedItem: activeTab
                   , toolbarStyle: "unified"
@@ -108,7 +110,8 @@ app = component "App" \_ -> React.do
                       , dimFg
                       }
                     else if activeTab == "rive" then riveTab { fg, bg }
-                    else systemTab { fg, dimFg, cardBg, bg }
+                    else if activeTab == "system" then systemTab { fg, dimFg, cardBg, bg }
+                    else chatTab { fg, dimFg, cardBg, bg, isDark }
                   ]
               ]
           )
@@ -553,6 +556,209 @@ systemTab = component "SystemTab" \p -> React.do
               ]
           ]
       )
+
+-- Tab 5: Chat (Telegram-style)
+type ChatProps =
+  { fg :: String
+  , dimFg :: String
+  , cardBg :: String
+  , bg :: String
+  , isDark :: Boolean
+  }
+
+type Message =
+  { sender :: String
+  , body :: String
+  , isSticker :: Boolean
+  }
+
+type Contact =
+  { name :: String
+  , initials :: String
+  , color :: String
+  , preview :: String
+  }
+
+contacts :: Array Contact
+contacts =
+  [ { name: "Alice", initials: "A", color: "#5856D6", preview: "Check out this sticker!" }
+  , { name: "Bob", initials: "B", color: "#FF9500", preview: "Hey, how's the app going?" }
+  , { name: "Carol", initials: "C", color: "#34C759", preview: "Love the new UI" }
+  ]
+
+initialMessages :: String -> Array Message
+initialMessages name = case name of
+  "Alice" ->
+    [ { sender: "Alice", body: "Hey! Have you seen the new Rive stickers?", isSticker: false }
+    , { sender: "You", body: "Not yet, show me!", isSticker: false }
+    , { sender: "Alice", body: "cat_following_mouse", isSticker: true }
+    , { sender: "You", body: "That's amazing! The cat follows your mouse!", isSticker: false }
+    , { sender: "Alice", body: "Right? Check out this one too", isSticker: false }
+    , { sender: "Alice", body: "rating_animation", isSticker: true }
+    ]
+  "Bob" ->
+    [ { sender: "Bob", body: "Hey, how's the app going?", isSticker: false }
+    , { sender: "You", body: "Great! Just added native macOS controls", isSticker: false }
+    , { sender: "Bob", body: "Nice! Toolbar, sidebar, the works?", isSticker: false }
+    , { sender: "You", body: "Yep, plus visual effects and context menus", isSticker: false }
+    , { sender: "Bob", body: "switch_event_example", isSticker: true }
+    ]
+  "Carol" ->
+    [ { sender: "Carol", body: "Love the new UI", isSticker: false }
+    , { sender: "You", body: "Thanks! It's all PureScript + native macOS views", isSticker: false }
+    , { sender: "Carol", body: "The frosted glass sidebar is chef's kiss", isSticker: false }
+    , { sender: "Carol", body: "windy_tree", isSticker: true }
+    ]
+  _ -> []
+
+chatTab :: ChatProps -> JSX
+chatTab = component "ChatTab" \p -> React.do
+  activeContact /\ setActiveContact <- useState' "Alice"
+  messages /\ setMessages <- useState' (initialMessages "Alice")
+  inputText /\ setInputText <- useState' ""
+  let
+    sendMessage msg = do
+      if msg == "" then pure unit
+      else do
+        setMessages (snoc messages { sender: "You", body: msg, isSticker: false })
+        setInputText ""
+    switchContact name = do
+      setActiveContact name
+      setMessages (initialMessages name)
+      setInputText ""
+    sendSticker stickerName = do
+      setMessages (snoc messages { sender: "You", body: stickerName, isSticker: true })
+    sentBubbleBg = if p.isDark then "#0A84FF" else "#007AFF"
+    receivedBubbleBg = p.cardBg
+    sidebar = view { style: tw "pt-2" }
+      ( contacts <#> \c ->
+          view
+            { style: tw "flex-row items-center px-3 py-2 mx-2 rounded-lg"
+                <> Style.style
+                  { backgroundColor: if activeContact == c.name then sentBubbleBg else "transparent" }
+            }
+            [ view
+                { style: tw "rounded-full items-center justify-center"
+                    <> Style.style { width: 32.0, height: 32.0, backgroundColor: c.color }
+                }
+                [ text { style: tw "text-xs font-bold" <> Style.style { color: "#FFFFFF" } } c.initials ]
+            , view { style: tw "ml-2 flex-1" }
+                [ text { style: tw "text-sm font-semibold" <> Style.style { color: if activeContact == c.name then "#FFFFFF" else p.fg } } c.name
+                , text
+                    { style: tw "text-xs"
+                        <> Style.style { color: if activeContact == c.name then "#FFFFFFCC" else p.dimFg }
+                    }
+                    c.preview
+                ]
+            , nativeButton
+                { title: ""
+                , bezelStyle: "toolbar"
+                , sfSymbol: ""
+                , onPress: handler_ (switchContact c.name)
+                , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
+                }
+            ]
+      )
+    messageBubble _ msg = do
+      let isMine = msg.sender == "You"
+      nativeContextMenu
+        { items:
+            [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
+            , { id: "reply", title: "Reply", sfSymbol: "arrowshape.turn.up.left" }
+            , { id: "sep", title: "-", sfSymbol: "" }
+            , { id: "delete", title: "Delete", sfSymbol: "trash" }
+            ]
+        , onSelectItem: handler_ (pure unit)
+        , style: Style.style {}
+        }
+        ( view
+            { style: tw (if isMine then "flex-row-reverse mb-1" else "flex-row mb-1")
+                <> Style.style { paddingHorizontal: 12.0 }
+            }
+            [ if msg.isSticker then
+                view { style: Style.style { width: 120.0, height: 120.0 } }
+                  [ nativeRiveView_
+                      { resourceName: msg.body
+                      , fit: "contain"
+                      , autoplay: true
+                      , style: Style.style { width: 120.0, height: 120.0 }
+                      }
+                  ]
+              else
+                view
+                  { style: tw "rounded-2xl px-3 py-2"
+                      <> Style.style
+                        { backgroundColor: if isMine then sentBubbleBg else receivedBubbleBg
+                        , maxWidth: 320.0
+                        }
+                  }
+                  [ text
+                      { style: tw "text-sm"
+                          <> Style.style { color: if isMine then "#FFFFFF" else p.fg }
+                      }
+                      msg.body
+                  ]
+            ]
+        )
+    stickerBar = view { style: tw "flex-row px-3 py-1" <> Style.style { backgroundColor: "transparent" } }
+      [ stickerButton "cat_following_mouse"
+      , stickerButton "rating_animation"
+      , stickerButton "switch_event_example"
+      , stickerButton "windy_tree"
+      ]
+    stickerButton name = view
+      { style: tw "mr-2 rounded-lg overflow-hidden" <> Style.style { backgroundColor: p.cardBg } }
+      [ nativeRiveView_
+          { resourceName: name
+          , fit: "contain"
+          , autoplay: true
+          , style: Style.style { width: 40.0, height: 40.0 }
+          }
+      , nativeButton
+          { title: ""
+          , bezelStyle: "toolbar"
+          , sfSymbol: ""
+          , onPress: handler_ (sendSticker name)
+          , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
+          }
+      ]
+  pure do
+    sidebarLayout
+      { sidebar
+      , sidebarWidth: 200.0
+      , content: view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+          [ view
+              { style: tw "px-4 py-2 border-b"
+                  <> Style.style { borderBottomWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
+              }
+              [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeContact ]
+          , nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+              ( view { style: tw "py-2" }
+                  (mapWithIndex messageBubble messages)
+              )
+          , stickerBar
+          , view
+              { style: tw "flex-row items-center px-3 py-2"
+                  <> Style.style { borderTopWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
+              }
+              [ nativeTextField
+                  { text: inputText
+                  , placeholder: "Message..."
+                  , search: false
+                  , onChangeText: extractString "text" setInputText
+                  , onSubmit: extractString "text" \t -> sendMessage t
+                  , style: tw "flex-1" <> Style.style { height: 28.0 }
+                  }
+              , nativeButton
+                  { title: ""
+                  , sfSymbol: "paperplane.fill"
+                  , bezelStyle: "toolbar"
+                  , onPress: handler_ (sendMessage inputText)
+                  , style: Style.style { height: 28.0, width: 36.0, marginLeft: 8.0 }
+                  }
+              ]
+          ]
+      }
 
 -- UI helpers
 sectionTitle :: String -> String -> JSX
