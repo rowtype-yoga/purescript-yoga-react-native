@@ -676,14 +676,15 @@ chatTab = component "ChatTab" \p -> React.do
     allStickers = [ "cat_following_mouse", "rating_animation", "switch_event_example", "windy_tree" ]
     query = colonQuery inputText
     matchingStickers = if query == "" then [] else filter (contains (Pattern query)) allStickers
-    sentBubbleBg = if p.isDark then "#0A84FF" else "#007AFF"
-    receivedBubbleBg = p.cardBg
+    sentBubbleBg = if p.isDark then "#65B86A" else "#5CB85C"
+    receivedBubbleBg = if p.isDark then "#3B3B3D" else "#FFFFFF"
+    chatBg = if p.isDark then "#17212B" else "#E8DFD3"
     sidebar = view { style: tw "pt-2" }
       ( contacts <#> \c ->
           view
             { style: tw "flex-row items-center px-3 py-2 mx-2 rounded-lg"
                 <> Style.style
-                  { backgroundColor: if activeContact == c.name then sentBubbleBg else "transparent" }
+                  { backgroundColor: if activeContact == c.name then (if p.isDark then "#2B5278" else "#419FD9") else "transparent" }
             }
             [ view
                 { style: tw "rounded-full items-center justify-center"
@@ -770,7 +771,7 @@ chatTab = component "ChatTab" \p -> React.do
               }
               [ text
                   { style: tw "text-sm"
-                      <> Style.style { color: if isMine then "#FFFFFF" else p.fg }
+                      <> Style.style { color: if isMine then "#FFFFFF" else (if p.isDark then "#FFFFFF" else "#000000") }
                   }
                   msg.body
               ]
@@ -832,7 +833,7 @@ chatTab = component "ChatTab" \p -> React.do
                   <> Style.style { borderBottomWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
               }
               [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeContact ]
-          , nativeScrollView { scrollToBottom: length messages, style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+          , nativeScrollView { scrollToBottom: length messages, style: tw "flex-1" <> Style.style { backgroundColor: chatBg } }
               ( view { style: tw "py-2" }
                   (mapWithIndex messageBubble messages)
               )
