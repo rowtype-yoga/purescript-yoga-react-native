@@ -2,9 +2,10 @@ module Main where
 
 import Prelude
 
-import Data.Array (snoc, mapWithIndex, length)
+import Data.Array (snoc, mapWithIndex, length, filter, null)
 import Data.Nullable (toNullable)
 import Data.Maybe (Maybe(..))
+import Data.String (contains, Pattern(..))
 import Effect (Effect)
 import React.Basic (JSX)
 import React.Basic.Events (EventHandler, handler, handler_, unsafeEventFn)
@@ -630,6 +631,10 @@ chatTab = component "ChatTab" \p -> React.do
       setInputText ""
     sendSticker stickerName = do
       setMessages (snoc messages { sender: "You", body: stickerName, isSticker: true })
+      setInputText ""
+    allStickers = [ "cat_following_mouse", "rating_animation", "switch_event_example", "windy_tree" ]
+    query = colonQuery inputText
+    matchingStickers = if query == "" then [] else filter (contains (Pattern query)) allStickers
     sentBubbleBg = if p.isDark then "#0A84FF" else "#007AFF"
     receivedBubbleBg = p.cardBg
     sidebar = view { style: tw "pt-2" }
@@ -727,6 +732,31 @@ chatTab = component "ChatTab" \p -> React.do
           , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
           }
       ]
+    stickerPicker stickers = view
+      { style: tw "flex-row px-3 py-2"
+          <> Style.style { backgroundColor: p.cardBg, borderTopWidth: 0.5, borderColor: p.dimFg }
+      }
+      ( stickers <#> \name ->
+          view
+            { style: tw "mr-2 rounded-lg overflow-hidden items-center"
+                <> Style.style { backgroundColor: if p.isDark then "#3A3A3A" else "#E0E0E0" }
+            }
+            [ nativeRiveView_
+                { resourceName: name
+                , fit: "contain"
+                , autoplay: true
+                , style: Style.style { width: 56.0, height: 56.0 }
+                }
+            , text { style: tw "text-xs pb-1" <> Style.style { color: p.dimFg } } (":" <> name)
+            , nativeButton
+                { title: ""
+                , bezelStyle: "toolbar"
+                , sfSymbol: ""
+                , onPress: handler_ (sendSticker name)
+                , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
+                }
+            ]
+      )
   pure do
     sidebarLayout
       { sidebar
@@ -741,7 +771,8 @@ chatTab = component "ChatTab" \p -> React.do
               ( view { style: tw "py-2" }
                   (mapWithIndex messageBubble messages)
               )
-          , stickerBar
+          , if null matchingStickers then stickerBar
+            else stickerPicker matchingStickers
           , view
               { style: tw "flex-row items-center px-3 py-2"
                   <> Style.style { borderTopWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
@@ -786,3 +817,4 @@ round n = unsafeRound n
 foreign import unsafeRound :: Number -> Int
 foreign import getFieldJSON :: String -> forall r. r -> String
 foreign import isSingleEmoji :: String -> Boolean
+foreign import colonQuery :: String -> String

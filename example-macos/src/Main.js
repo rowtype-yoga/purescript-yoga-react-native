@@ -9,6 +9,11 @@ export const isSingleEmoji = (str) => {
     /^(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\u200D(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*$/u;
   return trimmed.length <= 10 && re.test(trimmed);
 };
+export const colonQuery = (str) => {
+  var idx = str.lastIndexOf(":");
+  if (idx === -1) return "";
+  return str.slice(idx + 1).toLowerCase();
+};
 export const getFieldJSON = (key) => (obj) => {
   var v = obj[key];
   if (v === undefined || v === null) return "";
