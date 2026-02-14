@@ -1631,3 +1631,128 @@ RCT_EXPORT_MODULE(MacOSAnimatedImage)
 RCT_EXPORT_VIEW_PROPERTY(source, NSString)
 RCT_EXPORT_VIEW_PROPERTY(animating, BOOL)
 @end
+
+// ── Section 22: Pattern Background ──────────────────────────────────────────
+// A tiled pattern background using Core Graphics — Telegram-style chat wallpaper
+
+@interface RCTPatternBackgroundView : NSView
+@property (nonatomic, copy) NSString *patternColor;
+@property (nonatomic, copy) NSString *backgroundColor2;
+@property (nonatomic, assign) CGFloat patternOpacity;
+@property (nonatomic, assign) CGFloat patternScale;
+@end
+
+@implementation RCTPatternBackgroundView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _patternColor = @"#FFFFFF";
+    _backgroundColor2 = @"#17212B";
+    _patternOpacity = 0.06;
+    _patternScale = 1.0;
+  }
+  return self;
+}
+
+- (NSSize)intrinsicContentSize {
+  return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
+}
+
+- (void)setPatternColor:(NSString *)patternColor {
+  _patternColor = patternColor;
+  [self setNeedsDisplay:YES];
+}
+
+- (void)setBackgroundColor2:(NSString *)backgroundColor2 {
+  _backgroundColor2 = backgroundColor2;
+  [self setNeedsDisplay:YES];
+}
+
+- (void)setPatternOpacity:(CGFloat)patternOpacity {
+  _patternOpacity = patternOpacity;
+  [self setNeedsDisplay:YES];
+}
+
+- (void)setPatternScale:(CGFloat)patternScale {
+  _patternScale = patternScale;
+  [self setNeedsDisplay:YES];
+}
+
+- (NSColor *)colorFromHex:(NSString *)hex {
+  hex = [hex stringByReplacingOccurrencesOfString:@"#" withString:@""];
+  unsigned int val = 0;
+  [[NSScanner scannerWithString:hex] scanHexInt:&val];
+  return [NSColor colorWithRed:((val >> 16) & 0xFF) / 255.0
+                         green:((val >> 8) & 0xFF) / 255.0
+                          blue:(val & 0xFF) / 255.0
+                         alpha:1.0];
+}
+
+- (BOOL)isFlipped { return YES; }
+
+- (void)drawRect:(NSRect)dirtyRect {
+  NSColor *bgColor = [self colorFromHex:_backgroundColor2];
+  [bgColor setFill];
+  NSRectFill(dirtyRect);
+
+  NSColor *pColor = [[self colorFromHex:_patternColor] colorWithAlphaComponent:_patternOpacity];
+  CGFloat s = _patternScale;
+  CGFloat tile = 24.0 * s;
+
+  [pColor setStroke];
+
+  // Draw a subtle geometric pattern — diagonal crosses on a grid
+  CGFloat startX = floor(dirtyRect.origin.x / tile) * tile;
+  CGFloat startY = floor(dirtyRect.origin.y / tile) * tile;
+  CGFloat endX = NSMaxX(dirtyRect);
+  CGFloat endY = NSMaxY(dirtyRect);
+
+  NSBezierPath *path = [NSBezierPath bezierPath];
+  [path setLineWidth:0.5 * s];
+
+  for (CGFloat x = startX; x < endX; x += tile) {
+    for (CGFloat y = startY; y < endY; y += tile) {
+      CGFloat cx = x + tile / 2.0;
+      CGFloat cy = y + tile / 2.0;
+      CGFloat arm = 3.0 * s;
+
+      // Small cross
+      [path moveToPoint:NSMakePoint(cx - arm, cy)];
+      [path lineToPoint:NSMakePoint(cx + arm, cy)];
+      [path moveToPoint:NSMakePoint(cx, cy - arm)];
+      [path lineToPoint:NSMakePoint(cx, cy + arm)];
+
+      // Small diamond at offset
+      CGFloat dx = x + tile * 0.15;
+      CGFloat dy = y + tile * 0.65;
+      CGFloat dm = 1.5 * s;
+      [path moveToPoint:NSMakePoint(dx, dy - dm)];
+      [path lineToPoint:NSMakePoint(dx + dm, dy)];
+      [path lineToPoint:NSMakePoint(dx, dy + dm)];
+      [path lineToPoint:NSMakePoint(dx - dm, dy)];
+      [path closePath];
+    }
+  }
+  [path stroke];
+}
+
+- (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
+  [super insertReactSubview:subview atIndex:atIndex];
+}
+
+- (void)layout {
+  [super layout];
+  [self setNeedsDisplay:YES];
+}
+
+@end
+
+@interface RCTPatternBackgroundViewManager : RCTViewManager @end
+@implementation RCTPatternBackgroundViewManager
+RCT_EXPORT_MODULE(MacOSPatternBackground)
+- (NSView *)view { return [[RCTPatternBackgroundView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(patternColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(backgroundColor2, NSString)
+RCT_EXPORT_VIEW_PROPERTY(patternOpacity, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
+@end

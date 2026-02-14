@@ -35,6 +35,7 @@ import Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu)
 import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
 import Yoga.React.Native.MacOS.VideoPlayer (nativeVideoPlayer)
 import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
+import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
@@ -833,9 +834,17 @@ chatTab = component "ChatTab" \p -> React.do
                   <> Style.style { borderBottomWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
               }
               [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeContact ]
-          , nativeScrollView { scrollToBottom: length messages, style: tw "flex-1" <> Style.style { backgroundColor: chatBg } }
-              ( view { style: tw "py-2" }
-                  (mapWithIndex messageBubble messages)
+          , nativePatternBackground
+              { patternColor: if p.isDark then "#FFFFFF" else "#000000"
+              , backgroundColor2: chatBg
+              , patternOpacity: if p.isDark then 0.04 else 0.06
+              , patternScale: 1.0
+              , style: tw "flex-1"
+              }
+              ( nativeScrollView { scrollToBottom: length messages, style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+                  ( view { style: tw "py-2 pr-3" }
+                      (mapWithIndex messageBubble messages)
+                  )
               )
           , if null matchingStickers then stickerBar
             else stickerPicker matchingStickers
