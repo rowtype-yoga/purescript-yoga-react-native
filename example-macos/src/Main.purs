@@ -29,7 +29,7 @@ import Yoga.React.Native.MacOS.Toolbar (nativeToolbar)
 import Yoga.React.Native.MacOS.VisualEffect (nativeVisualEffect)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu)
-import Yoga.React.Native.MacOS.DropZone (nativeDropZone)
+
 import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
 import Yoga.React.Native.Style as Style
 
@@ -477,38 +477,33 @@ systemTab = component "SystemTab" \p -> React.do
           , sectionTitle p.fg "Drop Zone"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
               "Drag files from Finder into the area below"
-          , nativeDropZone
-              { onFileDrop: handler
-                  ( nativeEvent >>> unsafeEventFn \e ->
-                      { files: getFieldJSON "files" e, strings: getFieldJSON "strings" e }
-                  )
+          , view
+              { draggedTypes: [ "NSFilenamesPboardType" ]
+              , onDrop: handler
+                  (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "dataTransfer" e)
                   \r -> do
-                    setDroppedFiles r.files
+                    setDroppedFiles r
                     setDropStatus "Drop files here"
                     setIsDragging false
-              , onFilesDragEnter: handler_ do
+              , onDragEnter: handler_ do
                   setDropStatus "Release to drop!"
                   setIsDragging true
-              , onFilesDragExit: handler_ do
+              , onDragLeave: handler_ do
                   setDropStatus "Drop files here"
                   setIsDragging false
-              , style: Style.style {}
+              , style: tw "rounded-lg items-center justify-center mb-2"
+                  <> Style.style
+                    { minHeight: 100.0
+                    , borderWidth: 2.0
+                    , borderColor: accentBorder
+                    , backgroundColor: p.cardBg
+                    }
               }
-              ( view
-                  { style: tw "rounded-lg items-center justify-center mb-2"
-                      <> Style.style
-                        { minHeight: 100.0
-                        , borderWidth: 2.0
-                        , borderColor: accentBorder
-                        , backgroundColor: p.cardBg
-                        }
-                  }
-                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } dropStatus
-                  , if droppedFiles == "" then mempty
-                    else text { style: tw "text-xs mt-2 px-4" <> Style.style { color: p.dimFg } }
-                      ("Files: " <> droppedFiles)
-                  ]
-              )
+              [ text { style: tw "text-sm" <> Style.style { color: p.fg } } dropStatus
+              , if droppedFiles == "" then mempty
+                else text { style: tw "text-xs mt-2 px-4" <> Style.style { color: p.dimFg } }
+                  ("Dropped: " <> droppedFiles)
+              ]
           , sectionTitle p.fg "File Picker"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
               "Click buttons to open native file panels"
