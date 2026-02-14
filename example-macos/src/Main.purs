@@ -661,6 +661,7 @@ chatTab = component "ChatTab" \p -> React.do
       )
     messageBubble _ msg = do
       let isMine = msg.sender == "You"
+      let align = if isMine then "flex-end" else "flex-start"
       nativeContextMenu
         { items:
             [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
@@ -669,36 +670,33 @@ chatTab = component "ChatTab" \p -> React.do
             , { id: "delete", title: "Delete", sfSymbol: "trash" }
             ]
         , onSelectItem: handler_ (pure unit)
-        , style: Style.style {}
+        , style: tw "px-3 mb-1"
         }
-        ( view
-            { style: tw (if isMine then "flex-row-reverse mb-1" else "flex-row mb-1")
-                <> Style.style { paddingHorizontal: 12.0 }
-            }
-            [ if msg.isSticker then
-                view { style: Style.style { width: 120.0, height: 120.0 } }
-                  [ nativeRiveView_
-                      { resourceName: msg.body
-                      , fit: "contain"
-                      , autoplay: true
-                      , style: Style.style { width: 120.0, height: 120.0 }
-                      }
-                  ]
-              else
-                view
-                  { style: tw "rounded-2xl px-3 py-2"
-                      <> Style.style
-                        { backgroundColor: if isMine then sentBubbleBg else receivedBubbleBg
-                        , maxWidth: 320.0
-                        }
+        ( if msg.isSticker then
+            view
+              { style: Style.style { alignSelf: align, width: 120.0, height: 120.0 } }
+              [ nativeRiveView_
+                  { resourceName: msg.body
+                  , fit: "contain"
+                  , autoplay: true
+                  , style: Style.style { width: 120.0, height: 120.0 }
                   }
-                  [ text
-                      { style: tw "text-sm"
-                          <> Style.style { color: if isMine then "#FFFFFF" else p.fg }
-                      }
-                      msg.body
-                  ]
-            ]
+              ]
+          else
+            view
+              { style: tw "rounded-2xl px-3 py-2"
+                  <> Style.style
+                    { alignSelf: align
+                    , backgroundColor: if isMine then sentBubbleBg else receivedBubbleBg
+                    , maxWidth: 320.0
+                    }
+              }
+              [ text
+                  { style: tw "text-sm"
+                      <> Style.style { color: if isMine then "#FFFFFF" else p.fg }
+                  }
+                  msg.body
+              ]
         )
     stickerBar = view { style: tw "flex-row px-3 py-1" <> Style.style { backgroundColor: "transparent" } }
       [ stickerButton "cat_following_mouse"
