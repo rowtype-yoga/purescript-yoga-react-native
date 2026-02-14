@@ -5,10 +5,9 @@ export const getFieldBool = (key) => (obj) => Boolean(obj[key]);
 export const unsafeRound = (n) => Math.round(n);
 export const isSingleEmoji = (str) => {
   var trimmed = str.trim();
-  var segments = [
-    ...new Intl.Segmenter("en", { granularity: "grapheme" }).segment(trimmed),
-  ];
-  return segments.length === 1 && /\p{Emoji_Presentation}/u.test(trimmed);
+  var re =
+    /^(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\u200D(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*$/u;
+  return trimmed.length <= 10 && re.test(trimmed);
 };
 export const getFieldJSON = (key) => (obj) => {
   var v = obj[key];
