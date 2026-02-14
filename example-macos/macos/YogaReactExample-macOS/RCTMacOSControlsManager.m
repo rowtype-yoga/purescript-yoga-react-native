@@ -1633,10 +1633,21 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 }
 
 - (void)setupAnimation {
-  _frameCount = [[_image representations] count];
   _currentFrame = 0;
+  _frameCount = 0;
+  for (NSImageRep *rep in [_image representations]) {
+    if ([rep isKindOfClass:[NSBitmapImageRep class]]) {
+      NSBitmapImageRep *bmp = (NSBitmapImageRep *)rep;
+      NSNumber *count = [bmp valueForProperty:NSImageFrameCount];
+      if (count && [count integerValue] > 1) {
+        _frameCount = [count integerValue];
+        break;
+      }
+    }
+  }
   if (_frameCount > 1 && _animating) {
     NSBitmapImageRep *rep = (NSBitmapImageRep *)[[_image representations] firstObject];
+    [rep setProperty:NSImageCurrentFrame withValue:@(0)];
     NSNumber *delay = [rep valueForProperty:NSImageCurrentFrameDuration];
     CGFloat interval = delay ? [delay doubleValue] : 0.05;
     if (interval < 0.02) interval = 0.05;
@@ -1646,8 +1657,12 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 
 - (void)advanceFrame {
   _currentFrame = (_currentFrame + 1) % _frameCount;
-  NSBitmapImageRep *rep = (NSBitmapImageRep *)[[_image representations] firstObject];
-  [rep setProperty:NSImageCurrentFrame withValue:@(_currentFrame)];
+  for (NSImageRep *rep in [_image representations]) {
+    if ([rep isKindOfClass:[NSBitmapImageRep class]]) {
+      [(NSBitmapImageRep *)rep setProperty:NSImageCurrentFrame withValue:@(_currentFrame)];
+      break;
+    }
+  }
   [self setNeedsDisplay:YES];
 }
 
