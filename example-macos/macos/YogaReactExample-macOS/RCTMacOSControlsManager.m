@@ -1577,48 +1577,39 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 // 21. NSImageView (animated GIF / static image)
 // ============================================================
 
-@interface RCTAnimatedImageClipView : NSView
-@end
-
-@implementation RCTAnimatedImageClipView
-- (BOOL)isFlipped { return YES; }
-- (void)drawRect:(NSRect)dirtyRect {
-  // Don't draw — just clip
-}
-@end
-
 @interface RCTAnimatedImageView : NSView
-@property (nonatomic, strong) NSImageView *imageView;
-@property (nonatomic, strong) RCTAnimatedImageClipView *clipView;
+@property (nonatomic, strong) NSImage *image;
 @property (nonatomic, copy) NSString *source;
 @property (nonatomic, assign) BOOL animating;
 @property (nonatomic, assign) CGFloat cornerRadius;
+@property (nonatomic, strong) NSTimer *animTimer;
+@property (nonatomic, assign) NSInteger currentFrame;
+@property (nonatomic, assign) NSInteger frameCount;
 @end
 
 @implementation RCTAnimatedImageView
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    _clipView = [[RCTAnimatedImageClipView alloc] initWithFrame:self.bounds];
-    _clipView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-    _clipView.wantsLayer = YES;
-    _clipView.layer.masksToBounds = YES;
-    [self addSubview:_clipView];
-
-    _imageView = [[NSImageView alloc] initWithFrame:self.bounds];
-    _imageView.imageScaling = NSImageScaleProportionallyUpOrDown;
-    _imageView.imageAlignment = NSImageAlignCenter;
-    _imageView.animates = YES;
-    _imageView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-    [_clipView addSubview:_imageView];
     _animating = YES;
+    _cornerRadius = 0;
+    _currentFrame = 0;
   }
   return self;
+}
+
+- (BOOL)isFlipped { return YES; }
+
+- (void)dealloc {
+  [_animTimer invalidate];
 }
 
 - (void)setSource:(NSString *)source {
   if ([_source isEqualToString:source]) return;
   _source = [source copy];
+  [_animTimer invalidate];
+  _animTimer = nil;
+
   if ([source hasPrefix:@"http://"] || [source hasPrefix:@"https://"]) {
     __weak typeof(self) weakSelf = self;
     NSURL *url = [NSURL URLWithString:source];
@@ -1629,34 +1620,67 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
       dispatch_async(dispatch_get_main_queue(), ^{
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (!strongSelf) return;
-        strongSelf.imageView.image = image;
-        strongSelf.imageView.animates = strongSelf.animating;
+        strongSelf.image = image;
+        [strongSelf setupAnimation];
+        [strongSelf setNeedsDisplay:YES];
       });
     });
   } else {
-    NSImage *image = [[NSImage alloc] initByReferencingFile:source];
-    _imageView.image = image;
-    _imageView.animates = _animating;
+    _image = [[NSImage alloc] initByReferencingFile:source];
+    [self setupAnimation];
+    [self setNeedsDisplay:YES];
   }
+}
+
+- (void)setupAnimation {
+  _frameCount = [[_image representations] count];
+  _currentFrame = 0;
+  if (_frameCount > 1 && _animating) {
+    NSBitmapImageRep *rep = (NSBitmapImageRep *)[[_image representations] firstObject];
+    NSNumber *delay = [rep valueForProperty:NSImageCurrentFrameDuration];
+    CGFloat interval = delay ? [delay doubleValue] : 0.05;
+    if (interval < 0.02) interval = 0.05;
+    _animTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(advanceFrame) userInfo:nil repeats:YES];
+  }
+}
+
+- (void)advanceFrame {
+  _currentFrame = (_currentFrame + 1) % _frameCount;
+  NSBitmapImageRep *rep = (NSBitmapImageRep *)[[_image representations] firstObject];
+  [rep setProperty:NSImageCurrentFrame withValue:@(_currentFrame)];
+  [self setNeedsDisplay:YES];
 }
 
 - (void)setAnimating:(BOOL)animating {
   _animating = animating;
-  _imageView.animates = animating;
+  if (!animating) {
+    [_animTimer invalidate];
+    _animTimer = nil;
+  } else if (_frameCount > 1 && !_animTimer) {
+    [self setupAnimation];
+  }
 }
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
   _cornerRadius = cornerRadius;
-  _clipView.layer.cornerRadius = cornerRadius;
+  [self setNeedsDisplay:YES];
+}
+
+- (void)drawRect:(NSRect)dirtyRect {
+  if (!_image) return;
+  NSGraphicsContext *ctx = [NSGraphicsContext currentContext];
+  [ctx saveGraphicsState];
+
+  if (_cornerRadius > 0) {
+    NSBezierPath *clip = [NSBezierPath bezierPathWithRoundedRect:self.bounds xRadius:_cornerRadius yRadius:_cornerRadius];
+    [clip addClip];
+  }
+
+  [_image drawInRect:self.bounds fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0 respectFlipped:YES hints:nil];
+  [ctx restoreGraphicsState];
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
-- (void)layout {
-  [super layout];
-  _clipView.frame = self.bounds;
-  _imageView.frame = _clipView.bounds;
-  if (_cornerRadius > 0) _clipView.layer.cornerRadius = _cornerRadius;
-}
 @end
 
 @interface RCTAnimatedImageViewManager : RCTViewManager @end
