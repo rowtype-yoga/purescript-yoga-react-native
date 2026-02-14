@@ -734,10 +734,7 @@ chatTab = component "ChatTab" \p -> React.do
           else if msg.kind == "gif" then
             view
               { style: tw "rounded-2xl overflow-hidden"
-                  <> Style.style
-                    { alignSelf: align
-                    , backgroundColor: if isMine then sentBubbleBg else receivedBubbleBg
-                    }
+                  <> Style.style { alignSelf: align }
               }
               [ nativeAnimatedImage
                   { source: msg.body
@@ -748,10 +745,7 @@ chatTab = component "ChatTab" \p -> React.do
           else if msg.kind == "video" then
             view
               { style: tw "rounded-2xl overflow-hidden"
-                  <> Style.style
-                    { alignSelf: align
-                    , backgroundColor: if isMine then sentBubbleBg else receivedBubbleBg
-                    }
+                  <> Style.style { alignSelf: align }
               }
               [ nativeVideoPlayer
                   { source: msg.body
