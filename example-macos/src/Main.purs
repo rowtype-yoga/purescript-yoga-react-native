@@ -33,6 +33,8 @@ import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu)
 
 import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
+import Yoga.React.Native.MacOS.VideoPlayer (nativeVideoPlayer)
+import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
@@ -449,6 +451,7 @@ systemTab = component "SystemTab" \p -> React.do
   droppedFiles /\ setDroppedFiles <- useState' ""
   isDragging /\ setIsDragging <- useState' false
   pickedFiles /\ setPickedFiles <- useState' ""
+  videoPlaying /\ setVideoPlaying <- useState' true
   let
     accentBorder = if isDragging then "#007AFF" else p.dimFg
   pure do
@@ -555,6 +558,38 @@ systemTab = component "SystemTab" \p -> React.do
               , if pickedFiles == "" then mempty
                 else label p.dimFg pickedFiles
               ]
+          , sectionTitle p.fg "Video Player"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native AVPlayerView with floating controls"
+          , nativeVideoPlayer
+              { source: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+              , playing: videoPlaying
+              , looping: true
+              , muted: false
+              , style: Style.style { height: 240.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
+          , view { style: tw "flex-row mb-2" }
+              [ nativeButton
+                  { title: if videoPlaying then "Pause" else "Play"
+                  , sfSymbol: if videoPlaying then "pause.fill" else "play.fill"
+                  , bezelStyle: "rounded"
+                  , onPress: handler_ (setVideoPlaying (not videoPlaying))
+                  , style: Style.style { height: 24.0, width: 100.0 }
+                  }
+              ]
+          , sectionTitle p.fg "Animated Image"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native NSImageView with animated GIF support"
+          , nativeAnimatedImage
+              { source: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
+              , animating: true
+              , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
+          , nativeAnimatedImage
+              { source: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif"
+              , animating: true
+              , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
           ]
       )
 

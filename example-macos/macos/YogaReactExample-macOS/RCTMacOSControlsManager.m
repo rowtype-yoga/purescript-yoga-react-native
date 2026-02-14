@@ -2,6 +2,8 @@
 #import <React/RCTBridge.h>
 #import <AppKit/AppKit.h>
 #import <WebKit/WebKit.h>
+#import <AVKit/AVKit.h>
+#import <AVFoundation/AVFoundation.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 @import RiveRuntime;
 
@@ -1472,4 +1474,160 @@ RCT_EXPORT_VIEW_PROPERTY(allowMultiple, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(canChooseDirectories, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(onPickFiles, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 20. AVPlayerView (video player)
+// ============================================================
+
+@interface RCTVideoPlayerView : NSView
+@property (nonatomic, strong) AVPlayerView *playerView;
+@property (nonatomic, strong) AVPlayer *player;
+@property (nonatomic, copy) NSString *source;
+@property (nonatomic, assign) BOOL playing;
+@property (nonatomic, assign) BOOL looping;
+@property (nonatomic, assign) BOOL muted;
+@end
+
+@implementation RCTVideoPlayerView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _player = [[AVPlayer alloc] init];
+    _playerView = [[AVPlayerView alloc] initWithFrame:self.bounds];
+    _playerView.player = _player;
+    _playerView.controlsStyle = AVPlayerViewControlsStyleFloating;
+    _playerView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [self addSubview:_playerView];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+      selector:@selector(playerDidFinish:)
+      name:AVPlayerItemDidPlayToEndTimeNotification
+      object:nil];
+  }
+  return self;
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)setSource:(NSString *)source {
+  if ([_source isEqualToString:source]) return;
+  _source = [source copy];
+  NSURL *url;
+  if ([source hasPrefix:@"http://"] || [source hasPrefix:@"https://"]) {
+    url = [NSURL URLWithString:source];
+  } else {
+    url = [NSURL fileURLWithPath:source];
+  }
+  AVPlayerItem *item = [[AVPlayerItem alloc] initWithURL:url];
+  [_player replaceCurrentItemWithPlayerItem:item];
+  if (_playing) [_player play];
+}
+
+- (void)setPlaying:(BOOL)playing {
+  _playing = playing;
+  if (playing) [_player play]; else [_player pause];
+}
+
+- (void)setLooping:(BOOL)looping {
+  _looping = looping;
+}
+
+- (void)setMuted:(BOOL)muted {
+  _muted = muted;
+  _player.muted = muted;
+}
+
+- (void)playerDidFinish:(NSNotification *)note {
+  if (_looping && note.object == _player.currentItem) {
+    [_player seekToTime:kCMTimeZero];
+    [_player play];
+  }
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+- (void)layout {
+  [super layout];
+  _playerView.frame = self.bounds;
+}
+@end
+
+@interface RCTVideoPlayerViewManager : RCTViewManager @end
+@implementation RCTVideoPlayerViewManager
+RCT_EXPORT_MODULE(MacOSVideoPlayer)
+- (NSView *)view { return [[RCTVideoPlayerView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(source, NSString)
+RCT_EXPORT_VIEW_PROPERTY(playing, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(looping, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(muted, BOOL)
+@end
+
+// ============================================================
+// 21. NSImageView (animated GIF / static image)
+// ============================================================
+
+@interface RCTAnimatedImageView : NSView
+@property (nonatomic, strong) NSImageView *imageView;
+@property (nonatomic, copy) NSString *source;
+@property (nonatomic, assign) BOOL animating;
+@end
+
+@implementation RCTAnimatedImageView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _imageView = [[NSImageView alloc] initWithFrame:self.bounds];
+    _imageView.imageScaling = NSImageScaleProportionallyUpOrDown;
+    _imageView.imageAlignment = NSImageAlignCenter;
+    _imageView.animates = YES;
+    _imageView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [self addSubview:_imageView];
+    _animating = YES;
+  }
+  return self;
+}
+
+- (void)setSource:(NSString *)source {
+  if ([_source isEqualToString:source]) return;
+  _source = [source copy];
+  if ([source hasPrefix:@"http://"] || [source hasPrefix:@"https://"]) {
+    __weak typeof(self) weakSelf = self;
+    NSURL *url = [NSURL URLWithString:source];
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+      NSData *data = [NSData dataWithContentsOfURL:url];
+      if (!data) return;
+      NSImage *image = [[NSImage alloc] initWithData:data];
+      dispatch_async(dispatch_get_main_queue(), ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        strongSelf.imageView.image = image;
+        strongSelf.imageView.animates = strongSelf.animating;
+      });
+    });
+  } else {
+    NSImage *image = [[NSImage alloc] initByReferencingFile:source];
+    _imageView.image = image;
+    _imageView.animates = _animating;
+  }
+}
+
+- (void)setAnimating:(BOOL)animating {
+  _animating = animating;
+  _imageView.animates = animating;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+- (void)layout {
+  [super layout];
+  _imageView.frame = self.bounds;
+}
+@end
+
+@interface RCTAnimatedImageViewManager : RCTViewManager @end
+@implementation RCTAnimatedImageViewManager
+RCT_EXPORT_MODULE(MacOSAnimatedImage)
+- (NSView *)view { return [[RCTAnimatedImageView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(source, NSString)
+RCT_EXPORT_VIEW_PROPERTY(animating, BOOL)
 @end
