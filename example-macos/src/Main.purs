@@ -605,7 +605,7 @@ type ChatProps =
 type Message =
   { sender :: String
   , body :: String
-  , isSticker :: Boolean
+  , kind :: String -- "text" | "sticker" | "gif" | "video"
   }
 
 type Contact =
@@ -625,27 +625,33 @@ contacts =
 initialMessages :: String -> Array Message
 initialMessages name = case name of
   "Alice" ->
-    [ { sender: "Alice", body: "Hey! Have you seen the new Rive stickers?", isSticker: false }
-    , { sender: "You", body: "Not yet, show me!", isSticker: false }
-    , { sender: "Alice", body: "cat_following_mouse", isSticker: true }
-    , { sender: "You", body: "That's amazing! The cat follows your mouse!", isSticker: false }
-    , { sender: "You", body: "😍", isSticker: false }
-    , { sender: "Alice", body: "Right? Check out this one too", isSticker: false }
-    , { sender: "Alice", body: "rating_animation", isSticker: true }
+    [ { sender: "Alice", body: "Hey! Have you seen the new Rive stickers?", kind: "text" }
+    , { sender: "You", body: "Not yet, show me!", kind: "text" }
+    , { sender: "Alice", body: "cat_following_mouse", kind: "sticker" }
+    , { sender: "You", body: "That's amazing! The cat follows your mouse!", kind: "text" }
+    , { sender: "You", body: "😍", kind: "text" }
+    , { sender: "Alice", body: "Right? Check out this one too", kind: "text" }
+    , { sender: "Alice", body: "rating_animation", kind: "sticker" }
+    , { sender: "Alice", body: "Look at this cute cat!", kind: "text" }
+    , { sender: "Alice", body: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", kind: "gif" }
     ]
   "Bob" ->
-    [ { sender: "Bob", body: "Hey, how's the app going?", isSticker: false }
-    , { sender: "You", body: "Great! Just added native macOS controls", isSticker: false }
-    , { sender: "Bob", body: "Nice! Toolbar, sidebar, the works?", isSticker: false }
-    , { sender: "You", body: "Yep, plus visual effects and context menus", isSticker: false }
-    , { sender: "Bob", body: "🔥", isSticker: false }
-    , { sender: "Bob", body: "switch_event_example", isSticker: true }
+    [ { sender: "Bob", body: "Hey, how's the app going?", kind: "text" }
+    , { sender: "You", body: "Great! Just added native macOS controls", kind: "text" }
+    , { sender: "Bob", body: "Nice! Toolbar, sidebar, the works?", kind: "text" }
+    , { sender: "You", body: "Yep, plus visual effects and context menus", kind: "text" }
+    , { sender: "Bob", body: "🔥", kind: "text" }
+    , { sender: "Bob", body: "switch_event_example", kind: "sticker" }
+    , { sender: "Bob", body: "Check out this video", kind: "text" }
+    , { sender: "Bob", body: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", kind: "video" }
     ]
   "Carol" ->
-    [ { sender: "Carol", body: "Love the new UI", isSticker: false }
-    , { sender: "You", body: "Thanks! It's all PureScript + native macOS views", isSticker: false }
-    , { sender: "Carol", body: "The frosted glass sidebar is chef's kiss", isSticker: false }
-    , { sender: "Carol", body: "windy_tree", isSticker: true }
+    [ { sender: "Carol", body: "Love the new UI", kind: "text" }
+    , { sender: "You", body: "Thanks! It's all PureScript + native macOS views", kind: "text" }
+    , { sender: "Carol", body: "The frosted glass sidebar is chef's kiss", kind: "text" }
+    , { sender: "Carol", body: "windy_tree", kind: "sticker" }
+    , { sender: "You", body: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif", kind: "gif" }
+    , { sender: "Carol", body: "Haha love it!", kind: "text" }
     ]
   _ -> []
 
@@ -658,14 +664,14 @@ chatTab = component "ChatTab" \p -> React.do
     sendMessage msg = do
       if msg == "" then pure unit
       else do
-        setMessages (snoc messages { sender: "You", body: msg, isSticker: false })
+        setMessages (snoc messages { sender: "You", body: msg, kind: "text" })
         setInputText ""
     switchContact name = do
       setActiveContact name
       setMessages (initialMessages name)
       setInputText ""
     sendSticker stickerName = do
-      setMessages (snoc messages { sender: "You", body: stickerName, isSticker: true })
+      setMessages (snoc messages { sender: "You", body: stickerName, kind: "sticker" })
       setInputText ""
     allStickers = [ "cat_following_mouse", "rating_animation", "switch_event_example", "windy_tree" ]
     query = colonQuery inputText
@@ -704,7 +710,7 @@ chatTab = component "ChatTab" \p -> React.do
     messageBubble _ msg = do
       let isMine = msg.sender == "You"
       let align = if isMine then "flex-end" else "flex-start"
-      let bigEmoji = isSingleEmoji msg.body
+      let bigEmoji = msg.kind == "text" && isSingleEmoji msg.body
       nativeContextMenu
         { items:
             [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
@@ -715,7 +721,7 @@ chatTab = component "ChatTab" \p -> React.do
         , onSelectItem: handler_ (pure unit)
         , style: tw "px-3 mb-1"
         }
-        ( if msg.isSticker then
+        ( if msg.kind == "sticker" then
             view
               { style: Style.style { alignSelf: align, width: 120.0, height: 120.0 } }
               [ nativeRiveView_
@@ -723,6 +729,30 @@ chatTab = component "ChatTab" \p -> React.do
                   , fit: "contain"
                   , autoplay: true
                   , style: Style.style { width: 120.0, height: 120.0 }
+                  }
+              ]
+          else if msg.kind == "gif" then
+            view
+              { style: tw "rounded-2xl overflow-hidden"
+                  <> Style.style { alignSelf: align, maxWidth: 240.0 }
+              }
+              [ nativeAnimatedImage
+                  { source: msg.body
+                  , animating: true
+                  , style: Style.style { width: 240.0, height: 180.0 }
+                  }
+              ]
+          else if msg.kind == "video" then
+            view
+              { style: tw "rounded-2xl overflow-hidden"
+                  <> Style.style { alignSelf: align, maxWidth: 280.0 }
+              }
+              [ nativeVideoPlayer
+                  { source: msg.body
+                  , playing: false
+                  , looping: true
+                  , muted: false
+                  , style: Style.style { width: 280.0, height: 180.0 }
                   }
               ]
           else if bigEmoji then
