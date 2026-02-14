@@ -15,6 +15,7 @@ type NativeTextFieldAttributes = BaseAttributes
   , placeholder :: String
   , secure :: Boolean
   , search :: Boolean
+  , rounded :: Boolean
   , onChangeText :: EventHandler
   , onSubmit :: EventHandler
   )

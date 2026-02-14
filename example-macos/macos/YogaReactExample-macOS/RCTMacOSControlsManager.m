@@ -176,6 +176,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 @property (nonatomic, copy) NSString *placeholder;
 @property (nonatomic, assign) BOOL secure;
 @property (nonatomic, assign) BOOL search;
+@property (nonatomic, assign) BOOL rounded;
 @end
 
 @implementation RCTNativeTextFieldView
@@ -228,6 +229,15 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   }
 }
 
+- (void)setRounded:(BOOL)rounded {
+  _rounded = rounded;
+  if (rounded) {
+    _textField.bezelStyle = NSTextFieldRoundedBezel;
+  } else {
+    _textField.bezelStyle = NSTextFieldSquareBezel;
+  }
+}
+
 - (void)controlTextDidChange:(NSNotification *)notification {
   if (_onChangeText) _onChangeText(@{@"text": _textField.stringValue});
 }
@@ -254,6 +264,7 @@ RCT_EXPORT_VIEW_PROPERTY(text, NSString)
 RCT_EXPORT_VIEW_PROPERTY(placeholder, NSString)
 RCT_EXPORT_VIEW_PROPERTY(secure, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(search, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(rounded, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onSubmit, RCTBubblingEventBlock)
 @end

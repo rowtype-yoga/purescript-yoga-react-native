@@ -745,6 +745,7 @@ chatTab = component "ChatTab" \p -> React.do
                   { text: inputText
                   , placeholder: "Message..."
                   , search: false
+                  , rounded: true
                   , onChangeText: extractString "text" setInputText
                   , onSubmit: extractString "text" \t -> sendMessage t
                   , style: tw "flex-1" <> Style.style { height: 28.0 }
