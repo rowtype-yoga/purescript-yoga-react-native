@@ -28,6 +28,9 @@ import Yoga.React.Native.MacOS.Rive (nativeRiveView_)
 import Yoga.React.Native.MacOS.Toolbar (nativeToolbar)
 import Yoga.React.Native.MacOS.VisualEffect (nativeVisualEffect)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
+import Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu)
+import Yoga.React.Native.MacOS.DropZone (nativeDropZone)
+import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
@@ -65,6 +68,7 @@ app = component "App" \_ -> React.do
                       , { id: "editor", label: "Editor", sfSymbol: "doc.richtext" }
                       , { id: "browser", label: "Browser", sfSymbol: "globe" }
                       , { id: "rive", label: "Rive", sfSymbol: "play.circle" }
+                      , { id: "system", label: "System", sfSymbol: "gearshape.2" }
                       ]
                   , selectedItem: activeTab
                   , toolbarStyle: "unified"
@@ -103,7 +107,8 @@ app = component "App" \_ -> React.do
                       , fg
                       , dimFg
                       }
-                    else riveTab { fg, bg }
+                    else if activeTab == "rive" then riveTab { fg, bg }
+                    else systemTab { fg, dimFg, cardBg, bg }
                   ]
               ]
           )
@@ -425,6 +430,135 @@ riveTab = component "RiveTab" \p -> React.do
           ]
       )
 
+-- Tab 4: System (Context Menu, Drop Zone, File Picker)
+type SystemProps =
+  { fg :: String
+  , dimFg :: String
+  , cardBg :: String
+  , bg :: String
+  }
+
+systemTab :: SystemProps -> JSX
+systemTab = component "SystemTab" \p -> React.do
+  menuResult /\ setMenuResult <- useState' ""
+  dropStatus /\ setDropStatus <- useState' "Drop files here"
+  droppedFiles /\ setDroppedFiles <- useState' ""
+  isDragging /\ setIsDragging <- useState' false
+  pickedFiles /\ setPickedFiles <- useState' ""
+  let
+    accentBorder = if isDragging then "#007AFF" else p.dimFg
+  pure do
+    nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+      ( view { style: tw "px-4 pb-4" }
+          [ sectionTitle p.fg "Context Menu"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Right-click the area below to open a context menu"
+          , nativeContextMenu
+              { items:
+                  [ { id: "cut", title: "Cut", sfSymbol: "scissors" }
+                  , { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
+                  , { id: "paste", title: "Paste", sfSymbol: "doc.on.clipboard" }
+                  , { id: "sep", title: "-", sfSymbol: "" }
+                  , { id: "delete", title: "Delete", sfSymbol: "trash" }
+                  , { id: "selectAll", title: "Select All", sfSymbol: "selection.pin.in.out" }
+                  ]
+              , onSelectItem: extractString "itemId" setMenuResult
+              , style: Style.style {}
+              }
+              ( card p.cardBg
+                  [ view { style: tw "items-center justify-center" <> Style.style { minHeight: 80.0 } }
+                      [ text { style: tw "text-sm" <> Style.style { color: p.fg } }
+                          "Right-click me!"
+                      , if menuResult == "" then mempty
+                        else label p.dimFg ("Selected: " <> menuResult)
+                      ]
+                  ]
+              )
+          , sectionTitle p.fg "Drop Zone"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Drag files from Finder into the area below"
+          , nativeDropZone
+              { onFileDrop: handler
+                  ( nativeEvent >>> unsafeEventFn \e ->
+                      { files: getFieldJSON "files" e, strings: getFieldJSON "strings" e }
+                  )
+                  \r -> do
+                    setDroppedFiles r.files
+                    setDropStatus "Drop files here"
+                    setIsDragging false
+              , onFilesDragEnter: handler_ do
+                  setDropStatus "Release to drop!"
+                  setIsDragging true
+              , onFilesDragExit: handler_ do
+                  setDropStatus "Drop files here"
+                  setIsDragging false
+              , style: Style.style {}
+              }
+              ( view
+                  { style: tw "rounded-lg items-center justify-center mb-2"
+                      <> Style.style
+                        { minHeight: 100.0
+                        , borderWidth: 2.0
+                        , borderColor: accentBorder
+                        , backgroundColor: p.cardBg
+                        }
+                  }
+                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } dropStatus
+                  , if droppedFiles == "" then mempty
+                    else text { style: tw "text-xs mt-2 px-4" <> Style.style { color: p.dimFg } }
+                      ("Files: " <> droppedFiles)
+                  ]
+              )
+          , sectionTitle p.fg "File Picker"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Click buttons to open native file panels"
+          , card p.cardBg
+              [ view { style: tw "flex-row items-center" }
+                  [ nativeFilePicker
+                      { mode: "open"
+                      , title: "Open Files"
+                      , sfSymbol: "doc.badge.plus"
+                      , allowMultiple: true
+                      , allowedTypes: [ "public.image", "public.text" ]
+                      , message: "Select files to open"
+                      , onPickFiles: handler
+                          (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
+                          setPickedFiles
+                      , onCancel: handler_ (setPickedFiles "Cancelled")
+                      , style: Style.style { height: 24.0, width: 120.0 }
+                      }
+                  , nativeFilePicker
+                      { mode: "open"
+                      , title: "Choose Folder"
+                      , sfSymbol: "folder"
+                      , canChooseDirectories: true
+                      , message: "Select a folder"
+                      , onPickFiles: handler
+                          (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
+                          setPickedFiles
+                      , onCancel: handler_ (setPickedFiles "Cancelled")
+                      , style: Style.style { height: 24.0, width: 140.0, marginLeft: 8.0 }
+                      }
+                  , nativeFilePicker
+                      { mode: "save"
+                      , title: "Save As..."
+                      , sfSymbol: "square.and.arrow.down"
+                      , defaultName: "Untitled.txt"
+                      , allowedTypes: [ "public.plain-text" ]
+                      , message: "Choose save location"
+                      , onPickFiles: handler
+                          (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
+                          setPickedFiles
+                      , onCancel: handler_ (setPickedFiles "Cancelled")
+                      , style: Style.style { height: 24.0, width: 120.0, marginLeft: 8.0 }
+                      }
+                  ]
+              , if pickedFiles == "" then mempty
+                else label p.dimFg pickedFiles
+              ]
+          ]
+      )
+
 -- UI helpers
 sectionTitle :: String -> String -> JSX
 sectionTitle color title =
@@ -443,3 +577,4 @@ round :: Number -> Int
 round n = unsafeRound n
 
 foreign import unsafeRound :: Number -> Int
+foreign import getFieldJSON :: String -> forall r. r -> String

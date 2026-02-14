@@ -2,6 +2,7 @@
 #import <React/RCTBridge.h>
 #import <AppKit/AppKit.h>
 #import <WebKit/WebKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 @import RiveRuntime;
 
 // ============================================================
@@ -1209,4 +1210,241 @@ RCT_EXPORT_VIEW_PROPERTY(selectedItem, NSString)
 RCT_EXPORT_VIEW_PROPERTY(toolbarStyle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(windowTitle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 17. Context Menu
+// ============================================================
+
+@interface RCTContextMenuView : NSView
+@property (nonatomic, copy) NSArray *items;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectItem;
+@end
+
+@implementation RCTContextMenuView
+
+- (void)rightMouseDown:(NSEvent *)event {
+  if (!_items || _items.count == 0) {
+    [super rightMouseDown:event];
+    return;
+  }
+  NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+  for (NSDictionary *item in _items) {
+    NSString *title = item[@"title"] ?: @"";
+    if ([title isEqualToString:@"-"]) {
+      [menu addItem:[NSMenuItem separatorItem]];
+      continue;
+    }
+    NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:title action:@selector(handleMenuAction:) keyEquivalent:@""];
+    menuItem.target = self;
+    menuItem.representedObject = item[@"id"] ?: @"";
+    NSString *sfSymbol = item[@"sfSymbol"];
+    if (sfSymbol.length > 0) {
+      NSImage *img = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:title];
+      if (img) menuItem.image = img;
+    }
+    [menu addItem:menuItem];
+  }
+  [NSMenu popUpContextMenu:menu withEvent:event forView:self];
+}
+
+- (void)handleMenuAction:(NSMenuItem *)sender {
+  if (_onSelectItem) _onSelectItem(@{@"itemId": sender.representedObject ?: @""});
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTContextMenuViewManager : RCTViewManager @end
+@implementation RCTContextMenuViewManager
+RCT_EXPORT_MODULE(MacOSContextMenu)
+- (NSView *)view { return [[RCTContextMenuView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(items, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 18. Drop Zone
+// ============================================================
+
+@interface RCTDropZoneView : NSView
+@property (nonatomic, copy) RCTBubblingEventBlock onFileDrop;
+@property (nonatomic, copy) RCTBubblingEventBlock onFilesDragEnter;
+@property (nonatomic, copy) RCTBubblingEventBlock onFilesDragExit;
+@end
+
+@implementation RCTDropZoneView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    [self registerForDraggedTypes:@[NSPasteboardTypeFileURL, NSPasteboardTypeString]];
+  }
+  return self;
+}
+
+- (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
+  if (_onFilesDragEnter) _onFilesDragEnter(@{});
+  return NSDragOperationCopy;
+}
+
+- (void)draggingExited:(id<NSDraggingInfo>)sender {
+  if (_onFilesDragExit) _onFilesDragExit(@{});
+}
+
+- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
+  return YES;
+}
+
+- (BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
+  NSPasteboard *pboard = [sender draggingPasteboard];
+  NSMutableArray *files = [NSMutableArray new];
+  NSMutableArray *strings = [NSMutableArray new];
+
+  NSArray<NSURL *> *urls = [pboard readObjectsForClasses:@[[NSURL class]] options:@{NSPasteboardURLReadingFileURLsOnlyKey: @YES}];
+  for (NSURL *url in urls) {
+    [files addObject:@{
+      @"path": url.path ?: @"",
+      @"name": url.lastPathComponent ?: @""
+    }];
+  }
+
+  NSArray<NSString *> *strs = [pboard readObjectsForClasses:@[[NSString class]] options:nil];
+  for (NSString *s in strs) {
+    [strings addObject:s];
+  }
+
+  if (_onFileDrop) _onFileDrop(@{@"files": files, @"strings": strings});
+  if (_onFilesDragExit) _onFilesDragExit(@{});
+  return YES;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTDropZoneViewManager : RCTViewManager @end
+@implementation RCTDropZoneViewManager
+RCT_EXPORT_MODULE(MacOSDropZone)
+- (NSView *)view { return [[RCTDropZoneView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(onFileDrop, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onFilesDragEnter, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onFilesDragExit, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 19. File Picker
+// ============================================================
+
+@interface RCTFilePickerView : NSView
+@property (nonatomic, strong) NSButton *button;
+@property (nonatomic, copy) NSString *mode;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *sfSymbol;
+@property (nonatomic, copy) NSString *message;
+@property (nonatomic, copy) NSString *defaultName;
+@property (nonatomic, copy) NSArray<NSString *> *allowedTypes;
+@property (nonatomic, assign) BOOL allowMultiple;
+@property (nonatomic, assign) BOOL canChooseDirectories;
+@property (nonatomic, copy) RCTBubblingEventBlock onPickFiles;
+@property (nonatomic, copy) RCTBubblingEventBlock onCancel;
+@end
+
+@implementation RCTFilePickerView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _button = [NSButton buttonWithTitle:@"Choose File..." target:self action:@selector(handlePress)];
+    _button.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    _button.bezelStyle = NSBezelStylePush;
+    _mode = @"open";
+    [self addSubview:_button];
+  }
+  return self;
+}
+
+- (void)setTitle:(NSString *)title {
+  _title = title;
+  _button.title = title ?: @"Choose File...";
+}
+
+- (void)setSfSymbol:(NSString *)sfSymbol {
+  _sfSymbol = sfSymbol;
+  if (sfSymbol.length > 0) {
+    NSImage *img = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:sfSymbol];
+    if (img) _button.image = img;
+  }
+}
+
+- (NSArray<UTType *> *)resolvedContentTypes {
+  if (!_allowedTypes || _allowedTypes.count == 0) return nil;
+  NSMutableArray<UTType *> *types = [NSMutableArray new];
+  for (NSString *t in _allowedTypes) {
+    UTType *ut = [UTType typeWithIdentifier:t];
+    if (!ut) ut = [UTType typeWithFilenameExtension:t];
+    if (ut) [types addObject:ut];
+  }
+  return types.count > 0 ? types : nil;
+}
+
+- (void)handlePress {
+  if (!self.window) return;
+
+  if ([_mode isEqualToString:@"save"]) {
+    NSSavePanel *panel = [NSSavePanel savePanel];
+    if (_message) panel.message = _message;
+    if (_defaultName) panel.nameFieldStringValue = _defaultName;
+    NSArray<UTType *> *types = [self resolvedContentTypes];
+    if (types) panel.allowedContentTypes = types;
+    panel.canCreateDirectories = YES;
+    [panel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse result) {
+      if (result == NSModalResponseOK && panel.URL) {
+        if (self.onPickFiles) self.onPickFiles(@{
+          @"files": @[@{@"path": panel.URL.path ?: @"", @"name": panel.URL.lastPathComponent ?: @""}]
+        });
+      } else {
+        if (self.onCancel) self.onCancel(@{});
+      }
+    }];
+  } else {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    panel.canChooseFiles = !_canChooseDirectories;
+    panel.canChooseDirectories = _canChooseDirectories;
+    panel.allowsMultipleSelection = _allowMultiple;
+    if (_message) panel.message = _message;
+    NSArray<UTType *> *types = [self resolvedContentTypes];
+    if (types) panel.allowedContentTypes = types;
+    [panel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse result) {
+      if (result == NSModalResponseOK) {
+        NSMutableArray *files = [NSMutableArray new];
+        for (NSURL *url in panel.URLs) {
+          [files addObject:@{@"path": url.path ?: @"", @"name": url.lastPathComponent ?: @""}];
+        }
+        if (self.onPickFiles) self.onPickFiles(@{@"files": files});
+      } else {
+        if (self.onCancel) self.onCancel(@{});
+      }
+    }];
+  }
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+- (void)layout {
+  [super layout];
+  _button.frame = self.bounds;
+}
+@end
+
+@interface RCTFilePickerViewManager : RCTViewManager @end
+@implementation RCTFilePickerViewManager
+RCT_EXPORT_MODULE(MacOSFilePicker)
+- (NSView *)view { return [[RCTFilePickerView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(mode, NSString)
+RCT_EXPORT_VIEW_PROPERTY(title, NSString)
+RCT_EXPORT_VIEW_PROPERTY(sfSymbol, NSString)
+RCT_EXPORT_VIEW_PROPERTY(message, NSString)
+RCT_EXPORT_VIEW_PROPERTY(defaultName, NSString)
+RCT_EXPORT_VIEW_PROPERTY(allowedTypes, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(allowMultiple, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(canChooseDirectories, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(onPickFiles, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
 @end
