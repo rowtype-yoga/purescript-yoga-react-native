@@ -12,4 +12,5 @@ nativeAnimatedImage = createNativeElement_ _animatedImageImpl
 type NativeAnimatedImageAttributes = BaseAttributes
   ( source :: String
   , animating :: Boolean
+  , cornerRadius :: Number
   )

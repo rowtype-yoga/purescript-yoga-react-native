@@ -1487,6 +1487,7 @@ RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
 @property (nonatomic, assign) BOOL playing;
 @property (nonatomic, assign) BOOL looping;
 @property (nonatomic, assign) BOOL muted;
+@property (nonatomic, assign) CGFloat cornerRadius;
 @end
 
 @implementation RCTVideoPlayerView
@@ -1541,6 +1542,11 @@ RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
   _player.muted = muted;
 }
 
+- (void)setCornerRadius:(CGFloat)cornerRadius {
+  _cornerRadius = cornerRadius;
+  self.layer.cornerRadius = cornerRadius;
+}
+
 - (void)playerDidFinish:(NSNotification *)note {
   if (_looping && note.object == _player.currentItem) {
     [_player seekToTime:kCMTimeZero];
@@ -1563,6 +1569,7 @@ RCT_EXPORT_VIEW_PROPERTY(source, NSString)
 RCT_EXPORT_VIEW_PROPERTY(playing, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(looping, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(muted, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 @end
 
 // ============================================================
@@ -1573,6 +1580,7 @@ RCT_EXPORT_VIEW_PROPERTY(muted, BOOL)
 @property (nonatomic, strong) NSImageView *imageView;
 @property (nonatomic, copy) NSString *source;
 @property (nonatomic, assign) BOOL animating;
+@property (nonatomic, assign) CGFloat cornerRadius;
 @end
 
 @implementation RCTAnimatedImageView
@@ -1621,6 +1629,11 @@ RCT_EXPORT_VIEW_PROPERTY(muted, BOOL)
   _imageView.animates = animating;
 }
 
+- (void)setCornerRadius:(CGFloat)cornerRadius {
+  _cornerRadius = cornerRadius;
+  self.layer.cornerRadius = cornerRadius;
+}
+
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
@@ -1634,6 +1647,7 @@ RCT_EXPORT_MODULE(MacOSAnimatedImage)
 - (NSView *)view { return [[RCTAnimatedImageView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(source, NSString)
 RCT_EXPORT_VIEW_PROPERTY(animating, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 @end
 
 // ── Section 22: Pattern Background ──────────────────────────────────────────

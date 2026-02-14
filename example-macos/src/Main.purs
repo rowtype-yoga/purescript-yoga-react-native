@@ -741,7 +741,8 @@ chatTab = component "ChatTab" \p -> React.do
               [ nativeAnimatedImage
                   { source: msg.body
                   , animating: true
-                  , style: tw "rounded-2xl" <> Style.style { width: 240.0, height: 180.0 }
+                  , cornerRadius: 16.0
+                  , style: Style.style { width: 240.0, height: 180.0 }
                   }
               ]
           else if msg.kind == "video" then
@@ -752,7 +753,8 @@ chatTab = component "ChatTab" \p -> React.do
                   , playing: false
                   , looping: true
                   , muted: false
-                  , style: tw "rounded-2xl" <> Style.style { width: 280.0, height: 180.0 }
+                  , cornerRadius: 16.0
+                  , style: Style.style { width: 280.0, height: 180.0 }
                   }
               ]
           else if bigEmoji then

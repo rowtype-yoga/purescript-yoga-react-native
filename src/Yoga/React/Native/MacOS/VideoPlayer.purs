@@ -14,4 +14,5 @@ type NativeVideoPlayerAttributes = BaseAttributes
   , playing :: Boolean
   , looping :: Boolean
   , muted :: Boolean
+  , cornerRadius :: Number
   )
