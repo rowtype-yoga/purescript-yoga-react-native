@@ -1493,6 +1493,8 @@ RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+    self.layer.masksToBounds = YES;
     _player = [[AVPlayer alloc] init];
     _playerView = [[AVPlayerView alloc] initWithFrame:self.bounds];
     _playerView.player = _player;
