@@ -1577,8 +1577,19 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 // 21. NSImageView (animated GIF / static image)
 // ============================================================
 
+@interface RCTAnimatedImageClipView : NSView
+@end
+
+@implementation RCTAnimatedImageClipView
+- (BOOL)isFlipped { return YES; }
+- (void)drawRect:(NSRect)dirtyRect {
+  // Don't draw — just clip
+}
+@end
+
 @interface RCTAnimatedImageView : NSView
 @property (nonatomic, strong) NSImageView *imageView;
+@property (nonatomic, strong) RCTAnimatedImageClipView *clipView;
 @property (nonatomic, copy) NSString *source;
 @property (nonatomic, assign) BOOL animating;
 @property (nonatomic, assign) CGFloat cornerRadius;
@@ -1588,14 +1599,18 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    self.wantsLayer = YES;
-    self.layer.masksToBounds = YES;
+    _clipView = [[RCTAnimatedImageClipView alloc] initWithFrame:self.bounds];
+    _clipView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    _clipView.wantsLayer = YES;
+    _clipView.layer.masksToBounds = YES;
+    [self addSubview:_clipView];
+
     _imageView = [[NSImageView alloc] initWithFrame:self.bounds];
     _imageView.imageScaling = NSImageScaleProportionallyUpOrDown;
     _imageView.imageAlignment = NSImageAlignCenter;
     _imageView.animates = YES;
     _imageView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-    [self addSubview:_imageView];
+    [_clipView addSubview:_imageView];
     _animating = YES;
   }
   return self;
@@ -1632,38 +1647,15 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
   _cornerRadius = cornerRadius;
-  [self updateMask];
-}
-
-- (void)updateMask {
-  if (_cornerRadius > 0) {
-    CAShapeLayer *mask = [CAShapeLayer layer];
-    NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:self.bounds xRadius:_cornerRadius yRadius:_cornerRadius];
-    CGMutablePathRef cgPath = CGPathCreateMutable();
-    NSInteger n = [path elementCount];
-    for (NSInteger i = 0; i < n; i++) {
-      NSPoint pts[3];
-      switch ([path elementAtIndex:i associatedPoints:pts]) {
-        case NSBezierPathElementMoveTo: CGPathMoveToPoint(cgPath, NULL, pts[0].x, pts[0].y); break;
-        case NSBezierPathElementLineTo: CGPathAddLineToPoint(cgPath, NULL, pts[0].x, pts[0].y); break;
-        case NSBezierPathElementCurveTo: CGPathAddCurveToPoint(cgPath, NULL, pts[0].x, pts[0].y, pts[1].x, pts[1].y, pts[2].x, pts[2].y); break;
-        case NSBezierPathElementClosePath: CGPathCloseSubpath(cgPath); break;
-      }
-    }
-    mask.path = cgPath;
-    CGPathRelease(cgPath);
-    self.wantsLayer = YES;
-    self.layer.mask = mask;
-  } else {
-    self.layer.mask = nil;
-  }
+  _clipView.layer.cornerRadius = cornerRadius;
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
-  _imageView.frame = self.bounds;
-  if (_cornerRadius > 0) [self updateMask];
+  _clipView.frame = self.bounds;
+  _imageView.frame = _clipView.bounds;
+  if (_cornerRadius > 0) _clipView.layer.cornerRadius = _cornerRadius;
 }
 @end
 
