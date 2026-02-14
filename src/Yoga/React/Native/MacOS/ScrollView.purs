@@ -9,4 +9,6 @@ foreign import _nativeScrollViewImpl :: forall props. ReactComponent props
 nativeScrollView :: FFINativeComponent NativeScrollViewAttributes
 nativeScrollView = createNativeElement _nativeScrollViewImpl
 
-type NativeScrollViewAttributes = BaseAttributes ()
+type NativeScrollViewAttributes = BaseAttributes
+  ( scrollToBottom :: Int
+  )

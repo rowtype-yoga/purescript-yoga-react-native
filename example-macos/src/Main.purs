@@ -2,7 +2,7 @@ module Main where
 
 import Prelude
 
-import Data.Array (snoc, mapWithIndex)
+import Data.Array (snoc, mapWithIndex, length)
 import Data.Nullable (toNullable)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -730,7 +730,7 @@ chatTab = component "ChatTab" \p -> React.do
                   <> Style.style { borderBottomWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
               }
               [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeContact ]
-          , nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+          , nativeScrollView { scrollToBottom: length messages, style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
               ( view { style: tw "py-2" }
                   (mapWithIndex messageBubble messages)
               )

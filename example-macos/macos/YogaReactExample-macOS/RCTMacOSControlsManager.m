@@ -805,6 +805,7 @@ RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
 
 @interface RCTNativeScrollView : NSScrollView
 @property (nonatomic, strong) RCTFlippedDocumentView *docView;
+@property (nonatomic, assign) NSInteger scrollToBottom;
 @end
 
 @implementation RCTNativeScrollView
@@ -858,6 +859,21 @@ RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
   }
 }
 
+- (void)setScrollToBottom:(NSInteger)scrollToBottom {
+  if (scrollToBottom == _scrollToBottom) return;
+  _scrollToBottom = scrollToBottom;
+  [self performSelector:@selector(doScrollToBottom) withObject:nil afterDelay:0.05];
+}
+
+- (void)doScrollToBottom {
+  [self updateDocumentSize];
+  NSPoint bottomPoint = NSMakePoint(0, _docView.frame.size.height - self.bounds.size.height);
+  if (bottomPoint.y > 0) {
+    [self.contentView scrollToPoint:bottomPoint];
+    [self reflectScrolledClipView:self.contentView];
+  }
+}
+
 - (void)layout {
   [super layout];
   [self updateDocumentSize];
@@ -870,6 +886,7 @@ RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
 @implementation RCTNativeScrollViewManager
 RCT_EXPORT_MODULE(MacOSScrollView)
 - (NSView *)view { return [[RCTNativeScrollView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(scrollToBottom, NSInteger)
 @end
 
 // ============================================================
