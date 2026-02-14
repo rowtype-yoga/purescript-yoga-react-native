@@ -725,7 +725,9 @@ chatTab = component "ChatTab" \p -> React.do
         }
         ( if msg.kind == "sticker" then
             view
-              { style: Style.style { alignSelf: align, width: 120.0, height: 120.0 } }
+              { style: tw "rounded-2xl overflow-hidden"
+                  <> Style.style { alignSelf: align, width: 120.0, height: 120.0 }
+              }
               [ nativeRiveView_
                   { resourceName: msg.body
                   , fit: "contain"
@@ -746,15 +748,13 @@ chatTab = component "ChatTab" \p -> React.do
               ]
           else if msg.kind == "video" then
             view
-              { style: tw "rounded-2xl overflow-hidden"
-                  <> Style.style { alignSelf: align }
-              }
+              { style: Style.style { alignSelf: align } }
               [ nativeVideoPlayer
                   { source: msg.body
                   , playing: false
                   , looping: true
                   , muted: false
-                  , style: Style.style { width: 280.0, height: 180.0 }
+                  , style: tw "rounded-2xl" <> Style.style { width: 280.0, height: 180.0 }
                   }
               ]
           else if bigEmoji then

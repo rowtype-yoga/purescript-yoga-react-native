@@ -1691,9 +1691,13 @@ RCT_EXPORT_VIEW_PROPERTY(animating, BOOL)
 - (BOOL)isFlipped { return YES; }
 
 - (void)drawRect:(NSRect)dirtyRect {
+  NSRect bounds = self.bounds;
+  NSRect clip = NSIntersectionRect(dirtyRect, bounds);
+  if (NSIsEmptyRect(clip)) return;
+
   NSColor *bgColor = [self colorFromHex:_backgroundColor2];
   [bgColor setFill];
-  NSRectFill(dirtyRect);
+  NSRectFill(clip);
 
   NSColor *pColor = [[self colorFromHex:_patternColor] colorWithAlphaComponent:_patternOpacity];
   CGFloat s = _patternScale;
@@ -1702,10 +1706,10 @@ RCT_EXPORT_VIEW_PROPERTY(animating, BOOL)
   [pColor setStroke];
 
   // Draw a subtle geometric pattern — diagonal crosses on a grid
-  CGFloat startX = floor(dirtyRect.origin.x / tile) * tile;
-  CGFloat startY = floor(dirtyRect.origin.y / tile) * tile;
-  CGFloat endX = NSMaxX(dirtyRect);
-  CGFloat endY = NSMaxY(dirtyRect);
+  CGFloat startX = floor(clip.origin.x / tile) * tile;
+  CGFloat startY = floor(clip.origin.y / tile) * tile;
+  CGFloat endX = NSMaxX(clip);
+  CGFloat endY = NSMaxY(clip);
 
   NSBezierPath *path = [NSBezierPath bezierPath];
   [path setLineWidth:0.5 * s];
