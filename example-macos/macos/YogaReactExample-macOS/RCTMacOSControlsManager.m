@@ -1223,11 +1223,8 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
 
 @implementation RCTContextMenuView
 
-- (void)rightMouseDown:(NSEvent *)event {
-  if (!_items || _items.count == 0) {
-    [super rightMouseDown:event];
-    return;
-  }
+- (NSMenu *)menuForEvent:(NSEvent *)event {
+  if (!_items || _items.count == 0) return [super menuForEvent:event];
   NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
   for (NSDictionary *item in _items) {
     NSString *title = item[@"title"] ?: @"";
@@ -1245,7 +1242,7 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
     }
     [menu addItem:menuItem];
   }
-  [NSMenu popUpContextMenu:menu withEvent:event forView:self];
+  return menu;
 }
 
 - (void)handleMenuAction:(NSMenuItem *)sender {
