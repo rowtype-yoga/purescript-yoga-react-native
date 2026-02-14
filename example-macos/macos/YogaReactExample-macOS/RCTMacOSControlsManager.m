@@ -1577,6 +1577,8 @@ RCT_EXPORT_VIEW_PROPERTY(muted, BOOL)
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+    self.layer.masksToBounds = YES;
     _imageView = [[NSImageView alloc] initWithFrame:self.bounds];
     _imageView.imageScaling = NSImageScaleProportionallyUpOrDown;
     _imageView.imageAlignment = NSImageAlignCenter;

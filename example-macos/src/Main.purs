@@ -737,13 +737,11 @@ chatTab = component "ChatTab" \p -> React.do
               ]
           else if msg.kind == "gif" then
             view
-              { style: tw "rounded-2xl overflow-hidden"
-                  <> Style.style { alignSelf: align }
-              }
+              { style: Style.style { alignSelf: align } }
               [ nativeAnimatedImage
                   { source: msg.body
                   , animating: true
-                  , style: Style.style { width: 240.0, height: 180.0 }
+                  , style: tw "rounded-2xl" <> Style.style { width: 240.0, height: 180.0 }
                   }
               ]
           else if msg.kind == "video" then
