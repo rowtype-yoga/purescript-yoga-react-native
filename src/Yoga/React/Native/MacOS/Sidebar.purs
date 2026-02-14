@@ -8,12 +8,13 @@ import Yoga.React.Native.Style as Style
 
 sidebarLayout :: { sidebar :: JSX, content :: JSX, sidebarWidth :: Number } -> JSX
 sidebarLayout { sidebar, content, sidebarWidth } = do
-  view { style: tw "flex-1 flex-row" }
+  view { style: tw "flex-1 flex-row" <> Style.style { backgroundColor: "transparent" } }
     [ nativeVisualEffect
         { materialName: "sidebar"
+        , blendingModeName: "behindWindow"
         , style: Style.style { width: sidebarWidth } <> tw "h-full"
         }
         sidebar
-    , view { style: tw "flex-1" }
+    , view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
         [ content ]
     ]

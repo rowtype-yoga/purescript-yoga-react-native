@@ -57,8 +57,8 @@ app = component "App" \_ -> React.do
       { materialName: "windowBackground"
       , style: tw "flex-1"
       }
-      ( safeAreaView { style: tw "flex-1" }
-          ( view { style: tw "flex-1" }
+      ( safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+          ( view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
               [ nativeToolbar
                   { items:
                       [ { id: "controls", label: "Controls", sfSymbol: "slider.horizontal.3" }
@@ -72,7 +72,7 @@ app = component "App" \_ -> React.do
                   , onSelectItem: extractString "itemId" setActiveTab
                   , style: Style.style { height: 0.0, width: 0.0 }
                   }
-              , view { style: tw "flex-1" }
+              , view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
                   [ if activeTab == "controls" then controlsTab
                       { sliderValue
                       , setSliderValue
