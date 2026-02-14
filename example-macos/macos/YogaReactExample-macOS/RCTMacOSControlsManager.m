@@ -1631,13 +1631,22 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
   _cornerRadius = cornerRadius;
+  self.wantsLayer = YES;
+  self.layer.masksToBounds = YES;
   self.layer.cornerRadius = cornerRadius;
+  _imageView.wantsLayer = YES;
+  _imageView.layer.masksToBounds = YES;
+  _imageView.layer.cornerRadius = cornerRadius;
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
   _imageView.frame = self.bounds;
+  if (_cornerRadius > 0) {
+    self.layer.cornerRadius = _cornerRadius;
+    _imageView.layer.cornerRadius = _cornerRadius;
+  }
 }
 @end
 
