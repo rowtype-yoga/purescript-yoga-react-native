@@ -593,6 +593,7 @@ initialMessages name = case name of
     , { sender: "You", body: "Not yet, show me!", isSticker: false }
     , { sender: "Alice", body: "cat_following_mouse", isSticker: true }
     , { sender: "You", body: "That's amazing! The cat follows your mouse!", isSticker: false }
+    , { sender: "You", body: "😍", isSticker: false }
     , { sender: "Alice", body: "Right? Check out this one too", isSticker: false }
     , { sender: "Alice", body: "rating_animation", isSticker: true }
     ]
@@ -601,6 +602,7 @@ initialMessages name = case name of
     , { sender: "You", body: "Great! Just added native macOS controls", isSticker: false }
     , { sender: "Bob", body: "Nice! Toolbar, sidebar, the works?", isSticker: false }
     , { sender: "You", body: "Yep, plus visual effects and context menus", isSticker: false }
+    , { sender: "Bob", body: "🔥", isSticker: false }
     , { sender: "Bob", body: "switch_event_example", isSticker: true }
     ]
   "Carol" ->
@@ -662,6 +664,7 @@ chatTab = component "ChatTab" \p -> React.do
     messageBubble _ msg = do
       let isMine = msg.sender == "You"
       let align = if isMine then "flex-end" else "flex-start"
+      let bigEmoji = isSingleEmoji msg.body
       nativeContextMenu
         { items:
             [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
@@ -682,6 +685,10 @@ chatTab = component "ChatTab" \p -> React.do
                   , style: Style.style { width: 120.0, height: 120.0 }
                   }
               ]
+          else if bigEmoji then
+            text
+              { style: Style.style { alignSelf: align, fontSize: 64.0, lineHeight: 72.0 } }
+              msg.body
           else
             view
               { style: tw "rounded-2xl px-3 py-2"
@@ -778,3 +785,4 @@ round n = unsafeRound n
 
 foreign import unsafeRound :: Number -> Int
 foreign import getFieldJSON :: String -> forall r. r -> String
+foreign import isSingleEmoji :: String -> Boolean
