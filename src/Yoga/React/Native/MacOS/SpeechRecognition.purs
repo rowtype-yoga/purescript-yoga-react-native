@@ -1,23 +1,56 @@
 module Yoga.React.Native.MacOS.SpeechRecognition
-  ( macosStartListening
-  , macosStopListening
-  , macosGetTranscript
+  ( useSpeechRecognition
+  , UseSpeechRecognition
+  , SpeechRecognition
   ) where
 
 import Prelude
 
+import Data.Newtype (class Newtype)
+import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Effect.Uncurried (EffectFn1, runEffectFn1)
+import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
+import React.Basic.Hooks (Hook, UseEffect, UseState, useState', useEffect)
+import React.Basic.Hooks as React
+import React.Basic.Hooks.Internal (coerceHook)
 
-foreign import startListeningImpl :: Effect Unit
-foreign import stopListeningImpl :: EffectFn1 (String -> Effect Unit) Unit
-foreign import getTranscriptImpl :: EffectFn1 (String -> Effect Unit) Unit
+foreign import startImpl :: Effect Unit
+foreign import stopImpl :: EffectFn1 (String -> Effect Unit) Unit
+foreign import pollTranscriptImpl :: EffectFn1 (String -> Effect Unit) Unit
+foreign import setIntervalImpl :: EffectFn2 Int (Effect Unit) Int
+foreign import clearIntervalImpl :: EffectFn1 Int Unit
 
-macosStartListening :: Effect Unit
-macosStartListening = startListeningImpl
+type SpeechRecognition =
+  { listening :: Boolean
+  , transcript :: String
+  , start :: Effect Unit
+  , stop :: Effect Unit
+  }
 
-macosStopListening :: (String -> Effect Unit) -> Effect Unit
-macosStopListening = runEffectFn1 stopListeningImpl
+newtype UseSpeechRecognition hooks = UseSpeechRecognition
+  (UseEffect Boolean (UseState String (UseState Boolean hooks)))
 
-macosGetTranscript :: (String -> Effect Unit) -> Effect Unit
-macosGetTranscript = runEffectFn1 getTranscriptImpl
+derive instance Newtype (UseSpeechRecognition hooks) _
+
+useSpeechRecognition :: Hook UseSpeechRecognition SpeechRecognition
+useSpeechRecognition = coerceHook React.do
+  listening /\ setListening <- useState' false
+  transcript /\ setTranscript <- useState' ""
+  useEffect listening do
+    if listening then do
+      timerId <- runEffectFn2 setIntervalImpl 500 do
+        runEffectFn1 pollTranscriptImpl \t -> setTranscript t
+      pure (runEffectFn1 clearIntervalImpl timerId)
+    else
+      pure (pure unit)
+  pure
+    { listening
+    , transcript
+    , start: do
+        setListening true
+        setTranscript ""
+        startImpl
+    , stop: do
+        setListening false
+        runEffectFn1 stopImpl \finalText -> setTranscript finalText
+    }

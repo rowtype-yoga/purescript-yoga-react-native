@@ -1,25 +1,30 @@
 import { NativeModules, Platform } from "react-native";
 
-export const startListeningImpl = () => {
+export const startImpl = () => {
   if (Platform.OS !== "macos") return;
   const mod = NativeModules.MacOSSpeechRecognitionModule;
   if (mod && mod.start) {
-    mod.start().catch((e) => console.error("[macosStartListening]", e));
+    mod.start().catch((e) => console.error("[SpeechRecognition]", e));
   }
 };
 
-export const stopListeningImpl = (callback) => {
-  if (Platform.OS !== "macos") return;
+export const stopImpl = (callback) => {
+  if (Platform.OS !== "macos") {
+    callback("")();
+    return;
+  }
   const mod = NativeModules.MacOSSpeechRecognitionModule;
   if (mod && mod.stop) {
     mod
       .stop()
       .then((text) => callback(text)())
-      .catch((e) => console.error("[macosStopListening]", e));
+      .catch(() => callback("")());
+  } else {
+    callback("")();
   }
 };
 
-export const getTranscriptImpl = (callback) => {
+export const pollTranscriptImpl = (callback) => {
   if (Platform.OS !== "macos") return;
   const mod = NativeModules.MacOSSpeechRecognitionModule;
   if (mod && mod.getTranscript) {
@@ -29,3 +34,7 @@ export const getTranscriptImpl = (callback) => {
       .catch(() => {});
   }
 };
+
+export const setIntervalImpl = (ms, cb) => setInterval(cb, ms);
+
+export const clearIntervalImpl = (id) => clearInterval(id);

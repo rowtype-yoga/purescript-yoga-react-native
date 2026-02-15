@@ -1,13 +1,11 @@
 module Yoga.React.Native.MacOS.OCR
-  ( macosOCR
+  ( recognizeText
   ) where
 
-import Prelude
+import Effect.Aff (Aff)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 
-import Effect (Effect)
-import Effect.Uncurried (EffectFn2, runEffectFn2)
+foreign import recognizeTextImpl :: String -> EffectFnAff String
 
-foreign import recognizeImpl :: EffectFn2 String (String -> Effect Unit) Unit
-
-macosOCR :: String -> (String -> Effect Unit) -> Effect Unit
-macosOCR = runEffectFn2 recognizeImpl
+recognizeText :: String -> Aff String
+recognizeText path = fromEffectFnAff (recognizeTextImpl path)

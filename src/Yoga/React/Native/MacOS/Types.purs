@@ -184,3 +184,28 @@ standardPath = PathControlStyle "standard"
 
 popupPath :: PathControlStyle
 popupPath = PathControlStyle "popup"
+
+newtype MapType = MapType String
+
+standardMap :: MapType
+standardMap = MapType "standard"
+
+satelliteMap :: MapType
+satelliteMap = MapType "satellite"
+
+hybridMap :: MapType
+hybridMap = MapType "hybrid"
+
+newtype PDFDisplayMode = PDFDisplayMode String
+
+singlePage :: PDFDisplayMode
+singlePage = PDFDisplayMode "singlePage"
+
+singlePageContinuous :: PDFDisplayMode
+singlePageContinuous = PDFDisplayMode "singlePageContinuous"
+
+twoUp :: PDFDisplayMode
+twoUp = PDFDisplayMode "twoUp"
+
+twoUpContinuous :: PDFDisplayMode
+twoUpContinuous = PDFDisplayMode "twoUpContinuous"

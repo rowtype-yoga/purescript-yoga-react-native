@@ -30,15 +30,15 @@ import {
   showFontPanelImpl,
   hideFontPanelImpl,
 } from "../src/Yoga/React/Native/MacOS/FontPanel.js";
-import { recognizeImpl } from "../src/Yoga/React/Native/MacOS/OCR.js";
+import { recognizeTextImpl } from "../src/Yoga/React/Native/MacOS/OCR.js";
 import {
-  startListeningImpl,
-  stopListeningImpl,
-  getTranscriptImpl,
+  startImpl,
+  stopImpl,
+  pollTranscriptImpl,
 } from "../src/Yoga/React/Native/MacOS/SpeechRecognition.js";
 import {
   detectLanguageImpl,
-  sentimentImpl,
+  analyzeSentimentImpl,
   tokenizeImpl,
 } from "../src/Yoga/React/Native/MacOS/NaturalLanguage.js";
 
@@ -240,12 +240,16 @@ describe("macOS FontPanel FFI", () => {
 });
 
 describe("macOS OCR FFI", () => {
-  it("recognizeImpl calls NativeModules.MacOSOCRModule.recognize with callback", async () => {
+  it("recognizeTextImpl returns an Aff that calls NativeModules.MacOSOCRModule.recognize", async () => {
     const spy = vi.spyOn(NativeModules.MacOSOCRModule, "recognize");
+    const aff = recognizeTextImpl("/tmp/test.png");
     let result = "";
-    recognizeImpl("/tmp/test.png", (text) => () => {
-      result = text;
-    });
+    aff(
+      (err) => {},
+      (val) => {
+        result = val;
+      },
+    );
     await new Promise((r) => setTimeout(r, 10));
     expect(spy).toHaveBeenCalledWith("/tmp/test.png");
     expect(result).toBe("Recognized text from /tmp/test.png");
@@ -254,17 +258,17 @@ describe("macOS OCR FFI", () => {
 });
 
 describe("macOS SpeechRecognition FFI", () => {
-  it("startListeningImpl calls NativeModules.MacOSSpeechRecognitionModule.start", () => {
+  it("startImpl calls NativeModules.MacOSSpeechRecognitionModule.start", () => {
     const spy = vi.spyOn(NativeModules.MacOSSpeechRecognitionModule, "start");
-    startListeningImpl();
+    startImpl();
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
 
-  it("stopListeningImpl calls stop and invokes callback with transcript", async () => {
+  it("stopImpl calls stop and invokes callback with transcript", async () => {
     const spy = vi.spyOn(NativeModules.MacOSSpeechRecognitionModule, "stop");
     let result = "";
-    stopListeningImpl((text) => () => {
+    stopImpl((text) => () => {
       result = text;
     });
     await new Promise((r) => setTimeout(r, 10));
@@ -273,13 +277,13 @@ describe("macOS SpeechRecognition FFI", () => {
     spy.mockRestore();
   });
 
-  it("getTranscriptImpl calls getTranscript and invokes callback", async () => {
+  it("pollTranscriptImpl calls getTranscript and invokes callback", async () => {
     const spy = vi.spyOn(
       NativeModules.MacOSSpeechRecognitionModule,
       "getTranscript",
     );
     let result = "";
-    getTranscriptImpl((text) => () => {
+    pollTranscriptImpl((text) => () => {
       result = text;
     });
     await new Promise((r) => setTimeout(r, 10));
@@ -290,36 +294,48 @@ describe("macOS SpeechRecognition FFI", () => {
 });
 
 describe("macOS NaturalLanguage FFI", () => {
-  it("detectLanguageImpl calls detectLanguage and invokes callback", async () => {
+  it("detectLanguageImpl returns an Aff that resolves with language code", async () => {
     const spy = vi.spyOn(NativeModules.MacOSNLModule, "detectLanguage");
+    const aff = detectLanguageImpl("Hello world");
     let result = "";
-    detectLanguageImpl("Hello world", (lang) => () => {
-      result = lang;
-    });
+    aff(
+      (err) => {},
+      (val) => {
+        result = val;
+      },
+    );
     await new Promise((r) => setTimeout(r, 10));
     expect(spy).toHaveBeenCalledWith("Hello world");
     expect(result).toBe("en");
     spy.mockRestore();
   });
 
-  it("sentimentImpl calls sentiment and invokes callback with score", async () => {
+  it("analyzeSentimentImpl returns an Aff that resolves with score", async () => {
     const spy = vi.spyOn(NativeModules.MacOSNLModule, "sentiment");
+    const aff = analyzeSentimentImpl("I love this");
     let result = -1;
-    sentimentImpl("I love this", (score) => () => {
-      result = score;
-    });
+    aff(
+      (err) => {},
+      (val) => {
+        result = val;
+      },
+    );
     await new Promise((r) => setTimeout(r, 10));
     expect(spy).toHaveBeenCalledWith("I love this");
     expect(result).toBe(0.5);
     spy.mockRestore();
   });
 
-  it("tokenizeImpl calls tokenize and invokes callback with tokens", async () => {
+  it("tokenizeImpl returns an Aff that resolves with tokens", async () => {
     const spy = vi.spyOn(NativeModules.MacOSNLModule, "tokenize");
+    const aff = tokenizeImpl("Hello world");
     let result = [];
-    tokenizeImpl("Hello world", (tokens) => () => {
-      result = tokens;
-    });
+    aff(
+      (err) => {},
+      (val) => {
+        result = val;
+      },
+    );
     await new Promise((r) => setTimeout(r, 10));
     expect(spy).toHaveBeenCalledWith("Hello world");
     expect(result).toEqual(["Hello", "world"]);

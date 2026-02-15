@@ -72,9 +72,9 @@ import Yoga.React.Native.MacOS.QuickLook (macosQuickLook)
 import Yoga.React.Native.MacOS.SpeechSynthesizer (macosSay, macosStopSpeaking)
 import Yoga.React.Native.MacOS.ColorPanel (macosShowColorPanel)
 import Yoga.React.Native.MacOS.FontPanel (macosShowFontPanel)
-import Yoga.React.Native.MacOS.OCR (macosOCR)
-import Yoga.React.Native.MacOS.SpeechRecognition (macosStartListening, macosStopListening, macosGetTranscript)
-import Yoga.React.Native.MacOS.NaturalLanguage (macosDetectLanguage, macosAnalyzeSentiment, macosTokenize)
+import Yoga.React.Native.MacOS.OCR (recognizeText)
+import Yoga.React.Native.MacOS.SpeechRecognition (useSpeechRecognition)
+import Yoga.React.Native.MacOS.NaturalLanguage (detectLanguage, analyzeSentiment, tokenize)
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
@@ -1075,16 +1075,9 @@ aiTab :: AIProps -> JSX
 aiTab = component "AITab" \p -> React.do
   speechText /\ setSpeechText <- useState' "Hello from PureScript React Native on macOS!"
   ocrResult /\ setOcrResult <- useState' ""
-  listening /\ setListening <- useState' false
-  transcript /\ setTranscript <- useState' ""
+  speech <- useSpeechRecognition
   nlText /\ setNlText <- useState' "I love this amazing app! C'est magnifique."
   nlResult /\ setNlResult <- useState' ""
-  useEffect listening do
-    if listening then do
-      timerId <- setInterval 500 do
-        macosGetTranscript \t -> setTranscript t
-      pure (clearInterval timerId)
-    else pure (pure unit)
   pure do
     nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
       ( view { style: tw "px-4 pb-4" }
@@ -1096,14 +1089,12 @@ aiTab = component "AITab" \p -> React.do
               , longitude: -122.4194
               , latitudeDelta: 0.05
               , longitudeDelta: 0.05
-              , mapType: "standard"
+              , mapType: T.standardMap
               , showsUserLocation: false
-              , annotations: unsafeToForeign
+              , annotations:
                   [ { latitude: 37.7749, longitude: -122.4194, title: "San Francisco", subtitle: "California" }
                   , { latitude: 37.8199, longitude: -122.4783, title: "Golden Gate Bridge", subtitle: "" }
                   ]
-              , onRegionChange: handler_ (pure unit)
-              , onSelectAnnotation: handler_ (pure unit)
               , style: Style.style { height: 250.0 }
               }
           , sectionTitle p.fg "PDF Viewer"
@@ -1112,8 +1103,7 @@ aiTab = component "AITab" \p -> React.do
           , nativePDFView
               { source: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
               , autoScales: true
-              , displayMode: "singlePageContinuous"
-              , onPageChange: handler_ (pure unit)
+              , displayMode: T.singlePageContinuous
               , style: Style.style { height: 300.0 }
               }
           , sectionTitle p.fg "Quick Look"
@@ -1190,8 +1180,9 @@ aiTab = component "AITab" \p -> React.do
                       (nativeEvent >>> unsafeEventFn \e -> getFieldArray "files" e)
                       \paths -> for_ paths \path -> do
                         setOcrResult "Recognizing..."
-                        macosOCR path \result -> setOcrResult result
-                  , onCancel: handler_ (pure unit)
+                        launchAff_ do
+                          result <- recognizeText path
+                          liftEffect (setOcrResult result)
                   , style: Style.style { height: 24.0, width: 140.0 }
                   }
               ]
@@ -1203,28 +1194,22 @@ aiTab = component "AITab" \p -> React.do
               "Live microphone-to-text (click Start, speak, click Stop)"
           , view { style: tw "flex-row items-center mb-2" }
               [ nativeButton
-                  { title: if listening then "Listening..." else "Start"
-                  , sfSymbol: if listening then "mic.fill" else "mic"
+                  { title: if speech.listening then "Listening..." else "Start"
+                  , sfSymbol: if speech.listening then "mic.fill" else "mic"
                   , bezelStyle: T.push
-                  , onPress: handler_ do
-                      setListening true
-                      setTranscript ""
-                      macosStartListening
+                  , onPress: handler_ speech.start
                   , style: Style.style { height: 24.0, width: 130.0 }
                   }
               , nativeButton
                   { title: "Stop"
                   , sfSymbol: "stop.circle"
                   , bezelStyle: T.push
-                  , onPress: handler_ do
-                      setListening false
-                      macosStopListening \finalText -> do
-                        setTranscript finalText
+                  , onPress: handler_ speech.stop
                   , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
                   }
               ]
-          , if transcript /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
-              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } transcript ]
+          , if speech.transcript /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
+              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } speech.transcript ]
             else view {} []
           , sectionTitle p.fg "Natural Language"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
@@ -1240,27 +1225,27 @@ aiTab = component "AITab" \p -> React.do
                   { title: "Language"
                   , sfSymbol: "globe"
                   , bezelStyle: T.push
-                  , onPress: handler_ do
-                      macosDetectLanguage nlText \lang ->
-                        setNlResult ("Language: " <> lang)
+                  , onPress: handler_ $ launchAff_ do
+                      lang <- detectLanguage nlText
+                      liftEffect (setNlResult ("Language: " <> lang))
                   , style: Style.style { height: 24.0, width: 110.0 }
                   }
               , nativeButton
                   { title: "Sentiment"
                   , sfSymbol: "face.smiling"
                   , bezelStyle: T.push
-                  , onPress: handler_ do
-                      macosAnalyzeSentiment nlText \score ->
-                        setNlResult ("Sentiment: " <> show score)
+                  , onPress: handler_ $ launchAff_ do
+                      score <- analyzeSentiment nlText
+                      liftEffect (setNlResult ("Sentiment: " <> show score))
                   , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
                   }
               , nativeButton
                   { title: "Tokenize"
                   , sfSymbol: "text.word.spacing"
                   , bezelStyle: T.push
-                  , onPress: handler_ do
-                      macosTokenize nlText \tokens ->
-                        setNlResult ("Tokens: " <> joinWith ", " tokens)
+                  , onPress: handler_ $ launchAff_ do
+                      tokens <- tokenize nlText
+                      liftEffect (setNlResult ("Tokens: " <> joinWith ", " tokens))
                   , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
                   }
               ]

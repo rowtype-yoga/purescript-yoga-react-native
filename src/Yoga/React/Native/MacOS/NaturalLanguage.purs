@@ -1,23 +1,23 @@
 module Yoga.React.Native.MacOS.NaturalLanguage
-  ( macosDetectLanguage
-  , macosAnalyzeSentiment
-  , macosTokenize
+  ( detectLanguage
+  , analyzeSentiment
+  , tokenize
   ) where
 
-import Prelude
+import Effect.Aff (Aff)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 
-import Effect (Effect)
-import Effect.Uncurried (EffectFn2, runEffectFn2)
+foreign import detectLanguageImpl :: String -> EffectFnAff String
 
-foreign import detectLanguageImpl :: EffectFn2 String (String -> Effect Unit) Unit
-foreign import sentimentImpl :: EffectFn2 String (Number -> Effect Unit) Unit
-foreign import tokenizeImpl :: EffectFn2 String (Array String -> Effect Unit) Unit
+detectLanguage :: String -> Aff String
+detectLanguage text = fromEffectFnAff (detectLanguageImpl text)
 
-macosDetectLanguage :: String -> (String -> Effect Unit) -> Effect Unit
-macosDetectLanguage = runEffectFn2 detectLanguageImpl
+foreign import analyzeSentimentImpl :: String -> EffectFnAff Number
 
-macosAnalyzeSentiment :: String -> (Number -> Effect Unit) -> Effect Unit
-macosAnalyzeSentiment = runEffectFn2 sentimentImpl
+analyzeSentiment :: String -> Aff Number
+analyzeSentiment text = fromEffectFnAff (analyzeSentimentImpl text)
 
-macosTokenize :: String -> (Array String -> Effect Unit) -> Effect Unit
-macosTokenize = runEffectFn2 tokenizeImpl
+foreign import tokenizeImpl :: String -> EffectFnAff (Array String)
+
+tokenize :: String -> Aff (Array String)
+tokenize text = fromEffectFnAff (tokenizeImpl text)

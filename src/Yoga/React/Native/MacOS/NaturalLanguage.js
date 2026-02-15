@@ -1,34 +1,34 @@
 import { NativeModules, Platform } from "react-native";
 
-export const detectLanguageImpl = (text, callback) => {
-  if (Platform.OS !== "macos") return;
+const mkAff = (promise) => (onError, onSuccess) => {
+  promise.then(onSuccess, onError);
+  return (cancelError, onCancelerError, onCancelerSuccess) =>
+    onCancelerSuccess();
+};
+
+export const detectLanguageImpl = (text) => {
+  if (Platform.OS !== "macos") return mkAff(Promise.resolve("unknown"));
   const mod = NativeModules.MacOSNLModule;
   if (mod && mod.detectLanguage) {
-    mod
-      .detectLanguage(text)
-      .then((lang) => callback(lang)())
-      .catch((e) => console.error("[macosDetectLanguage]", e));
+    return mkAff(mod.detectLanguage(text));
   }
+  return mkAff(Promise.resolve("unknown"));
 };
 
-export const sentimentImpl = (text, callback) => {
-  if (Platform.OS !== "macos") return;
+export const analyzeSentimentImpl = (text) => {
+  if (Platform.OS !== "macos") return mkAff(Promise.resolve(0));
   const mod = NativeModules.MacOSNLModule;
   if (mod && mod.sentiment) {
-    mod
-      .sentiment(text)
-      .then((score) => callback(score)())
-      .catch((e) => console.error("[macosAnalyzeSentiment]", e));
+    return mkAff(mod.sentiment(text));
   }
+  return mkAff(Promise.resolve(0));
 };
 
-export const tokenizeImpl = (text, callback) => {
-  if (Platform.OS !== "macos") return;
+export const tokenizeImpl = (text) => {
+  if (Platform.OS !== "macos") return mkAff(Promise.resolve([]));
   const mod = NativeModules.MacOSNLModule;
   if (mod && mod.tokenize) {
-    mod
-      .tokenize(text)
-      .then((tokens) => callback(tokens)())
-      .catch((e) => console.error("[macosTokenize]", e));
+    return mkAff(mod.tokenize(text));
   }
+  return mkAff(Promise.resolve([]));
 };
