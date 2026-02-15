@@ -2,14 +2,19 @@ module Main where
 
 import Prelude
 
-import Data.Array (snoc, mapWithIndex, length, filter, null)
+import Data.Array (mapWithIndex, length, filter, null, (!!))
 import Data.Nullable (toNullable)
-import Data.Maybe (Maybe(..))
-import Data.String (contains, Pattern(..))
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.String (take)
+import Data.Foldable (for_, foldl)
+import Data.Traversable (for)
 import Effect (Effect)
+import Data.Either (Either(..))
+import Effect.Aff (launchAff_, try)
+import Effect.Class (liftEffect)
 import React.Basic (JSX)
 import React.Basic.Events (EventHandler, handler, handler_, unsafeEventFn)
-import React.Basic.Hooks (useState', (/\))
+import React.Basic.Hooks (useState, useState', useEffect, useRef, readRef, writeRef, (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (nativeEvent, registerComponent, safeAreaView, text, tw, view)
@@ -36,6 +41,7 @@ import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
 import Yoga.React.Native.MacOS.VideoPlayer (nativeVideoPlayer)
 import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
+import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
@@ -594,7 +600,7 @@ systemTab = component "SystemTab" \p -> React.do
           ]
       )
 
--- Tab 5: Chat (Telegram-style)
+-- Tab 5: Chat (Matrix)
 type ChatProps =
   { fg :: String
   , dimFg :: String
@@ -607,112 +613,242 @@ type Message =
   { sender :: String
   , body :: String
   , kind :: String -- "text" | "sticker" | "gif" | "video"
+  , eventId :: String
   }
 
-type Contact =
-  { name :: String
-  , initials :: String
-  , color :: String
-  , preview :: String
+type Session =
+  { homeserver :: String
+  , accessToken :: String
+  , userId :: String
   }
 
-contacts :: Array Contact
-contacts =
-  [ { name: "Alice", initials: "A", color: "#5856D6", preview: "Check out this sticker!" }
-  , { name: "Bob", initials: "B", color: "#FF9500", preview: "Hey, how's the app going?" }
-  , { name: "Carol", initials: "C", color: "#34C759", preview: "Love the new UI" }
-  ]
+type Room =
+  { roomId :: String
+  , name :: String
+  , lastMessage :: String
+  }
 
-initialMessages :: String -> Array Message
-initialMessages name = case name of
-  "Alice" ->
-    [ { sender: "Alice", body: "Hey! Have you seen the new Rive stickers?", kind: "text" }
-    , { sender: "You", body: "Not yet, show me!", kind: "text" }
-    , { sender: "Alice", body: "cat_following_mouse", kind: "sticker" }
-    , { sender: "You", body: "That's amazing! The cat follows your mouse!", kind: "text" }
-    , { sender: "You", body: "😍", kind: "text" }
-    , { sender: "Alice", body: "Right? Check out this one too", kind: "text" }
-    , { sender: "Alice", body: "rating_animation", kind: "sticker" }
-    , { sender: "Alice", body: "Look at this cute cat!", kind: "text" }
-    , { sender: "Alice", body: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif", kind: "gif" }
-    ]
-  "Bob" ->
-    [ { sender: "Bob", body: "Hey, how's the app going?", kind: "text" }
-    , { sender: "You", body: "Great! Just added native macOS controls", kind: "text" }
-    , { sender: "Bob", body: "Nice! Toolbar, sidebar, the works?", kind: "text" }
-    , { sender: "You", body: "Yep, plus visual effects and context menus", kind: "text" }
-    , { sender: "Bob", body: "🔥", kind: "text" }
-    , { sender: "Bob", body: "switch_event_example", kind: "sticker" }
-    , { sender: "Bob", body: "Check out this video", kind: "text" }
-    , { sender: "Bob", body: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", kind: "video" }
-    ]
-  "Carol" ->
-    [ { sender: "Carol", body: "Love the new UI", kind: "text" }
-    , { sender: "You", body: "Thanks! It's all PureScript + native macOS views", kind: "text" }
-    , { sender: "Carol", body: "The frosted glass sidebar is chef's kiss", kind: "text" }
-    , { sender: "Carol", body: "windy_tree", kind: "sticker" }
-    , { sender: "You", body: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif", kind: "gif" }
-    , { sender: "Carol", body: "Haha love it!", kind: "text" }
-    ]
-  _ -> []
+avatarColors :: Array String
+avatarColors = [ "#5856D6", "#FF9500", "#34C759", "#FF2D55", "#5AC8FA", "#FF6B6B", "#4ECDC4", "#45B7D1" ]
+
+avatarColor :: String -> String
+avatarColor roomId = fromMaybe "#5856D6" (avatarColors !! (mod (hashCode roomId) (length avatarColors)))
+  where
+  hashCode s = abs (foldl (\acc c -> acc * 31 + c) 0 (charCodes s))
+
+foreign import charCodes :: String -> Array Int
+foreign import abs :: Int -> Int
 
 chatTab :: ChatProps -> JSX
 chatTab = component "ChatTab" \p -> React.do
-  activeContact /\ setActiveContact <- useState' "Alice"
-  messages /\ setMessages <- useState' (initialMessages "Alice")
+  session /\ setSession <- useState' (Nothing :: Maybe Session)
+  rooms /\ setRooms <- useState' ([] :: Array Room)
+  activeRoom /\ setActiveRoom <- useState' (Nothing :: Maybe String)
+  messages /\ setMessages <- useState ([] :: Array Message)
   inputText /\ setInputText <- useState' ""
+  loginError /\ setLoginError <- useState' ""
+  loginServer /\ setLoginServer <- useState' "https://matrix.org"
+  loginUser /\ setLoginUser <- useState' ""
+  loginPass /\ setLoginPass <- useState' ""
+  syncTokenRef <- useRef ""
+  activeRoomRef <- useRef (Nothing :: Maybe String)
+  sessionRef <- useRef (Nothing :: Maybe Session)
+  seenIdsRef <- useRef ([] :: Array String)
+
+  -- Sync polling effect
+  useEffect session do
+    case session of
+      Nothing -> pure mempty
+      Just sess -> do
+        writeRef sessionRef (Just sess)
+        let
+          doSync = launchAff_ do
+            token <- readRef syncTokenRef # liftEffect
+            result <- try (Matrix.sync sess.homeserver sess.accessToken token 5000)
+            case result of
+              Left _ -> pure unit
+              Right resp -> liftEffect do
+                let nextBatch = Matrix.getSyncNextBatch resp
+                writeRef syncTokenRef nextBatch
+                let roomIds = Matrix.getSyncJoinedRoomIds resp
+                currentRoom <- readRef activeRoomRef
+                for_ roomIds \rid -> do
+                  let events = Matrix.getSyncTimelineEvents resp rid
+                  let msgEvents = filter (\ev -> Matrix.getEventType ev == "m.room.message") events
+                  case currentRoom of
+                    Just cr | cr == rid -> do
+                      seen <- readRef seenIdsRef
+                      let newMsgs = filter (\ev -> not (Matrix.getEventId ev `elem` seen)) msgEvents
+                      let
+                        converted = newMsgs <#> \ev ->
+                          { sender: Matrix.getEventSender ev
+                          , body: Matrix.getEventBody ev
+                          , kind: eventKind ev
+                          , eventId: Matrix.getEventId ev
+                          }
+                      if null converted then pure unit
+                      else do
+                        let newIds = converted <#> _.eventId
+                        writeRef seenIdsRef (seen <> newIds)
+                        setMessages \msgs -> msgs <> converted
+                    _ -> pure unit
+        timerId <- setInterval 3000 doSync
+        doSync
+        pure (clearInterval timerId)
+
   let
-    sendMessage msg = do
+    doLogin = launchAff_ do
+      result <- try (Matrix.login loginServer loginUser loginPass)
+      case result of
+        Left _ -> liftEffect (setLoginError "Login failed. Check credentials.")
+        Right resp -> do
+          let sess = { homeserver: loginServer, accessToken: resp.access_token, userId: resp.user_id }
+          roomIds <- try (Matrix.joinedRooms loginServer resp.access_token)
+          case roomIds of
+            Left _ -> liftEffect do
+              setSession (Just sess)
+              setLoginError ""
+            Right rids -> do
+              names <- for rids \rid -> do
+                n <- try (Matrix.roomName loginServer resp.access_token rid)
+                let
+                  name = case n of
+                    Left _ -> rid
+                    Right "" -> rid
+                    Right nm -> nm
+                pure { roomId: rid, name, lastMessage: "" }
+              liftEffect do
+                setSession (Just sess)
+                setRooms names
+                setLoginError ""
+
+    selectRoom sess rid = do
+      setActiveRoom (Just rid)
+      writeRef activeRoomRef (Just rid)
+      setMessages (const [])
+      writeRef seenIdsRef []
+      launchAff_ do
+        result <- try (Matrix.sync sess.homeserver sess.accessToken "" 0)
+        case result of
+          Left _ -> pure unit
+          Right resp -> liftEffect do
+            let events = Matrix.getSyncTimelineEvents resp rid
+            let msgEvents = filter (\ev -> Matrix.getEventType ev == "m.room.message") events
+            let
+              converted = msgEvents <#> \ev ->
+                { sender: Matrix.getEventSender ev
+                , body: Matrix.getEventBody ev
+                , kind: eventKind ev
+                , eventId: Matrix.getEventId ev
+                }
+            let ids = converted <#> _.eventId
+            writeRef seenIdsRef ids
+            setMessages (const converted)
+
+    sendMessage sess rid msg = do
       if msg == "" then pure unit
       else do
-        setMessages (snoc messages { sender: "You", body: msg, kind: "text" })
         setInputText ""
-    switchContact name = do
-      setActiveContact name
-      setMessages (initialMessages name)
-      setInputText ""
-    sendSticker stickerName = do
-      setMessages (snoc messages { sender: "You", body: stickerName, kind: "sticker" })
-      setInputText ""
-    allStickers = [ "cat_following_mouse", "rating_animation", "switch_event_example", "windy_tree" ]
-    query = colonQuery inputText
-    matchingStickers = if query == "" then [] else filter (contains (Pattern query)) allStickers
+        launchAff_ do
+          txnId <- Matrix.genTxnId # liftEffect
+          _ <- try (Matrix.sendMessage sess.homeserver sess.accessToken rid txnId msg)
+          pure unit
+
     sentBubbleBg = if p.isDark then "#65B86A" else "#5CB85C"
     receivedBubbleBg = if p.isDark then "#3B3B3D" else "#FFFFFF"
     chatBg = if p.isDark then "#17212B" else "#E8DFD3"
-    sidebar = view { style: tw "pt-2" }
-      ( contacts <#> \c ->
+
+    loginForm = view
+      { style: tw "flex-1 items-center justify-center"
+          <> Style.style { backgroundColor: chatBg }
+      }
+      [ view { style: tw "rounded-xl p-6" <> Style.style { backgroundColor: p.cardBg, width: 340.0 } }
+          [ text { style: tw "text-lg font-bold mb-4 text-center" <> Style.style { color: p.fg } } "Matrix Login"
+          , text { style: tw "text-xs mb-1" <> Style.style { color: p.dimFg } } "Homeserver"
+          , nativeTextField
+              { text: loginServer
+              , placeholder: "https://matrix.org"
+              , search: false
+              , rounded: true
+              , onChangeText: extractString "text" setLoginServer
+              , onSubmit: handler_ (pure unit)
+              , style: tw "mb-3" <> Style.style { height: 28.0 }
+              }
+          , text { style: tw "text-xs mb-1" <> Style.style { color: p.dimFg } } "Username"
+          , nativeTextField
+              { text: loginUser
+              , placeholder: "username"
+              , search: false
+              , rounded: true
+              , onChangeText: extractString "text" setLoginUser
+              , onSubmit: handler_ (pure unit)
+              , style: tw "mb-3" <> Style.style { height: 28.0 }
+              }
+          , text { style: tw "text-xs mb-1" <> Style.style { color: p.dimFg } } "Password"
+          , nativeTextField
+              { text: loginPass
+              , placeholder: "password"
+              , search: false
+              , rounded: true
+              , onChangeText: extractString "text" setLoginPass
+              , onSubmit: handler_ doLogin
+              , style: tw "mb-4" <> Style.style { height: 28.0 }
+              }
+          , if loginError /= "" then
+              text { style: tw "text-xs mb-2 text-center" <> Style.style { color: "#FF3B30" } } loginError
+            else text { style: Style.style { height: 0.0 } } ""
+          , nativeButton
+              { title: "Sign In"
+              , bezelStyle: "rounded"
+              , sfSymbol: "arrow.right.circle.fill"
+              , onPress: handler_ doLogin
+              , style: Style.style { height: 32.0 }
+              }
+          ]
+      ]
+
+    roomSidebar sess = view { style: tw "pt-2" }
+      ( rooms <#> \r ->
           view
             { style: tw "flex-row items-center px-3 py-2 mx-2 rounded-lg"
                 <> Style.style
-                  { backgroundColor: if activeContact == c.name then (if p.isDark then "#2B5278" else "#419FD9") else "transparent" }
+                  { backgroundColor: if activeRoom == Just r.roomId then (if p.isDark then "#2B5278" else "#419FD9") else "transparent" }
             }
             [ view
                 { style: tw "rounded-full items-center justify-center"
-                    <> Style.style { width: 32.0, height: 32.0, backgroundColor: c.color }
+                    <> Style.style { width: 32.0, height: 32.0, backgroundColor: avatarColor r.roomId }
                 }
-                [ text { style: tw "text-xs font-bold" <> Style.style { color: "#FFFFFF" } } c.initials ]
+                [ text { style: tw "text-xs font-bold" <> Style.style { color: "#FFFFFF" } } (take 1 r.name) ]
             , view { style: tw "ml-2 flex-1" }
-                [ text { style: tw "text-sm font-semibold" <> Style.style { color: if activeContact == c.name then "#FFFFFF" else p.fg } } c.name
+                [ text
+                    { style: tw "text-sm font-semibold"
+                        <> Style.style { color: if activeRoom == Just r.roomId then "#FFFFFF" else p.fg }
+                    }
+                    r.name
                 , text
                     { style: tw "text-xs"
-                        <> Style.style { color: if activeContact == c.name then "#FFFFFFCC" else p.dimFg }
+                        <> Style.style { color: if activeRoom == Just r.roomId then "#FFFFFFCC" else p.dimFg }
                     }
-                    c.preview
+                    r.lastMessage
                 ]
             , nativeButton
                 { title: ""
                 , bezelStyle: "toolbar"
                 , sfSymbol: ""
-                , onPress: handler_ (switchContact c.name)
+                , onPress: handler_ (selectRoom sess r.roomId)
                 , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
                 }
             ]
       )
-    messageBubble _ msg = do
-      let isMine = msg.sender == "You"
+
+    messageBubble sess _ msg = do
+      let
+        isMine = case sess of
+          Just s -> msg.sender == s.userId
+          Nothing -> false
       let align = if isMine then "flex-end" else "flex-start"
       let bigEmoji = msg.kind == "text" && isSingleEmoji msg.body
+      let senderLabel = if isMine then "" else msg.sender
       nativeContextMenu
         { items:
             [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
@@ -723,117 +859,41 @@ chatTab = component "ChatTab" \p -> React.do
         , onSelectItem: handler_ (pure unit)
         , style: tw "px-3 mb-1"
         }
-        ( if msg.kind == "sticker" then
-            view
-              { style: tw "rounded-2xl overflow-hidden"
-                  <> Style.style { alignSelf: align, width: 120.0, height: 120.0 }
-              }
-              [ nativeRiveView_
-                  { resourceName: msg.body
-                  , fit: "contain"
-                  , autoplay: true
-                  , style: Style.style { width: 120.0, height: 120.0 }
-                  }
-              ]
-          else if msg.kind == "gif" then
-            view
-              { style: Style.style { alignSelf: align } }
-              [ nativeAnimatedImage
-                  { source: msg.body
-                  , animating: true
-                  , cornerRadius: 16.0
-                  , style: Style.style { width: 240.0, height: 180.0 }
-                  }
-              ]
-          else if msg.kind == "video" then
-            view
-              { style: Style.style { alignSelf: align } }
-              [ nativeVideoPlayer
-                  { source: msg.body
-                  , playing: false
-                  , looping: true
-                  , muted: false
-                  , cornerRadius: 16.0
-                  , style: Style.style { width: 280.0, height: 180.0 }
-                  }
-              ]
-          else if bigEmoji then
-            text
-              { style: Style.style { alignSelf: align, fontSize: 64.0, lineHeight: 72.0 } }
-              msg.body
-          else
-            view
-              { style: tw "rounded-2xl px-3 py-2"
-                  <> Style.style
-                    { alignSelf: align
-                    , backgroundColor: if isMine then sentBubbleBg else receivedBubbleBg
-                    , maxWidth: 320.0
-                    }
-              }
-              [ text
-                  { style: tw "text-sm"
-                      <> Style.style { color: if isMine then "#FFFFFF" else (if p.isDark then "#FFFFFF" else "#000000") }
-                  }
+        ( view { style: Style.style { alignSelf: align, maxWidth: 320.0 } }
+            [ if senderLabel == "" then text { style: Style.style { height: 0.0 } } ""
+              else text { style: tw "text-xs mb-0.5" <> Style.style { color: p.dimFg } } senderLabel
+            , if bigEmoji then
+                text
+                  { style: Style.style { fontSize: 64.0, lineHeight: 72.0 } }
                   msg.body
-              ]
-        )
-    stickerBar = view { style: tw "flex-row px-3 py-1" <> Style.style { backgroundColor: "transparent" } }
-      [ stickerButton "cat_following_mouse"
-      , stickerButton "rating_animation"
-      , stickerButton "switch_event_example"
-      , stickerButton "windy_tree"
-      ]
-    stickerButton name = view
-      { style: tw "mr-2 rounded-lg overflow-hidden" <> Style.style { backgroundColor: p.cardBg } }
-      [ nativeRiveView_
-          { resourceName: name
-          , fit: "contain"
-          , autoplay: true
-          , style: Style.style { width: 40.0, height: 40.0 }
-          }
-      , nativeButton
-          { title: ""
-          , bezelStyle: "toolbar"
-          , sfSymbol: ""
-          , onPress: handler_ (sendSticker name)
-          , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
-          }
-      ]
-    stickerPicker stickers = view
-      { style: tw "flex-row px-3 py-2"
-          <> Style.style { backgroundColor: p.cardBg, borderTopWidth: 0.5, borderColor: p.dimFg }
-      }
-      ( stickers <#> \name ->
-          view
-            { style: tw "mr-2 rounded-lg overflow-hidden items-center"
-                <> Style.style { backgroundColor: if p.isDark then "#3A3A3A" else "#E0E0E0" }
-            }
-            [ nativeRiveView_
-                { resourceName: name
-                , fit: "contain"
-                , autoplay: true
-                , style: Style.style { width: 56.0, height: 56.0 }
-                }
-            , text { style: tw "text-xs pb-1" <> Style.style { color: p.dimFg } } (":" <> name)
-            , nativeButton
-                { title: ""
-                , bezelStyle: "toolbar"
-                , sfSymbol: ""
-                , onPress: handler_ (sendSticker name)
-                , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
-                }
+              else
+                view
+                  { style: tw "rounded-2xl px-3 py-2"
+                      <> Style.style
+                        { backgroundColor: if isMine then sentBubbleBg else receivedBubbleBg }
+                  }
+                  [ text
+                      { style: tw "text-sm"
+                          <> Style.style { color: if isMine then "#FFFFFF" else (if p.isDark then "#FFFFFF" else "#000000") }
+                      }
+                      msg.body
+                  ]
             ]
-      )
-  pure do
-    sidebarLayout
-      { sidebar
-      , sidebarWidth: 200.0
+        )
+
+    activeRoomName = case activeRoom of
+      Nothing -> "Select a room"
+      Just rid -> fromMaybe rid (map _.name (filter (\r -> r.roomId == rid) rooms !! 0))
+
+    chatView sess = sidebarLayout
+      { sidebar: roomSidebar sess
+      , sidebarWidth: 220.0
       , content: view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
           [ view
               { style: tw "px-4 py-2 border-b"
                   <> Style.style { borderBottomWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
               }
-              [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeContact ]
+              [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeRoomName ]
           , nativePatternBackground
               { patternColor: if p.isDark then "#FFFFFF" else "#000000"
               , backgroundColor2: chatBg
@@ -843,34 +903,53 @@ chatTab = component "ChatTab" \p -> React.do
               }
               ( nativeScrollView { scrollToBottom: length messages, style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
                   ( view { style: tw "py-2 pr-3" }
-                      (mapWithIndex messageBubble messages)
+                      (mapWithIndex (messageBubble session) messages)
                   )
               )
-          , if null matchingStickers then stickerBar
-            else stickerPicker matchingStickers
           , view
               { style: tw "flex-row items-center px-3 py-2"
                   <> Style.style { borderTopWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
               }
-              [ nativeTextField
-                  { text: inputText
-                  , placeholder: "Message..."
-                  , search: false
-                  , rounded: true
-                  , onChangeText: extractString "text" setInputText
-                  , onSubmit: extractString "text" \t -> sendMessage t
-                  , style: tw "flex-1" <> Style.style { height: 28.0 }
-                  }
-              , nativeButton
-                  { title: ""
-                  , sfSymbol: "paperplane.fill"
-                  , bezelStyle: "toolbar"
-                  , onPress: handler_ (sendMessage inputText)
-                  , style: Style.style { height: 28.0, width: 36.0, marginLeft: 8.0 }
-                  }
-              ]
+              ( case activeRoom of
+                  Nothing ->
+                    [ text { style: tw "text-sm" <> Style.style { color: p.dimFg } } "Select a room to start chatting" ]
+                  Just rid ->
+                    [ nativeTextField
+                        { text: inputText
+                        , placeholder: "Message..."
+                        , search: false
+                        , rounded: true
+                        , onChangeText: extractString "text" setInputText
+                        , onSubmit: extractString "text" \t -> sendMessage sess rid t
+                        , style: tw "flex-1" <> Style.style { height: 28.0 }
+                        }
+                    , nativeButton
+                        { title: ""
+                        , sfSymbol: "paperplane.fill"
+                        , bezelStyle: "toolbar"
+                        , onPress: handler_ (sendMessage sess rid inputText)
+                        , style: Style.style { height: 28.0, width: 36.0, marginLeft: 8.0 }
+                        }
+                    ]
+              )
           ]
       }
+
+  pure do
+    case session of
+      Nothing -> loginForm
+      Just sess -> chatView sess
+
+eventKind :: Matrix.MatrixEvent -> String
+eventKind ev = case Matrix.getEventMsgType ev of
+  "m.image" -> "gif"
+  _ -> "text"
+
+elem :: forall a. Eq a => a -> Array a -> Boolean
+elem x xs = not (null (filter (_ == x) xs))
+
+foreign import setInterval :: Int -> Effect Unit -> Effect Int
+foreign import clearInterval :: Int -> Effect Unit
 
 -- UI helpers
 sectionTitle :: String -> String -> JSX
@@ -892,4 +971,3 @@ round n = unsafeRound n
 foreign import unsafeRound :: Number -> Int
 foreign import getFieldJSON :: String -> forall r. r -> String
 foreign import isSingleEmoji :: String -> Boolean
-foreign import colonQuery :: String -> String

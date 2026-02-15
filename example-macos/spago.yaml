@@ -4,12 +4,15 @@ package:
     - arrays
     - console
     - effect
+    - either
     - foldable-traversable
+    - foreign
     - maybe
     - nullable
     - prelude
     - react-basic
     - react-basic-hooks
+    - strings
     - tuples
     - yoga-react
     - yoga-react-native
