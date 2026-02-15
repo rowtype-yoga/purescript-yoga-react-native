@@ -1635,6 +1635,9 @@ RCT_EXPORT_METHOD(show:(NSString *)style
     _animating = YES;
     _cornerRadius = 0;
     _currentFrame = 0;
+    self.wantsLayer = YES;
+    self.layer.contentsGravity = kCAGravityResizeAspect;
+    self.layer.masksToBounds = YES;
   }
   return self;
 }
@@ -1654,22 +1657,23 @@ RCT_EXPORT_METHOD(show:(NSString *)style
   if ([source hasPrefix:@"http://"] || [source hasPrefix:@"https://"]) {
     __weak typeof(self) weakSelf = self;
     NSURL *url = [NSURL URLWithString:source];
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-      NSData *data = [NSData dataWithContentsOfURL:url];
-      if (!data) return;
-      NSImage *image = [[NSImage alloc] initWithData:data];
-      dispatch_async(dispatch_get_main_queue(), ^{
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (!strongSelf) return;
-        strongSelf.image = image;
-        [strongSelf setupAnimation];
-        [strongSelf setNeedsDisplay:YES];
-      });
-    });
+    NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithURL:url
+      completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (!data || error) return;
+        NSImage *image = [[NSImage alloc] initWithData:data];
+        dispatch_async(dispatch_get_main_queue(), ^{
+          __strong typeof(weakSelf) strongSelf = weakSelf;
+          if (!strongSelf || ![strongSelf->_source isEqualToString:source]) return;
+          strongSelf.image = image;
+          [strongSelf setupAnimation];
+          [strongSelf updateLayerContents];
+        });
+      }];
+    [task resume];
   } else {
     _image = [[NSImage alloc] initByReferencingFile:source];
     [self setupAnimation];
-    [self setNeedsDisplay:YES];
+    [self updateLayerContents];
   }
 }
 
@@ -1704,7 +1708,17 @@ RCT_EXPORT_METHOD(show:(NSString *)style
       break;
     }
   }
-  [self setNeedsDisplay:YES];
+  [self updateLayerContents];
+}
+
+- (void)updateLayerContents {
+  if (!_image) { self.layer.contents = nil; return; }
+  NSSize size = _image.size;
+  if (size.width <= 0 || size.height <= 0) return;
+  CGImageRef cgImage = [_image CGImageForProposedRect:NULL context:nil hints:nil];
+  if (cgImage) {
+    self.layer.contents = (__bridge id)cgImage;
+  }
 }
 
 - (void)setAnimating:(BOOL)animating {
@@ -1719,21 +1733,7 @@ RCT_EXPORT_METHOD(show:(NSString *)style
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
   _cornerRadius = cornerRadius;
-  [self setNeedsDisplay:YES];
-}
-
-- (void)drawRect:(NSRect)dirtyRect {
-  if (!_image) return;
-  NSGraphicsContext *ctx = [NSGraphicsContext currentContext];
-  [ctx saveGraphicsState];
-
-  if (_cornerRadius > 0) {
-    NSBezierPath *clip = [NSBezierPath bezierPathWithRoundedRect:self.bounds xRadius:_cornerRadius yRadius:_cornerRadius];
-    [clip addClip];
-  }
-
-  [_image drawInRect:self.bounds fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0 respectFlipped:YES hints:nil];
-  [ctx restoreGraphicsState];
+  self.layer.cornerRadius = cornerRadius;
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
