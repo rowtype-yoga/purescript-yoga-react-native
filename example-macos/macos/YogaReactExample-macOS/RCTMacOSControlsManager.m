@@ -1,4 +1,5 @@
 #import <React/RCTViewManager.h>
+#import <React/RCTBridgeModule.h>
 #import <React/RCTBridge.h>
 #import <AppKit/AppKit.h>
 #import <WebKit/WebKit.h>
@@ -1571,6 +1572,46 @@ RCT_EXPORT_VIEW_PROPERTY(muted, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 @end
 
+// ===========================================================================
+// MARK: - NSAlert (Native Module)
+// ===========================================================================
+
+@interface MacOSAlertModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSAlertModule
+
+RCT_EXPORT_MODULE()
+
+RCT_EXPORT_METHOD(show:(NSString *)style
+                  title:(NSString *)title
+                  message:(NSString *)message
+                  buttons:(NSArray<NSString *> *)buttons
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = title ?: @"";
+    alert.informativeText = message ?: @"";
+
+    if ([style isEqualToString:@"warning"]) alert.alertStyle = NSAlertStyleWarning;
+    else if ([style isEqualToString:@"critical"]) alert.alertStyle = NSAlertStyleCritical;
+    else alert.alertStyle = NSAlertStyleInformational;
+
+    for (NSString *btn in buttons) {
+      [alert addButtonWithTitle:btn];
+    }
+    if (buttons.count == 0) [alert addButtonWithTitle:@"OK"];
+
+    NSModalResponse response = [alert runModal];
+    NSInteger idx = response - NSAlertFirstButtonReturn;
+    resolve(@(idx));
+  });
+}
+
+@end
+
 // ============================================================
 // 21. NSImageView (animated GIF / static image)
 // ============================================================
@@ -2267,10 +2308,11 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
 // MARK: - NSPopover
 // ===========================================================================
 
-@interface RCTPopoverView : NSView
+@interface RCTPopoverView : NSView <NSPopoverDelegate>
 @property (nonatomic, strong) NSPopover *popover;
 @property (nonatomic, strong) NSViewController *popoverVC;
 @property (nonatomic, strong) NSView *contentContainer;
+@property (nonatomic, strong) NSMutableArray<NSView *> *reactChildren;
 @property (nonatomic, assign) BOOL visible;
 @property (nonatomic, copy) NSString *preferredEdge;
 @property (nonatomic, copy) NSString *behavior;
@@ -2281,6 +2323,7 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
+    _reactChildren = [NSMutableArray new];
     _contentContainer = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 200)];
     _popoverVC = [[NSViewController alloc] init];
     _popoverVC.view = _contentContainer;
@@ -2288,7 +2331,7 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
     _popover = [[NSPopover alloc] init];
     _popover.contentViewController = _popoverVC;
     _popover.behavior = NSPopoverBehaviorTransient;
-    _popover.delegate = (id)self;
+    _popover.delegate = self;
     _preferredEdge = @"bottom";
   }
   return self;
@@ -2299,7 +2342,9 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
   if (visible) {
     if (!_popover.isShown && self.window) {
       NSRectEdge edge = [self edgeFromString:_preferredEdge];
-      [_popover showRelativeToRect:self.bounds ofView:self preferredEdge:edge];
+      // Anchor to first child (the button) if present, else self
+      NSView *anchor = _reactChildren.count > 0 ? _reactChildren[0] : self;
+      [_popover showRelativeToRect:anchor.bounds ofView:anchor preferredEdge:edge];
     }
   } else {
     if (_popover.isShown) [_popover close];
@@ -2320,16 +2365,26 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
   return NSRectEdgeMinY; // bottom
 }
 
+// First child = anchor (rendered inline in self)
+// Subsequent children = popover content
 - (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
-  [_contentContainer addSubview:subview];
+  [_reactChildren insertObject:subview atIndex:MIN(atIndex, (NSInteger)_reactChildren.count)];
+  if (_reactChildren.count == 1) {
+    // First child → render inline as the anchor
+    [self addSubview:subview];
+  } else {
+    // Subsequent children → popover content
+    [_contentContainer addSubview:subview];
+  }
 }
 
 - (void)removeReactSubview:(NSView *)subview {
+  [_reactChildren removeObject:subview];
   [subview removeFromSuperview];
 }
 
 - (NSArray<NSView *> *)reactSubviews {
-  return _contentContainer.subviews;
+  return [_reactChildren copy];
 }
 
 - (void)didUpdateReactSubviews {
@@ -2395,17 +2450,20 @@ RCT_EXPORT_VIEW_PROPERTY(onClose, RCTBubblingEventBlock)
 - (void)setSource:(NSString *)source {
   _source = source;
   if ([source hasPrefix:@"http://"] || [source hasPrefix:@"https://"]) {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:source]];
-      if (data) {
-        NSImage *image = [[NSImage alloc] initWithData:data];
-        dispatch_async(dispatch_get_main_queue(), ^{
-          if ([self->_source isEqualToString:source]) {
-            self->_imageView.image = image;
-          }
-        });
-      }
-    });
+    NSURL *url = [NSURL URLWithString:source];
+    if (!url) return;
+    NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithURL:url
+      completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (data && !error) {
+          NSImage *image = [[NSImage alloc] initWithData:data];
+          dispatch_async(dispatch_get_main_queue(), ^{
+            if ([self->_source isEqualToString:source]) {
+              self->_imageView.image = image;
+            }
+          });
+        }
+      }];
+    [task resume];
   } else {
     NSImage *image = [[NSImage alloc] initWithContentsOfFile:source];
     if (image) _imageView.image = image;

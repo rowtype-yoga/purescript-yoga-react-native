@@ -697,24 +697,23 @@ systemTab = component "SystemTab" \p -> React.do
               , onClose: handler_ (setPopoverVisible false)
               , style: tw "mb-2"
               }
-              [ view { style: tw "p-4" <> Style.style { width: 200.0, height: 80.0 } }
+              [ nativeButton
+                  { title: if popoverVisible then "Hide Popover" else "Show Popover"
+                  , bezelStyle: "rounded"
+                  , onPress: handler_ (setPopoverVisible (not popoverVisible))
+                  , style: Style.style { height: 24.0, width: 140.0 }
+                  }
+              , view { style: tw "p-4" <> Style.style { width: 200.0, height: 80.0 } }
                   [ text { style: tw "text-sm font-semibold" <> Style.style { color: p.fg } } "Popover Content"
                   , text { style: tw "text-xs mt-1" <> Style.style { color: p.dimFg } } "Click outside to dismiss"
                   ]
               ]
-          , nativeButton
-              { title: if popoverVisible then "Hide Popover" else "Show Popover"
-              , sfSymbol: "bubble.middle.bottom"
-              , bezelStyle: "rounded"
-              , onPress: handler_ (setPopoverVisible (not popoverVisible))
-              , style: Style.style { height: 24.0, width: 140.0 } <> tw "mb-2"
-              }
 
           , sectionTitle p.fg "Image"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
               "Native NSImageView with URL loading and corner radius"
           , nativeImage
-              { source: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/An_up-close_picture_of_a_curious_male_Mallard.jpg/640px-An_up-close_picture_of_a_curious_male_Mallard.jpg"
+              { source: "https://placedog.net/640/400"
               , contentMode: "scaleProportionally"
               , cornerRadius: 12.0
               , style: Style.style { height: 200.0 } <> tw "mb-2"
