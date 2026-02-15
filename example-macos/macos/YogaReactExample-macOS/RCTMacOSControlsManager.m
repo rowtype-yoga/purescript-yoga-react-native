@@ -1608,7 +1608,6 @@ RCT_EXPORT_METHOD(show:(NSString *)style
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSLog(@"[MacOSAlertModule] show called: style=%@ title=%@ message=%@ buttons=%@", style, title, message, buttons);
   dispatch_async(dispatch_get_main_queue(), ^{
     NSAlert *alert = [[NSAlert alloc] init];
     alert.messageText = title ?: @"";

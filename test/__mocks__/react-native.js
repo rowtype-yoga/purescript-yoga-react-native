@@ -266,6 +266,24 @@ const AppRegistry = {
   registerComponent: (name, getComponent) => {},
 };
 
+// UIManager — returns a truthy config for any component name
+const UIManager = {
+  getViewManagerConfig: (name) => ({ name }),
+};
+
+// requireNativeComponent — returns the component name as a string tag
+const requireNativeComponent = (name) => name;
+
+// NativeModules — stubs for imperative native modules
+const NativeModules = {
+  MacOSAlertModule: {
+    show: (style, title, message, buttons) => Promise.resolve(0),
+  },
+  MacOSMenuModule: {
+    show: (items) => Promise.resolve(""),
+  },
+};
+
 export {
   View,
   Text,
@@ -311,4 +329,7 @@ export {
   Platform,
   Share,
   AppRegistry,
+  UIManager,
+  requireNativeComponent,
+  NativeModules,
 };
