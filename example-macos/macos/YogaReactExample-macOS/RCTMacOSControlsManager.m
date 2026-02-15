@@ -10,6 +10,9 @@
 #import <UserNotifications/UserNotifications.h>
 #import <MapKit/MapKit.h>
 #import <Quartz/Quartz.h>
+#import <Vision/Vision.h>
+#import <Speech/Speech.h>
+#import <NaturalLanguage/NaturalLanguage.h>
 #import <objc/message.h>
 @import RiveRuntime;
 
@@ -3950,6 +3953,221 @@ RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
     [[NSFontPanel sharedFontPanel] close];
     resolve(@(YES));
   });
+}
+
+@end
+
+// ============================================================
+// 51. Vision OCR — MacOSOCRModule (imperative)
+// ============================================================
+
+@interface MacOSOCRModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSOCRModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(recognize:(NSString *)imagePath
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    NSImage *image = [[NSImage alloc] initWithContentsOfFile:imagePath];
+    if (!image) {
+      reject(@"NOT_FOUND", [NSString stringWithFormat:@"Image not found: %@", imagePath], nil);
+      return;
+    }
+
+    NSBitmapImageRep *rep = nil;
+    for (NSImageRep *r in image.representations) {
+      if ([r isKindOfClass:[NSBitmapImageRep class]]) {
+        rep = (NSBitmapImageRep *)r;
+        break;
+      }
+    }
+    if (!rep) {
+      // Create bitmap rep from image
+      CGImageRef cgRef = [image CGImageForProposedRect:NULL context:nil hints:nil];
+      if (!cgRef) {
+        reject(@"INVALID", @"Cannot create CGImage from file", nil);
+        return;
+      }
+      rep = [[NSBitmapImageRep alloc] initWithCGImage:cgRef];
+    }
+
+    CGImageRef cgImage = rep.CGImage;
+    if (!cgImage) {
+      reject(@"INVALID", @"Cannot get CGImage from bitmap", nil);
+      return;
+    }
+
+    VNImageRequestHandler *handler = [[VNImageRequestHandler alloc] initWithCGImage:cgImage options:@{}];
+
+    VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc] initWithCompletionHandler:^(VNRequest *req, NSError *error) {
+      if (error) {
+        reject(@"OCR_FAIL", error.localizedDescription, error);
+        return;
+      }
+      NSMutableArray<NSString *> *lines = [NSMutableArray array];
+      for (VNRecognizedTextObservation *obs in req.results) {
+        VNRecognizedText *candidate = [[obs topCandidates:1] firstObject];
+        if (candidate.string.length > 0) {
+          [lines addObject:candidate.string];
+        }
+      }
+      resolve([lines componentsJoinedByString:@"\n"]);
+    }];
+    request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
+
+    NSError *err = nil;
+    [handler performRequests:@[request] error:&err];
+    if (err) {
+      reject(@"OCR_FAIL", err.localizedDescription, err);
+    }
+  });
+}
+
+@end
+
+// ============================================================
+// 52. SFSpeechRecognizer — MacOSSpeechRecognitionModule (imperative)
+// ============================================================
+
+@interface MacOSSpeechRecognitionModule : NSObject <RCTBridgeModule>
+@property (nonatomic, strong) SFSpeechRecognizer *recognizer;
+@property (nonatomic, strong) SFSpeechAudioBufferRecognitionRequest *recognitionRequest;
+@property (nonatomic, strong) SFSpeechRecognitionTask *recognitionTask;
+@property (nonatomic, strong) AVAudioEngine *audioEngine;
+@property (nonatomic, copy) NSString *latestTranscript;
+@end
+
+@implementation MacOSSpeechRecognitionModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(start:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [SFSpeechRecognizer requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus status) {
+    if (status != SFSpeechRecognizerAuthorizationStatusAuthorized) {
+      reject(@"DENIED", @"Speech recognition permission denied", nil);
+      return;
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      // Stop any existing session
+      if (self.audioEngine.isRunning) {
+        [self.audioEngine stop];
+        [self.recognitionRequest endAudio];
+      }
+
+      self.latestTranscript = @"";
+      self.recognizer = [[SFSpeechRecognizer alloc] initWithLocale:[NSLocale currentLocale]];
+      self.audioEngine = [[AVAudioEngine alloc] init];
+      self.recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
+      self.recognitionRequest.shouldReportPartialResults = YES;
+
+      AVAudioInputNode *inputNode = self.audioEngine.inputNode;
+      AVAudioFormat *format = [inputNode outputFormatForBus:0];
+
+      [inputNode installTapOnBus:0 bufferSize:1024 format:format block:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
+        [self.recognitionRequest appendAudioPCMBuffer:buffer];
+      }];
+
+      self.recognitionTask = [self.recognizer recognitionTaskWithRequest:self.recognitionRequest
+                                                          resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
+        if (result) {
+          self.latestTranscript = result.bestTranscription.formattedString;
+        }
+        if (error || result.isFinal) {
+          [self.audioEngine stop];
+          [inputNode removeTapOnBus:0];
+        }
+      }];
+
+      NSError *err = nil;
+      [self.audioEngine startAndReturnError:&err];
+      if (err) {
+        reject(@"ENGINE_FAIL", err.localizedDescription, err);
+        return;
+      }
+      resolve(@"started");
+    });
+  }];
+}
+
+RCT_EXPORT_METHOD(stop:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (self.audioEngine.isRunning) {
+      [self.audioEngine stop];
+      [self.recognitionRequest endAudio];
+    }
+    resolve(self.latestTranscript ?: @"");
+  });
+}
+
+RCT_EXPORT_METHOD(getTranscript:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  resolve(self.latestTranscript ?: @"");
+}
+
+@end
+
+// ============================================================
+// 53. NaturalLanguage — MacOSNLModule (imperative)
+// ============================================================
+
+@interface MacOSNLModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSNLModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(detectLanguage:(NSString *)text
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NLLanguageRecognizer *recognizer = [[NLLanguageRecognizer alloc] init];
+  [recognizer processString:text ?: @""];
+  NLLanguage lang = recognizer.dominantLanguage;
+  resolve(lang ?: @"unknown");
+}
+
+RCT_EXPORT_METHOD(sentiment:(NSString *)text
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NLTagger *tagger = [[NLTagger alloc] initWithTagSchemes:@[NLTagSchemeSentimentScore]];
+  tagger.string = text ?: @"";
+  NSRange tokenRange;
+  NLTag tag = [tagger tagAtIndex:0 unit:NLTokenUnitParagraph scheme:NLTagSchemeSentimentScore tokenRange:&tokenRange];
+  double score = tag ? tag.doubleValue : 0.0;
+  resolve(@(score));
+}
+
+RCT_EXPORT_METHOD(tokenize:(NSString *)text
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NLTokenizer *tokenizer = [[NLTokenizer alloc] initWithUnit:NLTokenUnitWord];
+  tokenizer.string = text ?: @"";
+  NSMutableArray<NSString *> *tokens = [NSMutableArray array];
+  [tokenizer enumerateTokensInRange:NSMakeRange(0, text.length)
+                         usingBlock:^(NSRange tokenRange, NLTokenizerAttributes attributes, BOOL *stop) {
+    [tokens addObject:[text substringWithRange:tokenRange]];
+  }];
+  resolve(tokens);
 }
 
 @end

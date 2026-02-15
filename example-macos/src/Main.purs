@@ -5,7 +5,7 @@ import Prelude
 import Data.Array (mapWithIndex, length, filter, null, (!!))
 import Data.Nullable (toNullable)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.String (take)
+import Data.String (take, joinWith)
 import Data.Foldable (for_, foldl)
 import Data.Traversable (for)
 import Effect (Effect)
@@ -72,6 +72,9 @@ import Yoga.React.Native.MacOS.QuickLook (macosQuickLook)
 import Yoga.React.Native.MacOS.SpeechSynthesizer (macosSay, macosStopSpeaking)
 import Yoga.React.Native.MacOS.ColorPanel (macosShowColorPanel)
 import Yoga.React.Native.MacOS.FontPanel (macosShowFontPanel)
+import Yoga.React.Native.MacOS.OCR (macosOCR)
+import Yoga.React.Native.MacOS.SpeechRecognition (macosStartListening, macosStopListening, macosGetTranscript)
+import Yoga.React.Native.MacOS.NaturalLanguage (macosDetectLanguage, macosAnalyzeSentiment, macosTokenize)
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
@@ -508,6 +511,11 @@ systemTab = component "SystemTab" \p -> React.do
   outlineSelection /\ setOutlineSelection <- useState' ""
   statusBarActive /\ setStatusBarActive <- useState' false
   speechText /\ setSpeechText <- useState' "Hello from PureScript React Native on macOS!"
+  ocrResult /\ setOcrResult <- useState' ""
+  listening /\ setListening <- useState' false
+  transcript /\ setTranscript <- useState' ""
+  nlText /\ setNlText <- useState' "I love this amazing app! C'est magnifique."
+  nlResult /\ setNlResult <- useState' ""
   let
     accentBorder = if isDragging then "#007AFF" else p.dimFg
   pure do
@@ -1145,6 +1153,106 @@ systemTab = component "SystemTab" \p -> React.do
                   , style: Style.style { height: 24.0, width: 180.0 }
                   }
               ]
+          , sectionTitle p.fg "OCR (Vision)"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Recognize text in images (VNRecognizeTextRequest)"
+          , view { style: tw "flex-row items-center mb-2" }
+              [ nativeFilePicker
+                  { mode: T.openFile
+                  , allowedTypes: [ "public.image" ]
+                  , title: "Pick Image"
+                  , sfSymbol: "photo"
+                  , onPickFiles: handler
+                      (nativeEvent >>> unsafeEventFn \e -> getFieldArray "files" e)
+                      \paths -> for_ paths \path -> do
+                        setOcrResult "Recognizing..."
+                        macosOCR path \result -> setOcrResult result
+                  , onCancel: handler_ (pure unit)
+                  , style: Style.style { height: 24.0, width: 140.0 }
+                  }
+              ]
+          , if ocrResult /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
+              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } ocrResult ]
+            else view {} []
+          , sectionTitle p.fg "Speech Recognition"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Live microphone transcription (SFSpeechRecognizer)"
+          , view { style: tw "flex-row items-center mb-2" }
+              [ nativeButton
+                  { title: if listening then "Listening..." else "Start Listening"
+                  , sfSymbol: if listening then "mic.fill" else "mic"
+                  , bezelStyle: T.push
+                  , onPress: handler_ do
+                      if listening then pure unit
+                      else do
+                        setListening true
+                        setTranscript ""
+                        macosStartListening
+                  , style: Style.style { height: 24.0, width: 160.0 }
+                  }
+              , nativeButton
+                  { title: "Stop"
+                  , sfSymbol: "stop.circle"
+                  , bezelStyle: T.push
+                  , onPress: handler_ do
+                      macosStopListening \finalText -> do
+                        setTranscript finalText
+                        setListening false
+                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
+                  }
+              , nativeButton
+                  { title: "Poll"
+                  , sfSymbol: "arrow.clockwise"
+                  , bezelStyle: T.push
+                  , onPress: handler_ do
+                      macosGetTranscript \t -> setTranscript t
+                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
+                  }
+              ]
+          , if transcript /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
+              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } transcript ]
+            else view {} []
+          , sectionTitle p.fg "Natural Language"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Language detection, sentiment, tokenization (NaturalLanguage.framework)"
+          , nativeTextField
+              { text: nlText
+              , placeholder: "Enter text to analyze..."
+              , onChangeText: extractString "text" setNlText
+              , style: Style.style { height: 24.0 } <> tw "mb-2"
+              }
+          , view { style: tw "flex-row items-center mb-2" }
+              [ nativeButton
+                  { title: "Language"
+                  , sfSymbol: "globe"
+                  , bezelStyle: T.push
+                  , onPress: handler_ do
+                      macosDetectLanguage nlText \lang ->
+                        setNlResult ("Language: " <> lang)
+                  , style: Style.style { height: 24.0, width: 110.0 }
+                  }
+              , nativeButton
+                  { title: "Sentiment"
+                  , sfSymbol: "face.smiling"
+                  , bezelStyle: T.push
+                  , onPress: handler_ do
+                      macosAnalyzeSentiment nlText \score ->
+                        setNlResult ("Sentiment: " <> show score)
+                  , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
+                  }
+              , nativeButton
+                  { title: "Tokenize"
+                  , sfSymbol: "text.word.spacing"
+                  , bezelStyle: T.push
+                  , onPress: handler_ do
+                      macosTokenize nlText \tokens ->
+                        setNlResult ("Tokens: " <> joinWith ", " tokens)
+                  , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
+                  }
+              ]
+          , if nlResult /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
+              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } nlResult ]
+            else view {} []
           ]
       )
 

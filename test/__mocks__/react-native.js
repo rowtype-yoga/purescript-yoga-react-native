@@ -312,6 +312,19 @@ const NativeModules = {
     show: () => Promise.resolve(true),
     hide: () => Promise.resolve(true),
   },
+  MacOSOCRModule: {
+    recognize: (path) => Promise.resolve("Recognized text from " + path),
+  },
+  MacOSSpeechRecognitionModule: {
+    start: () => Promise.resolve("started"),
+    stop: () => Promise.resolve("final transcript"),
+    getTranscript: () => Promise.resolve("partial transcript"),
+  },
+  MacOSNLModule: {
+    detectLanguage: (text) => Promise.resolve("en"),
+    sentiment: (text) => Promise.resolve(0.5),
+    tokenize: (text) => Promise.resolve(text.split(" ")),
+  },
 };
 
 export {
