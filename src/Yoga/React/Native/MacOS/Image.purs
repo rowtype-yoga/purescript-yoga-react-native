@@ -6,6 +6,7 @@ module Yoga.React.Native.MacOS.Image
 import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
+import Yoga.React.Native.MacOS.Types (ImageContentMode)
 
 foreign import _imageImpl :: forall props. ReactComponent props
 
@@ -14,6 +15,6 @@ nativeImage = createNativeElement_ _imageImpl
 
 type NativeImageAttributes = BaseAttributes
   ( source :: String
-  , contentMode :: String
+  , contentMode :: ImageContentMode
   , cornerRadius :: Number
   )

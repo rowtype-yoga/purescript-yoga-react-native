@@ -1488,6 +1488,7 @@ RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
 @property (nonatomic, assign) BOOL looping;
 @property (nonatomic, assign) BOOL muted;
 @property (nonatomic, assign) CGFloat cornerRadius;
+@property (nonatomic, copy) NSString *controlsStyle;
 @end
 
 @implementation RCTVideoPlayerView
@@ -1547,6 +1548,15 @@ RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
   self.layer.cornerRadius = cornerRadius;
 }
 
+- (void)setControlsStyle:(NSString *)controlsStyle {
+  _controlsStyle = controlsStyle;
+  if ([controlsStyle isEqualToString:@"none"]) _playerView.controlsStyle = AVPlayerViewControlsStyleNone;
+  else if ([controlsStyle isEqualToString:@"inline"]) _playerView.controlsStyle = AVPlayerViewControlsStyleInline;
+  else if ([controlsStyle isEqualToString:@"minimal"]) _playerView.controlsStyle = AVPlayerViewControlsStyleMinimal;
+  else if ([controlsStyle isEqualToString:@"floating"]) _playerView.controlsStyle = AVPlayerViewControlsStyleFloating;
+  else _playerView.controlsStyle = AVPlayerViewControlsStyleDefault;
+}
+
 - (void)playerDidFinish:(NSNotification *)note {
   if (_looping && note.object == _player.currentItem) {
     [_player seekToTime:kCMTimeZero];
@@ -1570,6 +1580,7 @@ RCT_EXPORT_VIEW_PROPERTY(playing, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(looping, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(muted, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(controlsStyle, NSString)
 @end
 
 // ===========================================================================

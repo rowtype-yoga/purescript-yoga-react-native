@@ -49,6 +49,7 @@ import Yoga.React.Native.MacOS.Box (nativeBox)
 import Yoga.React.Native.MacOS.Popover (nativePopover)
 import Yoga.React.Native.MacOS.Image (nativeImage)
 import Yoga.React.Native.MacOS.Alert (macosAlert)
+import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
 
@@ -76,7 +77,7 @@ app = component "App" \_ -> React.do
   let bg = if isDark then "#1E1E1E" else "#FFFFFF"
   pure do
     nativeVisualEffect
-      { materialName: "windowBackground"
+      { materialName: T.windowBackground
       , style: tw "flex-1"
       }
       ( safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
@@ -91,7 +92,7 @@ app = component "App" \_ -> React.do
                       , { id: "chat", label: "Chat", sfSymbol: "bubble.left.and.bubble.right" }
                       ]
                   , selectedItem: activeTab
-                  , toolbarStyle: "unified"
+                  , toolbarStyle: T.unified
                   , windowTitle: "PureScript React Native"
                   , onSelectItem: extractString "itemId" setActiveTab
                   , style: Style.style { height: 0.0, width: 0.0 }
@@ -181,7 +182,7 @@ sidebarItem _ sfSymbolName title selected setCategory =
   nativeButton
     { title
     , sfSymbol: sfSymbolName
-    , bezelStyle: "toolbar"
+    , bezelStyle: T.toolbar
     , primary: selected
     , onPress: handler_ (setCategory title)
     , style: Style.style { height: 28.0, marginHorizontal: 8.0, marginVertical: 1.0 }
@@ -203,7 +204,7 @@ controlsTab = component "ControlsTab" \p -> React.do
               [ nativeButton
                   { title: "Say Hello"
                   , sfSymbol: "hand.wave"
-                  , bezelStyle: "rounded"
+                  , bezelStyle: T.push
                   , primary: true
                   , onPress: handler_ (p.setButtonStatus "Hello from PureScript!")
                   , style: Style.style { height: 24.0, width: 140.0 }
@@ -211,7 +212,7 @@ controlsTab = component "ControlsTab" \p -> React.do
               , nativeButton
                   { title: "Reset"
                   , sfSymbol: "arrow.counterclockwise"
-                  , bezelStyle: "rounded"
+                  , bezelStyle: T.push
                   , onPress: handler_ (p.setButtonStatus "Ready")
                   , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
                   }
@@ -407,7 +408,7 @@ riveTab = component "RiveTab" \p -> React.do
           , nativeRiveView_
               { resourceName: "cat_following_mouse"
               , stateMachineName: "State Machine 1"
-              , fit: "contain"
+              , fit: T.contain
               , autoplay: true
               , style: Style.style { height: 300.0 }
               }
@@ -417,7 +418,7 @@ riveTab = component "RiveTab" \p -> React.do
           , nativeRiveView_
               { resourceName: "cursor_tracking"
               , stateMachineName: "State Machine 1"
-              , fit: "contain"
+              , fit: T.contain
               , autoplay: true
               , style: Style.style { height: 300.0 }
               }
@@ -427,7 +428,7 @@ riveTab = component "RiveTab" \p -> React.do
           , nativeRiveView_
               { resourceName: "rating_animation"
               , stateMachineName: "State Machine 1"
-              , fit: "contain"
+              , fit: T.contain
               , autoplay: true
               , style: Style.style { height: 200.0 }
               }
@@ -437,14 +438,14 @@ riveTab = component "RiveTab" \p -> React.do
           , nativeRiveView_
               { resourceName: "switch_event_example"
               , stateMachineName: "State Machine 1"
-              , fit: "contain"
+              , fit: T.contain
               , autoplay: true
               , style: Style.style { height: 200.0 }
               }
           , sectionTitle p.fg "Windy Tree"
           , nativeRiveView_
               { resourceName: "windy_tree"
-              , fit: "cover"
+              , fit: T.cover
               , autoplay: true
               , style: tw "flex-1" <> Style.style { minHeight: 300.0, backgroundColor: p.bg }
               }
@@ -536,7 +537,7 @@ systemTab = component "SystemTab" \p -> React.do
           , card p.cardBg
               [ view { style: tw "flex-row items-center" }
                   [ nativeFilePicker
-                      { mode: "open"
+                      { mode: T.openFile
                       , title: "Open Files"
                       , sfSymbol: "doc.badge.plus"
                       , allowMultiple: true
@@ -549,7 +550,7 @@ systemTab = component "SystemTab" \p -> React.do
                       , style: Style.style { height: 24.0, width: 120.0 }
                       }
                   , nativeFilePicker
-                      { mode: "open"
+                      { mode: T.openFile
                       , title: "Choose Folder"
                       , sfSymbol: "folder"
                       , canChooseDirectories: true
@@ -561,7 +562,7 @@ systemTab = component "SystemTab" \p -> React.do
                       , style: Style.style { height: 24.0, width: 140.0, marginLeft: 8.0 }
                       }
                   , nativeFilePicker
-                      { mode: "save"
+                      { mode: T.saveFile
                       , title: "Save As..."
                       , sfSymbol: "square.and.arrow.down"
                       , defaultName: "Untitled.txt"
@@ -591,7 +592,7 @@ systemTab = component "SystemTab" \p -> React.do
               [ nativeButton
                   { title: if videoPlaying then "Pause" else "Play"
                   , sfSymbol: if videoPlaying then "pause.fill" else "play.fill"
-                  , bezelStyle: "rounded"
+                  , bezelStyle: T.push
                   , onPress: handler_ (setVideoPlaying (not videoPlaying))
                   , style: Style.style { height: 24.0, width: 100.0 }
                   }
@@ -692,14 +693,14 @@ systemTab = component "SystemTab" \p -> React.do
               "Click button to toggle a popover"
           , nativePopover
               { visible: popoverVisible
-              , preferredEdge: "bottom"
-              , behavior: "transient"
+              , preferredEdge: T.bottom
+              , behavior: T.transient
               , onClose: handler_ (setPopoverVisible false)
               , style: tw "mb-2"
               }
               [ nativeButton
                   { title: if popoverVisible then "Hide Popover" else "Show Popover"
-                  , bezelStyle: "rounded"
+                  , bezelStyle: T.push
                   , onPress: handler_ (setPopoverVisible (not popoverVisible))
                   , style: Style.style { height: 24.0, width: 140.0 }
                   }
@@ -714,7 +715,7 @@ systemTab = component "SystemTab" \p -> React.do
               "Native NSImageView with URL loading and corner radius"
           , nativeImage
               { source: "https://placedog.net/640/400"
-              , contentMode: "scaleProportionally"
+              , contentMode: T.scaleProportionally
               , cornerRadius: 12.0
               , style: Style.style { height: 200.0 } <> tw "mb-2"
               }
@@ -725,8 +726,8 @@ systemTab = component "SystemTab" \p -> React.do
           , nativeButton
               { title: "Show Alert"
               , sfSymbol: "exclamationmark.triangle"
-              , bezelStyle: "rounded"
-              , onPress: handler_ (macosAlert "warning" "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
+              , bezelStyle: T.push
+              , onPress: handler_ (macosAlert T.warning "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
               , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"
               }
           ]
@@ -931,7 +932,7 @@ chatTab = component "ChatTab" \p -> React.do
             else text { style: Style.style { height: 0.0 } } ""
           , nativeButton
               { title: "Sign In"
-              , bezelStyle: "rounded"
+              , bezelStyle: T.push
               , sfSymbol: "arrow.right.circle.fill"
               , onPress: handler_ doLogin
               , style: Style.style { height: 32.0 }
@@ -965,7 +966,7 @@ chatTab = component "ChatTab" \p -> React.do
                 ]
             , nativeButton
                 { title: ""
-                , bezelStyle: "toolbar"
+                , bezelStyle: T.toolbar
                 , sfSymbol: ""
                 , onPress: handler_ (selectRoom sess r.roomId)
                 , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
@@ -1058,7 +1059,7 @@ chatTab = component "ChatTab" \p -> React.do
                     , nativeButton
                         { title: ""
                         , sfSymbol: "paperplane.fill"
-                        , bezelStyle: "toolbar"
+                        , bezelStyle: T.toolbar
                         , onPress: handler_ (sendMessage sess rid inputText)
                         , style: Style.style { height: 28.0, width: 36.0, marginLeft: 8.0 }
                         }

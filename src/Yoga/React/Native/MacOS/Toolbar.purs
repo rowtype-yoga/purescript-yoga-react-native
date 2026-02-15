@@ -4,6 +4,7 @@ import React.Basic (ReactComponent)
 import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
+import Yoga.React.Native.MacOS.Types (ToolbarStyle)
 
 foreign import _toolbarImpl :: forall props. ReactComponent props
 
@@ -19,7 +20,7 @@ type ToolbarItem =
 type NativeToolbarAttributes = BaseAttributes
   ( items :: Array ToolbarItem
   , selectedItem :: String
-  , toolbarStyle :: String
+  , toolbarStyle :: ToolbarStyle
   , windowTitle :: String
   , onSelectItem :: EventHandler
   )

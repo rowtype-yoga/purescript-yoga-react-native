@@ -3,6 +3,7 @@ module Yoga.React.Native.MacOS.Sidebar (sidebarLayout) where
 import Prelude
 import React.Basic (JSX)
 import Yoga.React.Native (tw, view)
+import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.MacOS.VisualEffect (nativeVisualEffect)
 import Yoga.React.Native.Style as Style
 
@@ -10,8 +11,8 @@ sidebarLayout :: { sidebar :: JSX, content :: JSX, sidebarWidth :: Number } -> J
 sidebarLayout { sidebar, content, sidebarWidth } = do
   view { style: tw "flex-1 flex-row" <> Style.style { backgroundColor: "transparent" } }
     [ nativeVisualEffect
-        { materialName: "sidebar"
-        , blendingModeName: "behindWindow"
+        { materialName: T.sidebar
+        , blendingModeName: T.behindWindow
         , style: Style.style { width: sidebarWidth } <> tw "h-full"
         }
         sidebar

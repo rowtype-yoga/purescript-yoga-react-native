@@ -3,6 +3,7 @@ module Yoga.React.Native.MacOS.Rive (nativeRiveView, nativeRiveView_, NativeRive
 import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, FFINativeComponent_, createNativeElement, createNativeElement_)
+import Yoga.React.Native.MacOS.Types (RiveFit)
 
 foreign import _nativeRiveViewImpl :: forall props. ReactComponent props
 
@@ -17,6 +18,6 @@ type NativeRiveViewAttributes = BaseAttributes
   , url :: String
   , artboardName :: String
   , stateMachineName :: String
-  , fit :: String
+  , fit :: RiveFit
   , autoplay :: Boolean
   )

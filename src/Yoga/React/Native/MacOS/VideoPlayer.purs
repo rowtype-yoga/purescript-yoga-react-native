@@ -3,6 +3,7 @@ module Yoga.React.Native.MacOS.VideoPlayer (nativeVideoPlayer, NativeVideoPlayer
 import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
+import Yoga.React.Native.MacOS.Types (ControlsStyle)
 
 foreign import _videoPlayerImpl :: forall props. ReactComponent props
 
@@ -15,4 +16,5 @@ type NativeVideoPlayerAttributes = BaseAttributes
   , looping :: Boolean
   , muted :: Boolean
   , cornerRadius :: Number
+  , controlsStyle :: ControlsStyle
   )

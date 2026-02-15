@@ -4,6 +4,7 @@ import React.Basic (ReactComponent)
 import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
+import Yoga.React.Native.MacOS.Types (BezelStyle)
 
 foreign import _buttonImpl :: forall props. ReactComponent props
 
@@ -13,7 +14,7 @@ nativeButton = createNativeElement_ _buttonImpl
 type NativeButtonAttributes = BaseAttributes
   ( title :: String
   , sfSymbol :: String
-  , bezelStyle :: String
+  , bezelStyle :: BezelStyle
   , destructive :: Boolean
   , primary :: Boolean
   , buttonEnabled :: Boolean
