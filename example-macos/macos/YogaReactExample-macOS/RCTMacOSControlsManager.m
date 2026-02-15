@@ -1897,11 +1897,37 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 // MARK: - NSSplitView
 // ===========================================================================
 
+@interface RCTSplitPaneWrapper : NSView
+@property (nonatomic, strong) NSView *reactChild;
+@end
+
+@implementation RCTSplitPaneWrapper
+- (void)resizeSubviewsWithOldSize:(NSSize)oldSize {
+  // When NSSplitView resizes us, resize the React child to fill and re-trigger Yoga layout
+  if (_reactChild) {
+    _reactChild.frame = self.bounds;
+    if ([_reactChild respondsToSelector:@selector(reactSetFrame:)]) {
+      ((void (*)(id, SEL, CGRect))objc_msgSend)(_reactChild, @selector(reactSetFrame:), self.bounds);
+    }
+  }
+}
+- (void)setFrameSize:(NSSize)newSize {
+  [super setFrameSize:newSize];
+  if (_reactChild) {
+    _reactChild.frame = self.bounds;
+    if ([_reactChild respondsToSelector:@selector(reactSetFrame:)]) {
+      ((void (*)(id, SEL, CGRect))objc_msgSend)(_reactChild, @selector(reactSetFrame:), self.bounds);
+    }
+  }
+}
+@end
+
 @interface RCTSplitView : NSView <NSSplitViewDelegate>
 @property (nonatomic, strong) NSSplitView *splitView;
 @property (nonatomic, assign) BOOL isVertical;
 @property (nonatomic, assign) CGFloat dividerThicknessValue;
-@property (nonatomic, strong) NSMutableArray<NSView *> *panes;
+@property (nonatomic, strong) NSMutableArray<NSView *> *reactChildren;
+@property (nonatomic, strong) NSMutableArray<RCTSplitPaneWrapper *> *wrappers;
 @end
 
 @implementation RCTSplitView
@@ -1913,7 +1939,8 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
     _splitView.dividerStyle = NSSplitViewDividerStyleThin;
     _splitView.vertical = YES;
     _splitView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-    _panes = [NSMutableArray new];
+    _reactChildren = [NSMutableArray new];
+    _wrappers = [NSMutableArray new];
     _isVertical = YES;
     [self addSubview:_splitView];
   }
@@ -1931,17 +1958,31 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 }
 
 - (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
-  [_panes insertObject:subview atIndex:MIN(atIndex, (NSInteger)_panes.count)];
-  [_splitView addSubview:subview];
+  NSInteger idx = MIN(atIndex, (NSInteger)_reactChildren.count);
+  [_reactChildren insertObject:subview atIndex:idx];
+
+  // Wrap the React child in a plain NSView so NSSplitView controls the wrapper's frame,
+  // and we relay the size to the React child, triggering Yoga re-layout at the correct size.
+  RCTSplitPaneWrapper *wrapper = [[RCTSplitPaneWrapper alloc] initWithFrame:NSZeroRect];
+  wrapper.autoresizesSubviews = YES;
+  wrapper.reactChild = subview;
+  [wrapper addSubview:subview];
+  [_wrappers insertObject:wrapper atIndex:idx];
+  [_splitView addSubview:wrapper];
 }
 
 - (void)removeReactSubview:(NSView *)subview {
-  [_panes removeObject:subview];
-  [subview removeFromSuperview];
+  NSUInteger idx = [_reactChildren indexOfObject:subview];
+  if (idx != NSNotFound) {
+    RCTSplitPaneWrapper *wrapper = _wrappers[idx];
+    [wrapper removeFromSuperview];
+    [_wrappers removeObjectAtIndex:idx];
+    [_reactChildren removeObjectAtIndex:idx];
+  }
 }
 
 - (NSArray<NSView *> *)reactSubviews {
-  return [_panes copy];
+  return [_reactChildren copy];
 }
 
 - (void)didUpdateReactSubviews {
@@ -1957,15 +1998,6 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
   [super reactSetFrame:frame];
   _splitView.frame = self.bounds;
   [_splitView adjustSubviews];
-}
-
-// After NSSplitView resizes panes, tell React about the new sizes
-- (void)splitView:(NSSplitView *)splitView resizeSubviewsWithOldSize:(NSSize)oldSize {
-  [splitView adjustSubviews];
-  for (NSView *pane in _panes) {
-    CGRect f = pane.frame;
-    ((void (*)(id, SEL, CGRect))objc_msgSend)(pane, @selector(reactSetFrame:), f);
-  }
 }
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMinimumPosition ofSubviewAt:(NSInteger)dividerIndex {
