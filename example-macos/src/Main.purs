@@ -36,7 +36,6 @@ import Yoga.React.Native.MacOS.Toolbar (nativeToolbar)
 import Yoga.React.Native.MacOS.VisualEffect (nativeVisualEffect)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu)
-
 import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
 import Yoga.React.Native.MacOS.VideoPlayer (nativeVideoPlayer)
 import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
@@ -80,28 +79,28 @@ import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
 
+-- Shared props for all leaf demos
+type DemoProps =
+  { fg :: String
+  , dimFg :: String
+  , cardBg :: String
+  , bg :: String
+  , isDark :: Boolean
+  }
+
 main :: Effect Unit
 main = registerComponent "YogaReactExample" \_ -> app {}
 
 app :: {} -> JSX
 app = component "App" \_ -> React.do
-  activeTab /\ setActiveTab <- useState' "controls"
-  sliderValue /\ setSliderValue <- useState' 50.0
-  switchOn /\ setSwitchOn <- useState' false
-  selectedColor /\ setSelectedColor <- useState' "#FF6600"
-  popUpIndex /\ setPopUpIndex <- useState' 0
-  popUpTitle /\ setPopUpTitle <- useState' "Small"
-  searchText /\ setSearchText <- useState' ""
-  buttonStatus /\ setButtonStatus <- useState' "Ready"
-  dateText /\ setDateText <- useState' ""
-  browserUrl /\ setBrowserUrl <- useState' "https://pursuit.purescript.org"
-  urlBarText /\ setUrlBarText <- useState' "https://pursuit.purescript.org"
+  selectedItem /\ setSelectedItem <- useState' "button"
   colorScheme <- useColorScheme
   let isDark = toNullable (Just "dark") == colorScheme
   let fg = if isDark then "#FFFFFF" else "#000000"
   let dimFg = if isDark then "#999999" else "#666666"
   let cardBg = if isDark then "#2A2A2A" else "#F0F0F0"
   let bg = if isDark then "#1E1E1E" else "#FFFFFF"
+  let dp = { fg, dimFg, cardBg, bg, isDark } :: DemoProps
   pure do
     nativeVisualEffect
       { materialName: T.windowBackground
@@ -110,156 +109,244 @@ app = component "App" \_ -> React.do
       ( safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
           ( view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
               [ nativeToolbar
-                  { items:
-                      [ { id: "controls", label: "Controls", sfSymbol: "slider.horizontal.3" }
-                      , { id: "editor", label: "Editor", sfSymbol: "doc.richtext" }
-                      , { id: "browser", label: "Browser", sfSymbol: "globe" }
-                      , { id: "rive", label: "Rive", sfSymbol: "play.circle" }
-                      , { id: "system", label: "System", sfSymbol: "gearshape.2" }
-                      , { id: "ai", label: "AI", sfSymbol: "brain" }
-                      , { id: "chat", label: "Chat", sfSymbol: "bubble.left.and.bubble.right" }
-                      ]
-                  , selectedItem: activeTab
+                  { items: []
+                  , selectedItem: ""
                   , toolbarStyle: T.unified
                   , windowTitle: "PureScript React Native"
-                  , onSelectItem: E.onString "itemId" setActiveTab
+                  , onSelectItem: handler_ (pure unit)
                   , style: Style.style { height: 0.0, width: 0.0 }
                   }
-              , view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
-                  [ if activeTab == "controls" then controlsTab
-                      { sliderValue
-                      , setSliderValue
-                      , switchOn
-                      , setSwitchOn
-                      , selectedColor
-                      , setSelectedColor
-                      , popUpIndex
-                      , setPopUpIndex
-                      , popUpTitle
-                      , setPopUpTitle
-                      , searchText
-                      , setSearchText
-                      , buttonStatus
-                      , setButtonStatus
-                      , dateText
-                      , setDateText
-                      , fg
-                      , dimFg
-                      , cardBg
-                      }
-                    else if activeTab == "editor" then editorTab { fg }
-                    else if activeTab == "browser" then browserTab
-                      { browserUrl
-                      , setBrowserUrl
-                      , urlBarText
-                      , setUrlBarText
-                      , fg
-                      , dimFg
-                      }
-                    else if activeTab == "rive" then riveTab { fg, bg }
-                    else if activeTab == "system" then systemTab { fg, dimFg, cardBg, bg }
-                    else if activeTab == "ai" then aiTab { fg, dimFg, cardBg, bg }
-                    else chatTab { fg, dimFg, cardBg, bg, isDark }
-                  ]
+              , sidebarLayout
+                  { sidebar: outlineSidebar selectedItem setSelectedItem
+                  , sidebarWidth: 200.0
+                  , content: demoContent dp selectedItem
+                  }
               ]
           )
       )
 
--- Tab 0: Controls
-type ControlsProps =
-  { sliderValue :: Number
-  , setSliderValue :: Number -> Effect Unit
-  , switchOn :: Boolean
-  , setSwitchOn :: Boolean -> Effect Unit
-  , selectedColor :: String
-  , setSelectedColor :: String -> Effect Unit
-  , popUpIndex :: Int
-  , setPopUpIndex :: Int -> Effect Unit
-  , popUpTitle :: String
-  , setPopUpTitle :: String -> Effect Unit
-  , searchText :: String
-  , setSearchText :: String -> Effect Unit
-  , buttonStatus :: String
-  , setButtonStatus :: String -> Effect Unit
-  , dateText :: String
-  , setDateText :: String -> Effect Unit
-  , fg :: String
-  , dimFg :: String
-  , cardBg :: String
-  }
-
-sidebarItem :: String -> String -> String -> Boolean -> (String -> Effect Unit) -> JSX
-sidebarItem _ sfSymbolName title selected setCategory =
-  nativeButton
-    { title
-    , sfSymbol: sfSymbolName
-    , bezelStyle: T.toolbar
-    , primary: selected
-    , onPress: handler_ (setCategory title)
-    , style: Style.style { height: 28.0, marginHorizontal: 8.0, marginVertical: 1.0 }
-    }
-
-controlsTab :: ControlsProps -> JSX
-controlsTab = component "ControlsTab" \p -> React.do
-  category /\ setCategory <- useState' "All"
-  let categories = [ "All", "Button", "Switch", "Slider", "Pop Up", "Color", "Date", "Text" ]
+-- Outline tree
+outlineTree :: Array OutlineItem
+outlineTree =
   let
-    sidebar = view { style: tw "pt-2" }
-      (categories <#> \cat -> sidebarItem p.fg "" cat (category == cat) setCategory)
-  let show' name = category == "All" || category == name
-  let
-    buttonSection =
-      [ sectionTitle p.fg "Button"
-      , card p.cardBg
+    leaf id title symbol = OutlineItem { id, title, sfSymbol: symbol, children: [] }
+    folder id title symbol children = OutlineItem { id, title, sfSymbol: symbol, children }
+  in
+    [ folder "input" "Input Controls" "slider.horizontal.3"
+        [ leaf "button" "Button" "button.horizontal"
+        , leaf "switch" "Switch" "switch.2"
+        , leaf "slider" "Slider" "slider.horizontal.below.rectangle"
+        , leaf "popup" "Pop Up" "chevron.up.chevron.down"
+        , leaf "combobox" "Combo Box" "rectangle.and.pencil.and.ellipsis"
+        , leaf "stepper" "Stepper" "plus.forwardslash.minus"
+        , leaf "datepicker" "Date Picker" "calendar"
+        , leaf "colorwell" "Color Well" "paintpalette"
+        , leaf "checkbox" "Checkbox" "checkmark.square"
+        , leaf "radiobutton" "Radio Button" "circle.inset.filled"
+        , leaf "searchfield" "Search Field" "magnifyingglass"
+        , leaf "tokenfield" "Token Field" "tag"
+        ]
+    , folder "text" "Text & Editing" "doc.richtext"
+        [ leaf "textfield" "Text Field" "character.cursor.ibeam"
+        , leaf "texteditor" "Text Editor" "doc.richtext"
+        ]
+    , folder "display" "Display" "photo"
+        [ leaf "image" "Image" "photo"
+        , leaf "animatedimage" "Animated Image" "photo.on.rectangle.angled"
+        , leaf "levelindicator" "Level Indicator" "gauge.with.dots.needle.33percent"
+        , leaf "progress" "Progress" "chart.bar.fill"
+        , leaf "separator" "Separator" "minus"
+        , leaf "pathcontrol" "Path Control" "chevron.compact.right"
+        ]
+    , folder "layout" "Layout & Containers" "rectangle.split.3x1"
+        [ leaf "box" "Box" "square.dashed"
+        , leaf "splitview" "Split View" "rectangle.split.2x1"
+        , leaf "tabview" "Tab View" "rectangle.topthird.inset.filled"
+        ]
+    , folder "overlays" "Overlays & Dialogs" "rectangle.on.rectangle"
+        [ leaf "alert" "Alert" "exclamationmark.triangle"
+        , leaf "sheet" "Sheet" "rectangle.bottomhalf.inset.filled"
+        , leaf "popover" "Popover" "text.bubble"
+        , leaf "contextmenu" "Context Menu" "contextualmenu.and.cursorarrow"
+        , leaf "menu" "Menu" "list.bullet"
+        ]
+    , folder "dataviews" "Data Views" "tablecells"
+        [ leaf "tableview" "Table View" "tablecells"
+        , leaf "outlineview" "Outline View" "list.bullet.indent"
+        ]
+    , folder "dragdrop" "Drag & Drop / Files" "doc.badge.plus"
+        [ leaf "dropzone" "Drop Zone" "square.and.arrow.down"
+        , leaf "filepicker" "File Picker" "folder"
+        ]
+    , folder "animation" "Animation" "play.circle"
+        [ leaf "rive" "Rive" "play.circle"
+        ]
+    , folder "system" "System Services" "gearshape.2"
+        [ leaf "clipboard" "Clipboard" "doc.on.clipboard"
+        , leaf "share" "Share" "square.and.arrow.up"
+        , leaf "notifications" "Notifications" "bell"
+        , leaf "sound" "Sound" "speaker.wave.2"
+        , leaf "statusbar" "Status Bar" "menubar.rectangle"
+        , leaf "quicklook" "Quick Look" "eye"
+        , leaf "colorpanel" "Color Panel" "paintpalette"
+        , leaf "fontpanel" "Font Panel" "textformat"
+        , leaf "speech" "Speech Synthesis" "speaker.wave.2"
+        ]
+    , folder "aiml" "AI & ML" "brain"
+        [ leaf "ocr" "OCR" "doc.text.viewfinder"
+        , leaf "speechrecognition" "Speech Recognition" "mic"
+        , leaf "naturallanguage" "Natural Language" "text.magnifyingglass"
+        , leaf "camera" "Camera" "video"
+        ]
+    , folder "mapsdocs" "Maps & Documents" "map"
+        [ leaf "mapview" "Map View" "map"
+        , leaf "pdfview" "PDF View" "doc.richtext"
+        ]
+    , folder "webbrowser" "Web Browser" "globe"
+        [ leaf "webview" "Web View" "globe"
+        ]
+    , folder "chat" "Chat" "bubble.left.and.bubble.right"
+        [ leaf "matrix" "Matrix" "bubble.left.and.bubble.right"
+        ]
+    ]
+
+outlineSidebar :: String -> (String -> Effect Unit) -> JSX
+outlineSidebar selectedItem setSelectedItem =
+  view { style: tw "flex-1 pt-2" }
+    [ nativeOutlineView
+        { items: outlineTree
+        , headerVisible: false
+        , onSelectItem: E.onString "id" setSelectedItem
+        , style: tw "flex-1"
+        }
+    ]
+
+-- Content dispatch
+demoContent :: DemoProps -> String -> JSX
+demoContent dp = case _ of
+  "button" -> buttonDemo dp
+  "switch" -> switchDemo dp
+  "slider" -> sliderDemo dp
+  "popup" -> popUpDemo dp
+  "combobox" -> comboBoxDemo dp
+  "stepper" -> stepperDemo dp
+  "datepicker" -> datePickerDemo dp
+  "colorwell" -> colorWellDemo dp
+  "checkbox" -> checkboxDemo dp
+  "radiobutton" -> radioButtonDemo dp
+  "searchfield" -> searchFieldDemo dp
+  "tokenfield" -> tokenFieldDemo dp
+  "textfield" -> textFieldDemo dp
+  "texteditor" -> textEditorDemo dp
+  "image" -> imageDemo dp
+  "animatedimage" -> animatedImageDemo dp
+  "levelindicator" -> levelIndicatorDemo dp
+  "progress" -> progressDemo dp
+  "separator" -> separatorDemo dp
+  "pathcontrol" -> pathControlDemo dp
+  "box" -> boxDemo dp
+  "splitview" -> splitViewDemo dp
+  "tabview" -> tabViewDemo dp
+  "alert" -> alertDemo dp
+  "sheet" -> sheetDemo dp
+  "popover" -> popoverDemo dp
+  "contextmenu" -> contextMenuDemo dp
+  "menu" -> menuDemo dp
+  "tableview" -> tableViewDemo dp
+  "outlineview" -> outlineViewDemo dp
+  "dropzone" -> dropZoneDemo dp
+  "filepicker" -> filePickerDemo dp
+  "rive" -> riveDemo dp
+  "clipboard" -> clipboardDemo dp
+  "share" -> shareDemo dp
+  "notifications" -> notificationsDemo dp
+  "sound" -> soundDemo dp
+  "statusbar" -> statusBarDemo dp
+  "quicklook" -> quickLookDemo dp
+  "colorpanel" -> colorPanelDemo dp
+  "fontpanel" -> fontPanelDemo dp
+  "speech" -> speechDemo dp
+  "ocr" -> ocrDemo dp
+  "speechrecognition" -> speechRecognitionDemo dp
+  "naturallanguage" -> naturalLanguageDemo dp
+  "camera" -> cameraDemo dp
+  "mapview" -> mapViewDemo dp
+  "pdfview" -> pdfViewDemo dp
+  "webview" -> webViewDemo dp
+  "matrix" -> matrixDemo dp
+  _ -> placeholder dp
+
+placeholder :: DemoProps -> JSX
+placeholder dp =
+  view { style: tw "flex-1 items-center justify-center" }
+    [ text { style: tw "text-sm" <> Style.style { color: dp.dimFg } } "Select a component from the sidebar" ]
+
+-- Input Controls
+
+buttonDemo :: DemoProps -> JSX
+buttonDemo = component "ButtonDemo" \dp -> React.do
+  status /\ setStatus <- useState' "Ready"
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Button"
+      , card dp.cardBg
           [ view { style: tw "flex-row items-center" }
               [ nativeButton
                   { title: "Say Hello"
                   , sfSymbol: "hand.wave"
                   , bezelStyle: T.push
                   , primary: true
-                  , onPress: handler_ (p.setButtonStatus "Hello from PureScript!")
+                  , onPress: handler_ (setStatus "Hello from PureScript!")
                   , style: Style.style { height: 24.0, width: 140.0 }
                   }
               , nativeButton
                   { title: "Reset"
                   , sfSymbol: "arrow.counterclockwise"
                   , bezelStyle: T.push
-                  , onPress: handler_ (p.setButtonStatus "Ready")
+                  , onPress: handler_ (setStatus "Ready")
                   , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
                   }
-              , label p.dimFg p.buttonStatus
+              , label dp.dimFg status
               ]
           ]
       ]
-  let
-    switchSection =
-      [ sectionTitle p.fg "Switch"
-      , card p.cardBg
+
+switchDemo :: DemoProps -> JSX
+switchDemo = component "SwitchDemo" \dp -> React.do
+  on /\ setOn <- useState' false
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Switch"
+      , card dp.cardBg
           [ view { style: tw "flex-row items-center" }
               [ nativeSwitch
-                  { on: p.switchOn
-                  , onChange: E.onBool "on" p.setSwitchOn
+                  { on
+                  , onChange: E.onBool "on" setOn
                   , style: Style.style { height: 24.0, width: 48.0 }
                   }
-              , label p.dimFg (if p.switchOn then "On" else "Off")
+              , label dp.dimFg (if on then "On" else "Off")
               ]
           ]
       ]
-  let
-    sliderSection =
-      [ sectionTitle p.fg "Slider + Level Indicator + Progress"
-      , card p.cardBg
+
+sliderDemo :: DemoProps -> JSX
+sliderDemo = component "SliderDemo" \dp -> React.do
+  value /\ setValue <- useState' 50.0
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Slider + Level Indicator + Progress"
+      , card dp.cardBg
           [ nativeSlider
-              { value: p.sliderValue
+              { value
               , minValue: 0.0
               , maxValue: 100.0
               , numberOfTickMarks: 11
-              , onChange: E.onNumber "value" p.setSliderValue
+              , onChange: E.onNumber "value" setValue
               , style: Style.style { height: 24.0 }
               }
-          , label p.dimFg ("Value: " <> show (round p.sliderValue) <> " / 100")
+          , label dp.dimFg ("Value: " <> show (round value) <> " / 100")
           , nativeLevelIndicator
-              { value: p.sliderValue
+              { value
               , minValue: 0.0
               , maxValue: 100.0
               , warningValue: 70.0
@@ -267,104 +354,241 @@ controlsTab = component "ControlsTab" \p -> React.do
               , style: Style.style { height: 18.0, marginTop: 8.0 }
               }
           , nativeProgress
-              { value: p.sliderValue
+              { value
               , style: Style.style { height: 18.0, marginTop: 8.0 }
               }
           ]
       ]
-  let
-    popUpSection =
-      [ sectionTitle p.fg "Pop Up Button"
-      , card p.cardBg
+
+popUpDemo :: DemoProps -> JSX
+popUpDemo = component "PopUpDemo" \dp -> React.do
+  idx /\ setIdx <- useState' 0
+  title /\ setTitle <- useState' "Small"
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Pop Up Button"
+      , card dp.cardBg
           [ view { style: tw "flex-row items-center" }
               [ nativePopUp
                   { items: [ "Small", "Medium", "Large", "Extra Large" ]
-                  , selectedIndex: p.popUpIndex
+                  , selectedIndex: idx
                   , onChange: handler
                       ( nativeEvent >>> unsafeEventFn \e ->
-                          { idx: (E.getFieldInt "selectedIndex" e), title: (E.getFieldStr "title" e) }
+                          { idx: E.getFieldInt "selectedIndex" e, title: E.getFieldStr "title" e }
                       )
                       \r -> do
-                        p.setPopUpIndex r.idx
-                        p.setPopUpTitle r.title
+                        setIdx r.idx
+                        setTitle r.title
                   , style: Style.style { height: 24.0, width: 160.0 }
                   }
-              , label p.dimFg ("Selected: " <> p.popUpTitle)
+              , label dp.dimFg ("Selected: " <> title)
               ]
           ]
       ]
-  let
-    colorSection =
-      [ sectionTitle p.fg "Color Well"
-      , card p.cardBg
+
+comboBoxDemo :: DemoProps -> JSX
+comboBoxDemo = component "ComboBoxDemo" \dp -> React.do
+  txt /\ setTxt <- useState' ""
+  result /\ setResult <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Combo Box"
+      , desc dp "Editable dropdown with autocomplete"
+      , card dp.cardBg
+          [ nativeComboBox
+              { items: [ "Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape" ]
+              , text: txt
+              , placeholder: "Type a fruit..."
+              , onChangeText: E.onString "text" setTxt
+              , onSelectItem: E.onString "text" \t -> do
+                  setTxt t
+                  setResult ("Selected: " <> t)
+              , style: Style.style { height: 28.0 } <> tw "mb-2"
+              }
+          , if result == "" then mempty
+            else label dp.dimFg result
+          ]
+      ]
+
+stepperDemo :: DemoProps -> JSX
+stepperDemo = component "StepperDemo" \dp -> React.do
+  value /\ setValue <- useState' 5.0
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Stepper"
+      , desc dp "Up/down increment control"
+      , card dp.cardBg
+          [ view { style: tw "flex-row items-center" }
+              [ text { style: tw "text-sm mr-3" <> Style.style { color: dp.fg } } "Quantity:"
+              , nativeStepper
+                  { value
+                  , minValue: 0.0
+                  , maxValue: 50.0
+                  , increment: 1.0
+                  , onChange: E.onNumber "value" setValue
+                  , style: Style.style { width: 100.0, height: 24.0 }
+                  }
+              ]
+          ]
+      ]
+
+datePickerDemo :: DemoProps -> JSX
+datePickerDemo = component "DatePickerDemo" \dp -> React.do
+  dateText /\ setDateText <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Date Picker"
+      , card dp.cardBg
+          [ nativeDatePicker
+              { graphical: false
+              , onChange: E.onString "date" setDateText
+              , style: Style.style { height: 24.0, width: 200.0 }
+              }
+          , if dateText == "" then mempty
+            else label dp.dimFg ("Picked: " <> dateText)
+          ]
+      ]
+
+colorWellDemo :: DemoProps -> JSX
+colorWellDemo = component "ColorWellDemo" \dp -> React.do
+  color /\ setColor <- useState' "#FF6600"
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Color Well"
+      , card dp.cardBg
           [ view { style: tw "flex-row items-center" }
               [ nativeColorWell
-                  { color: p.selectedColor
+                  { color
                   , minimal: true
-                  , onChange: E.onString "color" p.setSelectedColor
+                  , onChange: E.onString "color" setColor
                   , style: Style.style { height: 32.0, width: 48.0 }
                   }
               , view
                   { style: tw "ml-3 rounded" <> Style.style
-                      { width: 24.0, height: 24.0, backgroundColor: p.selectedColor }
+                      { width: 24.0, height: 24.0, backgroundColor: color }
                   }
                   []
-              , label p.dimFg p.selectedColor
+              , label dp.dimFg color
               ]
           ]
       ]
-  let
-    dateSection =
-      [ sectionTitle p.fg "Date Picker"
-      , card p.cardBg
-          [ nativeDatePicker
-              { graphical: false
-              , onChange: E.onString "date" p.setDateText
-              , style: Style.style { height: 24.0, width: 200.0 }
+
+checkboxDemo :: DemoProps -> JSX
+checkboxDemo = component "CheckboxDemo" \dp -> React.do
+  a /\ setA <- useState' true
+  b /\ setB <- useState' false
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Checkbox"
+      , card dp.cardBg
+          [ nativeCheckbox
+              { checked: a
+              , title: "Enable notifications"
+              , enabled: true
+              , onChange: E.onBool "checked" setA
+              , style: Style.style { height: 24.0 } <> tw "mb-1"
               }
-          , if p.dateText == "" then mempty
-            else label p.dimFg ("Picked: " <> p.dateText)
+          , nativeCheckbox
+              { checked: b
+              , title: "Dark mode"
+              , enabled: true
+              , onChange: E.onBool "checked" setB
+              , style: Style.style { height: 24.0 }
+              }
           ]
       ]
-  let
-    textSection =
-      [ sectionTitle p.fg "Text Field"
-      , card p.cardBg
+
+radioButtonDemo :: DemoProps -> JSX
+radioButtonDemo = component "RadioButtonDemo" \dp -> React.do
+  choice /\ setChoice <- useState' "option1"
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Radio Button"
+      , card dp.cardBg
+          [ nativeRadioButton
+              { selected: choice == "option1"
+              , title: "Small"
+              , enabled: true
+              , onChange: handler_ (setChoice "option1")
+              , style: Style.style { height: 24.0 } <> tw "mb-1"
+              }
+          , nativeRadioButton
+              { selected: choice == "option2"
+              , title: "Medium"
+              , enabled: true
+              , onChange: handler_ (setChoice "option2")
+              , style: Style.style { height: 24.0 } <> tw "mb-1"
+              }
+          , nativeRadioButton
+              { selected: choice == "option3"
+              , title: "Large"
+              , enabled: true
+              , onChange: handler_ (setChoice "option3")
+              , style: Style.style { height: 24.0 }
+              }
+          , label dp.dimFg ("Selected: " <> choice)
+          ]
+      ]
+
+searchFieldDemo :: DemoProps -> JSX
+searchFieldDemo = component "SearchFieldDemo" \dp -> React.do
+  query /\ setQuery <- useState' ""
+  result /\ setResult <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Search Field"
+      , nativeSearchField
+          { text: query
+          , placeholder: "Search..."
+          , onChangeText: E.onString "text" setQuery
+          , onSearch: E.onString "text" \t -> setResult ("Searched: " <> t)
+          , style: Style.style { height: 28.0 } <> tw "mb-2"
+          }
+      , if result == "" then mempty
+        else label dp.dimFg result
+      ]
+
+tokenFieldDemo :: DemoProps -> JSX
+tokenFieldDemo = component "TokenFieldDemo" \dp -> React.do
+  tokens /\ setTokens <- useState' ([ "PureScript", "React", "macOS" ] :: Array String)
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Token Field"
+      , desc dp "Type text and press Enter to add tokens"
+      , nativeTokenField
+          { tokens
+          , placeholder: "Add tags..."
+          , onChangeTokens: E.onStrings "tokens" setTokens
+          , style: Style.style { height: 28.0 } <> tw "mb-2"
+          }
+      ]
+
+-- Text & Editing
+
+textFieldDemo :: DemoProps -> JSX
+textFieldDemo = component "TextFieldDemo" \dp -> React.do
+  txt /\ setTxt <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Text Field"
+      , card dp.cardBg
           [ nativeTextField
               { placeholder: "Type something..."
               , search: true
-              , text: p.searchText
-              , onChangeText: E.onString "text" p.setSearchText
+              , text: txt
+              , onChangeText: E.onString "text" setTxt
               , style: Style.style { height: 24.0 }
               }
-          , if p.searchText == "" then mempty
-            else label p.dimFg ("You typed: " <> p.searchText)
+          , if txt == "" then mempty
+            else label dp.dimFg ("You typed: " <> txt)
           ]
       ]
-  let
-    sections = join
-      [ if show' "Button" then buttonSection else []
-      , if show' "Switch" then switchSection else []
-      , if show' "Slider" then sliderSection else []
-      , if show' "Pop Up" then popUpSection else []
-      , if show' "Color" then colorSection else []
-      , if show' "Date" then dateSection else []
-      , if show' "Text" then textSection else []
-      ]
-  pure do
-    sidebarLayout
-      { sidebar
-      , sidebarWidth: 140.0
-      , content: nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
-          (view { style: tw "px-4 pb-4" } sections)
-      }
 
--- Tab 1: Editor
-editorTab :: { fg :: String } -> JSX
-editorTab = component "EditorTab" \p -> React.do
+textEditorDemo :: DemoProps -> JSX
+textEditorDemo = component "TextEditorDemo" \dp -> React.do
   pure do
     view { style: tw "flex-1 px-4" }
-      [ sectionTitle p.fg "Rich Text Editor"
+      [ sectionTitle dp.fg "Rich Text Editor"
       , nativeTextEditor
           { text: "Welcome to the PureScript-driven native text editor.\n\nThis uses NSTextView with rich text support and a formatting ruler."
           , richText: true
@@ -373,48 +597,478 @@ editorTab = component "EditorTab" \p -> React.do
           }
       ]
 
--- Tab 2: Browser
-type BrowserProps =
-  { browserUrl :: String
-  , setBrowserUrl :: String -> Effect Unit
-  , urlBarText :: String
-  , setUrlBarText :: String -> Effect Unit
-  , fg :: String
-  , dimFg :: String
-  }
+-- Display
 
-browserTab :: BrowserProps -> JSX
-browserTab = component "BrowserTab" \p -> React.do
+imageDemo :: DemoProps -> JSX
+imageDemo = component "ImageDemo" \dp -> React.do
   pure do
-    view { style: tw "flex-1 px-4" }
-      [ sectionTitle p.fg "Web Browser"
-      , nativeTextField
-          { text: p.urlBarText
-          , placeholder: "Enter URL..."
-          , search: false
-          , onChangeText: E.onString "text" p.setUrlBarText
-          , onSubmit: E.onString "text" p.setBrowserUrl
-          , style: Style.style { height: 24.0, marginBottom: 8.0 }
-          }
-      , nativeWebView
-          { url: p.browserUrl
-          , onFinishLoad: handler
-              ( nativeEvent >>> unsafeEventFn \e ->
-                  { url: E.getFieldStr "url" e, title: E.getFieldStr "title" e }
-              )
-              \r -> p.setUrlBarText r.url
-          , style: tw "flex-1" <> Style.style { minHeight: 400.0 }
+    scrollWrap dp
+      [ sectionTitle dp.fg "Image"
+      , desc dp "Native NSImageView with URL loading and corner radius"
+      , nativeImage
+          { source: "https://placedog.net/640/400"
+          , contentMode: T.scaleProportionally
+          , cornerRadius: 12.0
+          , style: Style.style { height: 200.0 } <> tw "mb-2"
           }
       ]
 
--- Tab 3: Rive Animation
-riveTab :: { fg :: String, bg :: String } -> JSX
-riveTab = component "RiveTab" \p -> React.do
+animatedImageDemo :: DemoProps -> JSX
+animatedImageDemo = component "AnimatedImageDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Animated Image"
+      , desc dp "Native NSImageView with animated GIF support"
+      , nativeAnimatedImage
+          { source: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
+          , animating: true
+          , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+          }
+      , nativeAnimatedImage
+          { source: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif"
+          , animating: true
+          , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+          }
+      ]
+
+levelIndicatorDemo :: DemoProps -> JSX
+levelIndicatorDemo = component "LevelIndicatorDemo" \dp -> React.do
+  value /\ setValue <- useState' 50.0
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Level Indicator"
+      , card dp.cardBg
+          [ nativeSlider
+              { value
+              , minValue: 0.0
+              , maxValue: 100.0
+              , numberOfTickMarks: 11
+              , onChange: E.onNumber "value" setValue
+              , style: Style.style { height: 24.0 }
+              }
+          , nativeLevelIndicator
+              { value
+              , minValue: 0.0
+              , maxValue: 100.0
+              , warningValue: 70.0
+              , criticalValue: 90.0
+              , style: Style.style { height: 18.0, marginTop: 8.0 }
+              }
+          ]
+      ]
+
+progressDemo :: DemoProps -> JSX
+progressDemo = component "ProgressDemo" \dp -> React.do
+  value /\ setValue <- useState' 50.0
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Progress"
+      , card dp.cardBg
+          [ nativeSlider
+              { value
+              , minValue: 0.0
+              , maxValue: 100.0
+              , numberOfTickMarks: 11
+              , onChange: E.onNumber "value" setValue
+              , style: Style.style { height: 24.0 }
+              }
+          , nativeProgress
+              { value
+              , style: Style.style { height: 18.0, marginTop: 8.0 }
+              }
+          ]
+      ]
+
+separatorDemo :: DemoProps -> JSX
+separatorDemo = component "SeparatorDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Separator"
+      , desc dp "Horizontal and vertical separators"
+      , nativeSeparator
+          { vertical: false
+          , style: Style.style { height: 2.0 } <> tw "my-2"
+          }
+      , text { style: tw "text-xs mb-2" <> Style.style { color: dp.dimFg } } "Content between separators"
+      , nativeSeparator
+          { vertical: false
+          , style: Style.style { height: 2.0 } <> tw "my-2"
+          }
+      ]
+
+pathControlDemo :: DemoProps -> JSX
+pathControlDemo = component "PathControlDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Path Control"
+      , nativePathControl
+          { url: "/Users"
+          , pathStyle: T.standardPath
+          , onSelectPath: E.onString "url" \_ -> pure unit
+          , style: Style.style { height: 24.0 } <> tw "mb-2"
+          }
+      ]
+
+-- Layout & Containers
+
+boxDemo :: DemoProps -> JSX
+boxDemo = component "BoxDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Box"
+      , desc dp "Native NSBox with title and border"
+      , nativeBox
+          { boxTitle: "Settings"
+          , fillColor2: dp.cardBg
+          , borderColor2: dp.dimFg
+          , radius: 8.0
+          , style: Style.style { height: 100.0 } <> tw "mb-2"
+          }
+          [ view { style: tw "flex-row items-center p-2" }
+              [ text { style: tw "text-sm" <> Style.style { color: dp.fg } } "Content inside a native box" ]
+          ]
+      ]
+
+splitViewDemo :: DemoProps -> JSX
+splitViewDemo = component "SplitViewDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Split View"
+      , desc dp "Native NSSplitView with resizable divider"
+      , nativeSplitView
+          { isVertical: true
+          , style: Style.style { height: 150.0 } <> tw "rounded-lg overflow-hidden mb-2"
+          }
+          [ view { style: tw "flex-1 p-4" <> Style.style { backgroundColor: dp.cardBg } }
+              [ text { style: tw "text-sm font-semibold" <> Style.style { color: dp.fg } } "Left Pane"
+              , text { style: tw "text-xs mt-1" <> Style.style { color: dp.dimFg } } "Drag the divider to resize"
+              ]
+          , view { style: tw "flex-1 p-4" <> Style.style { backgroundColor: dp.cardBg } }
+              [ text { style: tw "text-sm font-semibold" <> Style.style { color: dp.fg } } "Right Pane"
+              , text { style: tw "text-xs mt-1" <> Style.style { color: dp.dimFg } } "Content fills available space"
+              ]
+          ]
+      ]
+
+tabViewDemo :: DemoProps -> JSX
+tabViewDemo = component "TabViewDemo" \dp -> React.do
+  selected /\ setSelected <- useState' "general"
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Tab View"
+      , desc dp "Native segmented tab bar"
+      , nativeTabView
+          { items:
+              [ { id: "general", label: "General" }
+              , { id: "advanced", label: "Advanced" }
+              , { id: "about", label: "About" }
+              ]
+          , selectedItem: selected
+          , onSelectTab: E.onString "tabId" setSelected
+          , style: Style.style { height: 32.0 } <> tw "mb-2"
+          }
+      ]
+
+-- Overlays & Dialogs
+
+alertDemo :: DemoProps -> JSX
+alertDemo = component "AlertDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Alert"
+      , desc dp "Native alert dialog"
+      , nativeButton
+          { title: "Show Alert"
+          , bezelStyle: T.push
+          , onPress: handler_ (macosAlert T.warning "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
+          , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"
+          }
+      ]
+
+sheetDemo :: DemoProps -> JSX
+sheetDemo = component "SheetDemo" \dp -> React.do
+  visible /\ setVisible <- useState' false
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Sheet"
+      , desc dp "Modal sheet attached to the window"
+      , nativeButton
+          { title: "Show Sheet"
+          , bezelStyle: T.push
+          , onPress: handler_ (setVisible true)
+          , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
+          }
+      , nativeSheet
+          { visible
+          , onDismiss: handler_ (setVisible false)
+          }
+          [ view { style: tw "p-6" <> Style.style { width: 400.0, height: 200.0 } }
+              [ text { style: tw "text-lg font-semibold mb-2" <> Style.style { color: dp.fg } } "Sheet Content"
+              , text { style: tw "text-sm mb-4" <> Style.style { color: dp.dimFg } } "This is a native macOS sheet."
+              , nativeButton
+                  { title: "Dismiss"
+                  , bezelStyle: T.push
+                  , onPress: handler_ (setVisible false)
+                  , style: Style.style { height: 24.0, width: 100.0 }
+                  }
+              ]
+          ]
+      ]
+
+popoverDemo :: DemoProps -> JSX
+popoverDemo = component "PopoverDemo" \dp -> React.do
+  visible /\ setVisible <- useState' false
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Popover"
+      , desc dp "Click button to toggle a popover"
+      , nativePopover
+          { visible
+          , preferredEdge: T.bottom
+          , behavior: T.transient
+          , onClose: handler_ (setVisible false)
+          , style: tw "mb-2"
+          }
+          [ nativeButton
+              { title: if visible then "Hide Popover" else "Show Popover"
+              , bezelStyle: T.push
+              , onPress: handler_ (setVisible (not visible))
+              , style: Style.style { height: 24.0, width: 140.0 }
+              }
+          , view { style: tw "p-4" <> Style.style { width: 200.0, height: 80.0 } }
+              [ text { style: tw "text-sm font-semibold" <> Style.style { color: dp.fg } } "Popover Content"
+              , text { style: tw "text-xs mt-1" <> Style.style { color: dp.dimFg } } "Click outside to dismiss"
+              ]
+          ]
+      ]
+
+contextMenuDemo :: DemoProps -> JSX
+contextMenuDemo = component "ContextMenuDemo" \dp -> React.do
+  result /\ setResult <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Context Menu"
+      , desc dp "Right-click the area below to open a context menu"
+      , nativeContextMenu
+          { items:
+              [ { id: "cut", title: "Cut", sfSymbol: "scissors" }
+              , { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
+              , { id: "paste", title: "Paste", sfSymbol: "doc.on.clipboard" }
+              , { id: "sep", title: "-", sfSymbol: "" }
+              , { id: "delete", title: "Delete", sfSymbol: "trash" }
+              , { id: "selectAll", title: "Select All", sfSymbol: "selection.pin.in.out" }
+              ]
+          , onSelectItem: E.onString "itemId" setResult
+          , style: Style.style {}
+          }
+          ( card dp.cardBg
+              [ view { style: tw "items-center justify-center" <> Style.style { minHeight: 80.0 } }
+                  [ text { style: tw "text-sm" <> Style.style { color: dp.fg } } "Right-click me!"
+                  , if result == "" then mempty
+                    else label dp.dimFg ("Selected: " <> result)
+                  ]
+              ]
+          )
+      ]
+
+menuDemo :: DemoProps -> JSX
+menuDemo = component "MenuDemo" \dp -> React.do
+  result /\ setResult <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Menu"
+      , desc dp "Imperative popup menu at mouse position"
+      , view { style: tw "flex-row items-center mb-2" }
+          [ nativeButton
+              { title: "Show Menu"
+              , bezelStyle: T.push
+              , onPress: handler_
+                  ( macosShowMenu
+                      [ { title: "New File", id: "new" }
+                      , { title: "Open...", id: "open" }
+                      , { title: "-", id: "sep" }
+                      , { title: "Save", id: "save" }
+                      , { title: "Save As...", id: "saveAs" }
+                      ]
+                      \itemId -> setResult ("Menu: " <> itemId)
+                  )
+              , style: Style.style { height: 24.0, width: 120.0 }
+              }
+          , if result == "" then mempty
+            else text { style: tw "text-xs ml-3" <> Style.style { color: dp.dimFg } } result
+          ]
+      ]
+
+-- Data Views
+
+tableViewDemo :: DemoProps -> JSX
+tableViewDemo = component "TableViewDemo" \dp -> React.do
+  selected /\ setSelected <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Table View"
+      , desc dp "Native NSTableView with columns and rows"
+      , nativeTableView
+          { columns:
+              [ { id: "name", title: "Name", width: 150.0 }
+              , { id: "type", title: "Type", width: 100.0 }
+              , { id: "size", title: "Size", width: 80.0 }
+              ]
+          , rows:
+              [ [ "Main.purs", "PureScript", "12 KB" ]
+              , [ "App.tsx", "TypeScript", "8 KB" ]
+              , [ "style.css", "CSS", "3 KB" ]
+              , [ "index.html", "HTML", "1 KB" ]
+              , [ "package.json", "JSON", "2 KB" ]
+              ]
+          , headerVisible: true
+          , alternatingRows: true
+          , onSelectRow: E.onInt "rowIndex" \i -> setSelected ("Row " <> show i)
+          , onDoubleClickRow: E.onInt "rowIndex" \i -> setSelected ("Double-clicked row " <> show i)
+          , style: Style.style { height: 180.0 } <> tw "rounded-lg overflow-hidden mb-2"
+          }
+      , if selected == "" then mempty
+        else label dp.dimFg selected
+      ]
+
+outlineViewDemo :: DemoProps -> JSX
+outlineViewDemo = component "OutlineViewDemo" \dp -> React.do
+  selection /\ setSelection <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Outline View"
+      , desc dp "Hierarchical tree list (NSOutlineView)"
+      , nativeOutlineView
+          { items:
+              let
+                file id title = OutlineItem { id, title, sfSymbol: "doc", children: [] }
+                folder id title children = OutlineItem { id, title, sfSymbol: "folder", children }
+              in
+                [ folder "src" "src"
+                    [ file "main" "Main.purs"
+                    , folder "macos" "MacOS"
+                        [ file "btn" "Button.purs"
+                        , file "sl" "Slider.purs"
+                        , file "sw" "Switch.purs"
+                        ]
+                    ]
+                , folder "test" "test"
+                    [ file "t1" "MacOSComponents.test.js"
+                    , file "t2" "MacOSSnapshots.test.js"
+                    ]
+                , OutlineItem { id: "pkg", title: "package.json", sfSymbol: "doc.text", children: [] }
+                ]
+          , headerVisible: false
+          , onSelectItem: E.onString "id" setSelection
+          , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+          }
+      , if selection == "" then mempty
+        else label dp.dimFg ("Selected: " <> selection)
+      ]
+
+-- Drag & Drop / Files
+
+dropZoneDemo :: DemoProps -> JSX
+dropZoneDemo = component "DropZoneDemo" \dp -> React.do
+  status /\ setStatus <- useState' "Drop files here"
+  dropped /\ setDropped <- useState' ""
+  dragging /\ setDragging <- useState' false
+  pure do
+    let accentBorder = if dragging then "#007AFF" else dp.dimFg
+    scrollWrap dp
+      [ sectionTitle dp.fg "Drop Zone"
+      , desc dp "Drag files from Finder into the area below"
+      , view
+          { draggedTypes: [ "NSFilenamesPboardType" ]
+          , onDrop: handler
+              (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "dataTransfer" e)
+              \r -> do
+                setDropped r
+                setStatus "Drop files here"
+                setDragging false
+          , onDragEnter: handler_ do
+              setStatus "Release to drop!"
+              setDragging true
+          , onDragLeave: handler_ do
+              setStatus "Drop files here"
+              setDragging false
+          , style: tw "rounded-lg items-center justify-center mb-2"
+              <> Style.style
+                { minHeight: 100.0
+                , borderWidth: 2.0
+                , borderColor: accentBorder
+                , backgroundColor: dp.cardBg
+                }
+          }
+          [ text { style: tw "text-sm" <> Style.style { color: dp.fg } } status
+          , if dropped == "" then mempty
+            else text { style: tw "text-xs mt-2 px-4" <> Style.style { color: dp.dimFg } }
+              ("Dropped: " <> dropped)
+          ]
+      ]
+
+filePickerDemo :: DemoProps -> JSX
+filePickerDemo = component "FilePickerDemo" \dp -> React.do
+  picked /\ setPicked <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "File Picker"
+      , desc dp "Click buttons to open native file panels"
+      , card dp.cardBg
+          [ view { style: tw "flex-row items-center" }
+              [ nativeFilePicker
+                  { mode: T.openFile
+                  , title: "Open Files"
+                  , sfSymbol: "doc.badge.plus"
+                  , allowMultiple: true
+                  , allowedTypes: [ "public.image", "public.text" ]
+                  , message: "Select files to open"
+                  , onPickFiles: handler
+                      (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
+                      setPicked
+                  , onCancel: handler_ (setPicked "Cancelled")
+                  , style: Style.style { height: 24.0, width: 120.0 }
+                  }
+              , nativeFilePicker
+                  { mode: T.openFile
+                  , title: "Choose Folder"
+                  , sfSymbol: "folder"
+                  , canChooseDirectories: true
+                  , message: "Select a folder"
+                  , onPickFiles: handler
+                      (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
+                      setPicked
+                  , onCancel: handler_ (setPicked "Cancelled")
+                  , style: Style.style { height: 24.0, width: 140.0, marginLeft: 8.0 }
+                  }
+              , nativeFilePicker
+                  { mode: T.saveFile
+                  , title: "Save As..."
+                  , sfSymbol: "square.and.arrow.down"
+                  , defaultName: "Untitled.txt"
+                  , allowedTypes: [ "public.plain-text" ]
+                  , message: "Choose save location"
+                  , onPickFiles: handler
+                      (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
+                      setPicked
+                  , onCancel: handler_ (setPicked "Cancelled")
+                  , style: Style.style { height: 24.0, width: 120.0, marginLeft: 8.0 }
+                  }
+              ]
+          , if picked == "" then mempty
+            else label dp.dimFg picked
+          ]
+      ]
+
+-- Animation
+
+riveDemo :: DemoProps -> JSX
+riveDemo = component "RiveDemo" \dp -> React.do
   pure do
     nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
       ( view { style: tw "px-4 pb-4" }
-          [ sectionTitle p.fg "Mouse Tracking"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+          [ sectionTitle dp.fg "Mouse Tracking"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: dp.fg } }
               "Move your cursor over the cat — it follows your mouse!"
           , nativeRiveView_
               { resourceName: "cat_following_mouse"
@@ -423,8 +1077,8 @@ riveTab = component "RiveTab" \p -> React.do
               , autoplay: true
               , style: Style.style { height: 300.0 }
               }
-          , sectionTitle p.fg "Cursor Tracking"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+          , sectionTitle dp.fg "Cursor Tracking"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: dp.fg } }
               "Shapes follow your cursor via Pointer Move listeners"
           , nativeRiveView_
               { resourceName: "cursor_tracking"
@@ -433,8 +1087,8 @@ riveTab = component "RiveTab" \p -> React.do
               , autoplay: true
               , style: Style.style { height: 300.0 }
               }
-          , sectionTitle p.fg "Interactive Rive Animations"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+          , sectionTitle dp.fg "Interactive Rive Animations"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: dp.fg } }
               "Click the stars to rate! State machine handles interaction."
           , nativeRiveView_
               { resourceName: "rating_animation"
@@ -443,8 +1097,8 @@ riveTab = component "RiveTab" \p -> React.do
               , autoplay: true
               , style: Style.style { height: 200.0 }
               }
-          , sectionTitle p.fg "Light Switch"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.fg } }
+          , sectionTitle dp.fg "Light Switch"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: dp.fg } }
               "Click to toggle"
           , nativeRiveView_
               { resourceName: "switch_event_example"
@@ -453,810 +1107,432 @@ riveTab = component "RiveTab" \p -> React.do
               , autoplay: true
               , style: Style.style { height: 200.0 }
               }
-          , sectionTitle p.fg "Windy Tree"
+          , sectionTitle dp.fg "Windy Tree"
           , nativeRiveView_
               { resourceName: "windy_tree"
               , fit: T.cover
               , autoplay: true
-              , style: tw "flex-1" <> Style.style { minHeight: 300.0, backgroundColor: p.bg }
+              , style: tw "flex-1" <> Style.style { minHeight: 300.0, backgroundColor: dp.bg }
               }
           ]
       )
 
--- Tab 4: System (Context Menu, Drop Zone, File Picker)
-type SystemProps =
-  { fg :: String
-  , dimFg :: String
-  , cardBg :: String
-  , bg :: String
-  }
+-- System Services
 
-systemTab :: SystemProps -> JSX
-systemTab = component "SystemTab" \p -> React.do
-  menuResult /\ setMenuResult <- useState' ""
-  dropStatus /\ setDropStatus <- useState' "Drop files here"
-  droppedFiles /\ setDroppedFiles <- useState' ""
-  isDragging /\ setIsDragging <- useState' false
-  pickedFiles /\ setPickedFiles <- useState' ""
-  videoPlaying /\ setVideoPlaying <- useState' true
-  comboText /\ setComboText <- useState' ""
-  comboResult /\ setComboResult <- useState' ""
-  stepperValue /\ setStepperValue <- useState' 5.0
-  popoverVisible /\ setPopoverVisible <- useState' false
-  checkboxA /\ setCheckboxA <- useState' true
-  checkboxB /\ setCheckboxB <- useState' false
-  radioChoice /\ setRadioChoice <- useState' "option1"
-  searchQuery /\ setSearchQuery <- useState' ""
-  searchResult /\ setSearchResult <- useState' ""
-  tagTokens /\ setTagTokens <- useState' ([ "PureScript", "React", "macOS" ] :: Array String)
-  sheetVisible /\ setSheetVisible <- useState' false
-  menuResult2 /\ setMenuResult2 <- useState' ""
-  selectedRow /\ setSelectedRow <- useState' ""
-  outlineSelection /\ setOutlineSelection <- useState' ""
-  statusBarActive /\ setStatusBarActive <- useState' false
-  let
-    accentBorder = if isDragging then "#007AFF" else p.dimFg
+clipboardDemo :: DemoProps -> JSX
+clipboardDemo = component "ClipboardDemo" \dp -> React.do
   pure do
-    nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
-      ( view { style: tw "px-4 pb-4" }
-          [ sectionTitle p.fg "Context Menu"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Right-click the area below to open a context menu"
-          , nativeContextMenu
-              { items:
-                  [ { id: "cut", title: "Cut", sfSymbol: "scissors" }
-                  , { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
-                  , { id: "paste", title: "Paste", sfSymbol: "doc.on.clipboard" }
-                  , { id: "sep", title: "-", sfSymbol: "" }
-                  , { id: "delete", title: "Delete", sfSymbol: "trash" }
-                  , { id: "selectAll", title: "Select All", sfSymbol: "selection.pin.in.out" }
-                  ]
-              , onSelectItem: E.onString "itemId" setMenuResult
-              , style: Style.style {}
-              }
-              ( card p.cardBg
-                  [ view { style: tw "items-center justify-center" <> Style.style { minHeight: 80.0 } }
-                      [ text { style: tw "text-sm" <> Style.style { color: p.fg } }
-                          "Right-click me!"
-                      , if menuResult == "" then mempty
-                        else label p.dimFg ("Selected: " <> menuResult)
-                      ]
-                  ]
-              )
-          , sectionTitle p.fg "Drop Zone"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Drag files from Finder into the area below"
-          , view
-              { draggedTypes: [ "NSFilenamesPboardType" ]
-              , onDrop: handler
-                  (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "dataTransfer" e)
-                  \r -> do
-                    setDroppedFiles r
-                    setDropStatus "Drop files here"
-                    setIsDragging false
-              , onDragEnter: handler_ do
-                  setDropStatus "Release to drop!"
-                  setIsDragging true
-              , onDragLeave: handler_ do
-                  setDropStatus "Drop files here"
-                  setIsDragging false
-              , style: tw "rounded-lg items-center justify-center mb-2"
-                  <> Style.style
-                    { minHeight: 100.0
-                    , borderWidth: 2.0
-                    , borderColor: accentBorder
-                    , backgroundColor: p.cardBg
-                    }
-              }
-              [ text { style: tw "text-sm" <> Style.style { color: p.fg } } dropStatus
-              , if droppedFiles == "" then mempty
-                else text { style: tw "text-xs mt-2 px-4" <> Style.style { color: p.dimFg } }
-                  ("Dropped: " <> droppedFiles)
-              ]
-          , sectionTitle p.fg "File Picker"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Click buttons to open native file panels"
-          , card p.cardBg
-              [ view { style: tw "flex-row items-center" }
-                  [ nativeFilePicker
-                      { mode: T.openFile
-                      , title: "Open Files"
-                      , sfSymbol: "doc.badge.plus"
-                      , allowMultiple: true
-                      , allowedTypes: [ "public.image", "public.text" ]
-                      , message: "Select files to open"
-                      , onPickFiles: handler
-                          (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
-                          setPickedFiles
-                      , onCancel: handler_ (setPickedFiles "Cancelled")
-                      , style: Style.style { height: 24.0, width: 120.0 }
-                      }
-                  , nativeFilePicker
-                      { mode: T.openFile
-                      , title: "Choose Folder"
-                      , sfSymbol: "folder"
-                      , canChooseDirectories: true
-                      , message: "Select a folder"
-                      , onPickFiles: handler
-                          (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
-                          setPickedFiles
-                      , onCancel: handler_ (setPickedFiles "Cancelled")
-                      , style: Style.style { height: 24.0, width: 140.0, marginLeft: 8.0 }
-                      }
-                  , nativeFilePicker
-                      { mode: T.saveFile
-                      , title: "Save As..."
-                      , sfSymbol: "square.and.arrow.down"
-                      , defaultName: "Untitled.txt"
-                      , allowedTypes: [ "public.plain-text" ]
-                      , message: "Choose save location"
-                      , onPickFiles: handler
-                          (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
-                          setPickedFiles
-                      , onCancel: handler_ (setPickedFiles "Cancelled")
-                      , style: Style.style { height: 24.0, width: 120.0, marginLeft: 8.0 }
-                      }
-                  ]
-              , if pickedFiles == "" then mempty
-                else label p.dimFg pickedFiles
-              ]
-          , sectionTitle p.fg "Video Player"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native AVPlayerView with floating controls"
-          , nativeVideoPlayer
-              { source: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4"
-              , playing: videoPlaying
-              , looping: true
-              , muted: false
-              , style: Style.style { height: 240.0 } <> tw "rounded-lg overflow-hidden mb-2"
-              }
-          , view { style: tw "flex-row mb-2" }
-              [ nativeButton
-                  { title: if videoPlaying then "Pause" else "Play"
-                  , sfSymbol: if videoPlaying then "pause.fill" else "play.fill"
-                  , bezelStyle: T.push
-                  , onPress: handler_ (setVideoPlaying (not videoPlaying))
-                  , style: Style.style { height: 24.0, width: 100.0 }
-                  }
-              ]
-          , sectionTitle p.fg "Animated Image"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native NSImageView with animated GIF support"
-          , nativeAnimatedImage
-              { source: "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif"
-              , animating: true
-              , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
-              }
-          , nativeAnimatedImage
-              { source: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif"
-              , animating: true
-              , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
-              }
-
-          -- New components
-          , sectionTitle p.fg "Split View"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native NSSplitView with resizable divider"
-          , nativeSplitView
-              { isVertical: true
-              , style: Style.style { height: 150.0 } <> tw "rounded-lg overflow-hidden mb-2"
-              }
-              [ view { style: tw "flex-1 p-4" <> Style.style { backgroundColor: p.cardBg } }
-                  [ text { style: tw "text-sm font-semibold" <> Style.style { color: p.fg } } "Left Pane"
-                  , text { style: tw "text-xs mt-1" <> Style.style { color: p.dimFg } } "Drag the divider to resize"
-                  ]
-              , view { style: tw "flex-1 p-4" <> Style.style { backgroundColor: p.cardBg } }
-                  [ text { style: tw "text-sm font-semibold" <> Style.style { color: p.fg } } "Right Pane"
-                  , text { style: tw "text-xs mt-1" <> Style.style { color: p.dimFg } } "Content fills available space"
-                  ]
-              ]
-
-          , sectionTitle p.fg "Tab View"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native segmented tab bar"
-          , nativeTabView
-              { items:
-                  [ { id: "general", label: "General" }
-                  , { id: "advanced", label: "Advanced" }
-                  , { id: "about", label: "About" }
-                  ]
-              , selectedItem: "general"
-              , onSelectTab: E.onString "tabId" \_ -> pure unit
-              , style: Style.style { height: 32.0 } <> tw "mb-2"
-              }
-
-          , sectionTitle p.fg "Combo Box"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Editable dropdown with autocomplete"
-          , card p.cardBg
-              [ nativeComboBox
-                  { items: [ "Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape" ]
-                  , text: comboText
-                  , placeholder: "Type a fruit..."
-                  , onChangeText: E.onString "text" setComboText
-                  , onSelectItem: E.onString "text" \t -> do
-                      setComboText t
-                      setComboResult ("Selected: " <> t)
-                  , style: Style.style { height: 28.0 } <> tw "mb-2"
-                  }
-              , if comboResult == "" then mempty
-                else label p.dimFg comboResult
-              ]
-
-          , sectionTitle p.fg "Stepper"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Up/down increment control with label"
-          , card p.cardBg
-              [ view { style: tw "flex-row items-center" }
-                  [ text { style: tw "text-sm mr-3" <> Style.style { color: p.fg } } "Quantity:"
-                  , nativeStepper
-                      { value: stepperValue
-                      , minValue: 0.0
-                      , maxValue: 50.0
-                      , increment: 1.0
-                      , onChange: E.onNumber "value" setStepperValue
-                      , style: Style.style { width: 100.0, height: 24.0 }
-                      }
-                  ]
-              ]
-
-          , sectionTitle p.fg "Box"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native NSBox with title and border"
-          , nativeBox
-              { boxTitle: "Settings"
-              , fillColor2: p.cardBg
-              , borderColor2: p.dimFg
-              , radius: 8.0
-              , style: Style.style { height: 100.0 } <> tw "mb-2"
-              }
-              [ view { style: tw "flex-row items-center p-2" }
-                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } "Content inside a native box" ]
-              ]
-
-          , sectionTitle p.fg "Popover"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Click button to toggle a popover"
-          , nativePopover
-              { visible: popoverVisible
-              , preferredEdge: T.bottom
-              , behavior: T.transient
-              , onClose: handler_ (setPopoverVisible false)
-              , style: tw "mb-2"
-              }
-              [ nativeButton
-                  { title: if popoverVisible then "Hide Popover" else "Show Popover"
-                  , bezelStyle: T.push
-                  , onPress: handler_ (setPopoverVisible (not popoverVisible))
-                  , style: Style.style { height: 24.0, width: 140.0 }
-                  }
-              , view { style: tw "p-4" <> Style.style { width: 200.0, height: 80.0 } }
-                  [ text { style: tw "text-sm font-semibold" <> Style.style { color: p.fg } } "Popover Content"
-                  , text { style: tw "text-xs mt-1" <> Style.style { color: p.dimFg } } "Click outside to dismiss"
-                  ]
-              ]
-
-          , sectionTitle p.fg "Image"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native NSImageView with URL loading and corner radius"
-          , nativeImage
-              { source: "https://placedog.net/640/400"
-              , contentMode: T.scaleProportionally
-              , cornerRadius: 12.0
-              , style: Style.style { height: 200.0 } <> tw "mb-2"
-              }
-
-          , sectionTitle p.fg "Checkbox"
-          , card p.cardBg
-              [ nativeCheckbox
-                  { checked: checkboxA
-                  , title: "Enable notifications"
-                  , enabled: true
-                  , onChange: E.onBool "checked" setCheckboxA
-                  , style: Style.style { height: 24.0 } <> tw "mb-1"
-                  }
-              , nativeCheckbox
-                  { checked: checkboxB
-                  , title: "Dark mode"
-                  , enabled: true
-                  , onChange: E.onBool "checked" setCheckboxB
-                  , style: Style.style { height: 24.0 }
-                  }
-              ]
-
-          , sectionTitle p.fg "Radio Button"
-          , card p.cardBg
-              [ nativeRadioButton
-                  { selected: radioChoice == "option1"
-                  , title: "Small"
-                  , enabled: true
-                  , onChange: handler_ (setRadioChoice "option1")
-                  , style: Style.style { height: 24.0 } <> tw "mb-1"
-                  }
-              , nativeRadioButton
-                  { selected: radioChoice == "option2"
-                  , title: "Medium"
-                  , enabled: true
-                  , onChange: handler_ (setRadioChoice "option2")
-                  , style: Style.style { height: 24.0 } <> tw "mb-1"
-                  }
-              , nativeRadioButton
-                  { selected: radioChoice == "option3"
-                  , title: "Large"
-                  , enabled: true
-                  , onChange: handler_ (setRadioChoice "option3")
-                  , style: Style.style { height: 24.0 }
-                  }
-              , label p.dimFg ("Selected: " <> radioChoice)
-              ]
-
-          , sectionTitle p.fg "Search Field"
-          , nativeSearchField
-              { text: searchQuery
-              , placeholder: "Search..."
-              , onChangeText: E.onString "text" setSearchQuery
-              , onSearch: E.onString "text" \t -> setSearchResult ("Searched: " <> t)
-              , style: Style.style { height: 28.0 } <> tw "mb-2"
-              }
-          , if searchResult == "" then mempty
-            else label p.dimFg searchResult
-
-          , sectionTitle p.fg "Token Field"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Type text and press Enter to add tokens"
-          , nativeTokenField
-              { tokens: tagTokens
-              , placeholder: "Add tags..."
-              , onChangeTokens: E.onStrings "tokens" setTagTokens
-              , style: Style.style { height: 28.0 } <> tw "mb-2"
-              }
-
-          , sectionTitle p.fg "Separator"
-          , nativeSeparator
-              { vertical: false
-              , style: Style.style { height: 2.0 } <> tw "my-2"
-              }
-
-          , sectionTitle p.fg "Help Button"
-          , view { style: tw "flex-row items-center mb-2" }
-              [ nativeHelpButton
-                  { onPress: handler_ (macosAlert T.informational "Help" "This is the help button. It opens contextual help." [ "OK" ])
-                  , style: Style.style { width: 24.0, height: 24.0 }
-                  }
-              , text { style: tw "text-xs ml-2" <> Style.style { color: p.dimFg } } "Click for help"
-              ]
-
-          , sectionTitle p.fg "Path Control"
-          , nativePathControl
-              { url: "/Users"
-              , pathStyle: T.standardPath
-              , onSelectPath: E.onString "url" \_ -> pure unit
-              , style: Style.style { height: 24.0 } <> tw "mb-2"
-              }
-
-          , sectionTitle p.fg "Sheet"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Modal sheet attached to the window"
-          , nativeButton
-              { title: "Show Sheet"
+    scrollWrap dp
+      [ sectionTitle dp.fg "Clipboard"
+      , desc dp "Read and write the system clipboard"
+      , view { style: tw "flex-row items-center mb-2" }
+          [ nativeButton
+              { title: "Copy 'Hello'"
               , bezelStyle: T.push
-              , onPress: handler_ (setSheetVisible true)
-              , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
+              , onPress: handler_ (copyToClipboard "Hello from PureScript!")
+              , style: Style.style { height: 24.0, width: 120.0 }
               }
-          , nativeSheet
-              { visible: sheetVisible
-              , onDismiss: handler_ (setSheetVisible false)
-              }
-              [ view { style: tw "p-6" <> Style.style { width: 400.0, height: 200.0 } }
-                  [ text { style: tw "text-lg font-semibold mb-2" <> Style.style { color: p.fg } } "Sheet Content"
-                  , text { style: tw "text-sm mb-4" <> Style.style { color: p.dimFg } } "This is a native macOS sheet."
-                  , nativeButton
-                      { title: "Dismiss"
-                      , bezelStyle: T.push
-                      , onPress: handler_ (setSheetVisible false)
-                      , style: Style.style { height: 24.0, width: 100.0 }
-                      }
-                  ]
-              ]
+          ]
+      ]
 
-          , sectionTitle p.fg "Menu"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Imperative popup menu at mouse position"
-          , view { style: tw "flex-row items-center mb-2" }
-              [ nativeButton
-                  { title: "Show Menu"
-                  , bezelStyle: T.push
-                  , onPress: handler_
-                      ( macosShowMenu
-                          [ { title: "New File", id: "new" }
-                          , { title: "Open...", id: "open" }
-                          , { title: "-", id: "sep" }
-                          , { title: "Save", id: "save" }
-                          , { title: "Save As...", id: "saveAs" }
-                          ]
-                          \itemId -> setMenuResult2 ("Menu: " <> itemId)
-                      )
-                  , style: Style.style { height: 24.0, width: 120.0 }
-                  }
-              , if menuResult2 == "" then mempty
-                else text { style: tw "text-xs ml-3" <> Style.style { color: p.dimFg } } menuResult2
-              ]
+shareDemo :: DemoProps -> JSX
+shareDemo = component "ShareDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Share"
+      , desc dp "System share picker"
+      , nativeButton
+          { title: "Share Text"
+          , sfSymbol: "square.and.arrow.up"
+          , bezelStyle: T.push
+          , onPress: handler_ (macosShare [ "Hello from PureScript React Native!" ])
+          , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
+          }
+      ]
 
-          , sectionTitle p.fg "Table View"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native NSTableView with columns and rows"
-          , nativeTableView
-              { columns:
-                  [ { id: "name", title: "Name", width: 150.0 }
-                  , { id: "type", title: "Type", width: 100.0 }
-                  , { id: "size", title: "Size", width: 80.0 }
-                  ]
-              , rows:
-                  [ [ "Main.purs", "PureScript", "12 KB" ]
-                  , [ "App.tsx", "TypeScript", "8 KB" ]
-                  , [ "style.css", "CSS", "3 KB" ]
-                  , [ "index.html", "HTML", "1 KB" ]
-                  , [ "package.json", "JSON", "2 KB" ]
-                  ]
-              , headerVisible: true
-              , alternatingRows: true
-              , onSelectRow: E.onInt "rowIndex" \i -> setSelectedRow ("Row " <> show i)
-              , onDoubleClickRow: E.onInt "rowIndex" \i -> setSelectedRow ("Double-clicked row " <> show i)
-              , style: Style.style { height: 180.0 } <> tw "rounded-lg overflow-hidden mb-2"
-              }
-          , if selectedRow == "" then mempty
-            else label p.dimFg selectedRow
+notificationsDemo :: DemoProps -> JSX
+notificationsDemo = component "NotificationsDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Notifications"
+      , desc dp "System notifications (requires permission)"
+      , nativeButton
+          { title: "Send Notification"
+          , sfSymbol: "bell"
+          , bezelStyle: T.push
+          , onPress: handler_ (macosNotify "PureScript" "Hello from React Native macOS!")
+          , style: Style.style { height: 24.0, width: 160.0 } <> tw "mb-2"
+          }
+      ]
 
-          , sectionTitle p.fg "Clipboard"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Read and write the system clipboard"
-          , view { style: tw "flex-row items-center mb-2" }
-              [ nativeButton
-                  { title: "Copy 'Hello'"
-                  , bezelStyle: T.push
-                  , onPress: handler_ (copyToClipboard "Hello from PureScript!")
-                  , style: Style.style { height: 24.0, width: 120.0 }
-                  }
-              ]
-
-          , sectionTitle p.fg "Alert"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Native alert dialog"
-          , nativeButton
-              { title: "Show Alert"
+soundDemo :: DemoProps -> JSX
+soundDemo = component "SoundDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Sound"
+      , desc dp "Play system sounds"
+      , view { style: tw "flex-row items-center mb-2" }
+          [ nativeButton
+              { title: "Glass"
               , bezelStyle: T.push
-              , onPress: handler_ (macosAlert T.warning "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
-              , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"
+              , onPress: handler_ (macosPlaySound "Glass")
+              , style: Style.style { height: 24.0, width: 80.0 }
               }
+          , nativeButton
+              { title: "Ping"
+              , bezelStyle: T.push
+              , onPress: handler_ (macosPlaySound "Ping")
+              , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
+              }
+          , nativeButton
+              { title: "Beep"
+              , bezelStyle: T.push
+              , onPress: handler_ macosBeep
+              , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
+              }
+          ]
+      ]
 
-          , sectionTitle p.fg "Outline View"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Hierarchical tree list (NSOutlineView)"
-          , nativeOutlineView
-              { items:
-                  let
-                    file id title = OutlineItem { id, title, sfSymbol: "doc", children: [] }
-                    folder id title children = OutlineItem { id, title, sfSymbol: "folder", children }
-                  in
-                    [ folder "src" "src"
-                        [ file "main" "Main.purs"
-                        , folder "macos" "MacOS"
-                            [ file "btn" "Button.purs"
-                            , file "sl" "Slider.purs"
-                            , file "sw" "Switch.purs"
+statusBarDemo :: DemoProps -> JSX
+statusBarDemo = component "StatusBarDemo" \dp -> React.do
+  active /\ setActive <- useState' false
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Status Bar"
+      , desc dp "Menu bar icon with dropdown"
+      , view { style: tw "flex-row items-center mb-4" }
+          [ nativeButton
+              { title: if active then "Remove" else "Add to Menu Bar"
+              , sfSymbol: if active then "minus.circle" else "plus.circle"
+              , bezelStyle: T.push
+              , onPress: handler_
+                  ( if active then do
+                      macosRemoveStatusBarItem
+                      setActive false
+                    else do
+                      macosSetStatusBarItem
+                        { title: ""
+                        , sfSymbol: "swift"
+                        , menuItems:
+                            [ { id: "about", title: "About PureScript RN" }
+                            , { id: "sep", title: "-" }
+                            , { id: "quit", title: "Quit" }
                             ]
-                        ]
-                    , folder "test" "test"
-                        [ file "t1" "MacOSComponents.test.js"
-                        , file "t2" "MacOSSnapshots.test.js"
-                        ]
-                    , OutlineItem { id: "pkg", title: "package.json", sfSymbol: "doc.text", children: [] }
-                    ]
-              , headerVisible: false
-              , onSelectItem: E.onString "id" setOutlineSelection
-              , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+                        }
+                      setActive true
+                  )
+              , style: Style.style { height: 24.0, width: 180.0 }
               }
-          , if outlineSelection == "" then mempty
-            else label p.dimFg ("Selected: " <> outlineSelection)
-
-          , sectionTitle p.fg "Share"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "System share picker"
-          , nativeButton
-              { title: "Share Text"
-              , sfSymbol: "square.and.arrow.up"
-              , bezelStyle: T.push
-              , onPress: handler_ (macosShare [ "Hello from PureScript React Native!" ])
-              , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
-              }
-
-          , sectionTitle p.fg "Notifications"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "System notifications (requires permission)"
-          , nativeButton
-              { title: "Send Notification"
-              , sfSymbol: "bell"
-              , bezelStyle: T.push
-              , onPress: handler_ (macosNotify "PureScript" "Hello from React Native macOS!")
-              , style: Style.style { height: 24.0, width: 160.0 } <> tw "mb-2"
-              }
-
-          , sectionTitle p.fg "Sound"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Play system sounds"
-          , view { style: tw "flex-row items-center mb-2" }
-              [ nativeButton
-                  { title: "Glass"
-                  , bezelStyle: T.push
-                  , onPress: handler_ (macosPlaySound "Glass")
-                  , style: Style.style { height: 24.0, width: 80.0 }
-                  }
-              , nativeButton
-                  { title: "Ping"
-                  , bezelStyle: T.push
-                  , onPress: handler_ (macosPlaySound "Ping")
-                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
-                  }
-              , nativeButton
-                  { title: "Beep"
-                  , bezelStyle: T.push
-                  , onPress: handler_ macosBeep
-                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
-                  }
-              ]
-
-          , sectionTitle p.fg "Status Bar"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Menu bar icon with dropdown"
-          , view { style: tw "flex-row items-center mb-4" }
-              [ nativeButton
-                  { title: if statusBarActive then "Remove" else "Add to Menu Bar"
-                  , sfSymbol: if statusBarActive then "minus.circle" else "plus.circle"
-                  , bezelStyle: T.push
-                  , onPress: handler_
-                      ( if statusBarActive then do
-                          macosRemoveStatusBarItem
-                          setStatusBarActive false
-                        else do
-                          macosSetStatusBarItem
-                            { title: ""
-                            , sfSymbol: "swift"
-                            , menuItems:
-                                [ { id: "about", title: "About PureScript RN" }
-                                , { id: "sep", title: "-" }
-                                , { id: "quit", title: "Quit" }
-                                ]
-                            }
-                          setStatusBarActive true
-                      )
-                  , style: Style.style { height: 24.0, width: 180.0 }
-                  }
-              ]
           ]
-      )
+      ]
 
--- Tab 6: AI & Tools
-type AIProps =
-  { fg :: String
-  , dimFg :: String
-  , cardBg :: String
-  , bg :: String
-  }
-
-aiTab :: AIProps -> JSX
-aiTab = component "AITab" \p -> React.do
-  speechText /\ setSpeechText <- useState' "Hello from PureScript React Native on macOS!"
-  ocrResult /\ setOcrResult <- useState' ""
-  speech <- useSpeechRecognition
-  nlText /\ setNlText <- useState' "I love this amazing app! C'est magnifique."
-  nlResult /\ setNlResult <- useState' ""
-  cameraOn /\ setCameraOn <- useState' false
+quickLookDemo :: DemoProps -> JSX
+quickLookDemo = component "QuickLookDemo" \dp -> React.do
   pure do
-    nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
-      ( view { style: tw "px-4 pb-4" }
-          [ sectionTitle p.fg "Map"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Embedded MKMapView (San Francisco)"
-          , nativeMapView
-              { latitude: 37.7749
-              , longitude: -122.4194
-              , latitudeDelta: 0.05
-              , longitudeDelta: 0.05
-              , mapType: T.standardMap
-              , showsUserLocation: false
-              , annotations:
-                  [ { latitude: 37.7749, longitude: -122.4194, title: "San Francisco", subtitle: "California" }
-                  , { latitude: 37.8199, longitude: -122.4783, title: "Golden Gate Bridge", subtitle: "" }
-                  ]
-              , style: Style.style { height: 250.0 }
-              }
-          , sectionTitle p.fg "PDF Viewer"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "PDFKit document viewer"
-          , nativePDFView
-              { source: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-              , autoScales: true
-              , displayMode: T.singlePageContinuous
-              , style: Style.style { height: 300.0 }
-              }
-          , sectionTitle p.fg "Quick Look"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Preview files with QLPreviewPanel"
-          , view { style: tw "flex-row items-center mb-4" }
-              [ nativeButton
-                  { title: "Preview /etc/hosts"
-                  , sfSymbol: "eye"
-                  , bezelStyle: T.push
-                  , onPress: handler_ (macosQuickLook "/etc/hosts")
-                  , style: Style.style { height: 24.0, width: 180.0 }
-                  }
-              ]
-          , sectionTitle p.fg "Speech"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Text-to-speech (NSSpeechSynthesizer)"
-          , nativeTextField
-              { text: speechText
-              , placeholder: "Text to speak..."
-              , onChangeText: E.onString "text" setSpeechText
-              , style: Style.style { height: 24.0 } <> tw "mb-2"
-              }
-          , view { style: tw "flex-row items-center mb-4" }
-              [ nativeButton
-                  { title: "Speak"
-                  , sfSymbol: "speaker.wave.2"
-                  , bezelStyle: T.push
-                  , onPress: handler_ (say speechText)
-                  , style: Style.style { height: 24.0, width: 100.0 }
-                  }
-              , nativeButton
-                  { title: "Stop"
-                  , sfSymbol: "stop.circle"
-                  , bezelStyle: T.push
-                  , onPress: handler_ stopSpeaking
-                  , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
-                  }
-              ]
-          , sectionTitle p.fg "Color Picker"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "System color panel (NSColorPanel)"
-          , view { style: tw "flex-row items-center mb-4" }
-              [ nativeButton
-                  { title: "Show Color Panel"
-                  , sfSymbol: "paintpalette"
-                  , bezelStyle: T.push
-                  , onPress: handler_ macosShowColorPanel
-                  , style: Style.style { height: 24.0, width: 180.0 }
-                  }
-              ]
-          , sectionTitle p.fg "Font Panel"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "System font panel (NSFontPanel)"
-          , view { style: tw "flex-row items-center mb-4" }
-              [ nativeButton
-                  { title: "Show Font Panel"
-                  , sfSymbol: "textformat"
-                  , bezelStyle: T.push
-                  , onPress: handler_ macosShowFontPanel
-                  , style: Style.style { height: 24.0, width: 180.0 }
-                  }
-              ]
-          , sectionTitle p.fg "OCR (Vision)"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Recognize text in images (VNRecognizeTextRequest)"
-          , view { style: tw "flex-row items-center mb-2" }
-              [ nativeFilePicker
-                  { mode: T.openFile
-                  , allowedTypes: [ "public.image" ]
-                  , title: "Pick Image"
-                  , sfSymbol: "photo"
-                  , onPickFiles: handler
-                      (nativeEvent >>> unsafeEventFn \e -> E.getFieldArray "files" e)
-                      \paths -> for_ paths \path -> do
-                        setOcrResult "Recognizing..."
-                        launchAff_ do
-                          result <- recognizeText path
-                          liftEffect (setOcrResult result)
-                  , style: Style.style { height: 24.0, width: 140.0 }
-                  }
-              ]
-          , if ocrResult /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
-              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } ocrResult ]
-            else view {} []
-          , sectionTitle p.fg "Speech Recognition"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Live microphone-to-text (click Start, speak, click Stop)"
-          , view { style: tw "flex-row items-center mb-2" }
-              [ nativeButton
-                  { title: if speech.listening then "Listening..." else "Start"
-                  , sfSymbol: if speech.listening then "mic.fill" else "mic"
-                  , bezelStyle: T.push
-                  , onPress: handler_ speech.start
-                  , style: Style.style { height: 24.0, width: 130.0 }
-                  }
-              , nativeButton
-                  { title: "Stop"
-                  , sfSymbol: "stop.circle"
-                  , bezelStyle: T.push
-                  , onPress: handler_ speech.stop
-                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
-                  }
-              ]
-          , if speech.transcript /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
-              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } speech.transcript ]
-            else view {} []
-          , sectionTitle p.fg "Natural Language"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Language detection, sentiment, tokenization (NaturalLanguage.framework)"
-          , nativeTextField
-              { text: nlText
-              , placeholder: "Enter text to analyze..."
-              , onChangeText: E.onString "text" setNlText
-              , style: Style.style { height: 24.0 } <> tw "mb-2"
-              }
-          , view { style: tw "flex-row items-center mb-2" }
-              [ nativeButton
-                  { title: "Language"
-                  , sfSymbol: "globe"
-                  , bezelStyle: T.push
-                  , onPress: handler_ $ launchAff_ do
-                      lang <- detectLanguage nlText
-                      liftEffect (setNlResult ("Language: " <> lang))
-                  , style: Style.style { height: 24.0, width: 110.0 }
-                  }
-              , nativeButton
-                  { title: "Sentiment"
-                  , sfSymbol: "face.smiling"
-                  , bezelStyle: T.push
-                  , onPress: handler_ $ launchAff_ do
-                      score <- analyzeSentiment nlText
-                      liftEffect (setNlResult ("Sentiment: " <> show score))
-                  , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
-                  }
-              , nativeButton
-                  { title: "Tokenize"
-                  , sfSymbol: "text.word.spacing"
-                  , bezelStyle: T.push
-                  , onPress: handler_ $ launchAff_ do
-                      tokens <- tokenize nlText
-                      liftEffect (setNlResult ("Tokens: " <> joinWith ", " tokens))
-                  , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
-                  }
-              ]
-          , if nlResult /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
-              [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } nlResult ]
-            else view {} []
-
-          , sectionTitle p.fg "Camera"
-          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Live camera preview (AVCaptureVideoPreviewLayer)"
-          , nativeButton
-              { title: if cameraOn then "Stop Camera" else "Start Camera"
-              , sfSymbol: if cameraOn then "video.slash" else "video"
+    scrollWrap dp
+      [ sectionTitle dp.fg "Quick Look"
+      , desc dp "Preview files with QLPreviewPanel"
+      , view { style: tw "flex-row items-center mb-4" }
+          [ nativeButton
+              { title: "Preview /etc/hosts"
+              , sfSymbol: "eye"
               , bezelStyle: T.push
-              , onPress: handler_ (setCameraOn (not cameraOn))
-              , style: Style.style { height: 24.0, width: 140.0 } <> tw "mb-2"
+              , onPress: handler_ (macosQuickLook "/etc/hosts")
+              , style: Style.style { height: 24.0, width: 180.0 }
               }
-          , if cameraOn then nativeCameraView
-              { active: true
-              , style: Style.style { height: 240.0 } <> tw "rounded-lg overflow-hidden mb-2"
-              }
-            else view {} []
           ]
-      )
+      ]
 
--- Tab 7: Chat (Matrix)
-type ChatProps =
-  { fg :: String
-  , dimFg :: String
-  , cardBg :: String
-  , bg :: String
-  , isDark :: Boolean
-  }
+colorPanelDemo :: DemoProps -> JSX
+colorPanelDemo = component "ColorPanelDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Color Picker"
+      , desc dp "System color panel (NSColorPanel)"
+      , view { style: tw "flex-row items-center mb-4" }
+          [ nativeButton
+              { title: "Show Color Panel"
+              , sfSymbol: "paintpalette"
+              , bezelStyle: T.push
+              , onPress: handler_ macosShowColorPanel
+              , style: Style.style { height: 24.0, width: 180.0 }
+              }
+          ]
+      ]
+
+fontPanelDemo :: DemoProps -> JSX
+fontPanelDemo = component "FontPanelDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Font Panel"
+      , desc dp "System font panel (NSFontPanel)"
+      , view { style: tw "flex-row items-center mb-4" }
+          [ nativeButton
+              { title: "Show Font Panel"
+              , sfSymbol: "textformat"
+              , bezelStyle: T.push
+              , onPress: handler_ macosShowFontPanel
+              , style: Style.style { height: 24.0, width: 180.0 }
+              }
+          ]
+      ]
+
+speechDemo :: DemoProps -> JSX
+speechDemo = component "SpeechDemo" \dp -> React.do
+  txt /\ setTxt <- useState' "Hello from PureScript React Native on macOS!"
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Speech Synthesis"
+      , desc dp "Text-to-speech (NSSpeechSynthesizer)"
+      , nativeTextField
+          { text: txt
+          , placeholder: "Text to speak..."
+          , onChangeText: E.onString "text" setTxt
+          , style: Style.style { height: 24.0 } <> tw "mb-2"
+          }
+      , view { style: tw "flex-row items-center mb-4" }
+          [ nativeButton
+              { title: "Speak"
+              , sfSymbol: "speaker.wave.2"
+              , bezelStyle: T.push
+              , onPress: handler_ (say txt)
+              , style: Style.style { height: 24.0, width: 100.0 }
+              }
+          , nativeButton
+              { title: "Stop"
+              , sfSymbol: "stop.circle"
+              , bezelStyle: T.push
+              , onPress: handler_ stopSpeaking
+              , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
+              }
+          ]
+      ]
+
+-- AI & ML
+
+ocrDemo :: DemoProps -> JSX
+ocrDemo = component "OCRDemo" \dp -> React.do
+  result /\ setResult <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "OCR (Vision)"
+      , desc dp "Recognize text in images (VNRecognizeTextRequest)"
+      , view { style: tw "flex-row items-center mb-2" }
+          [ nativeFilePicker
+              { mode: T.openFile
+              , allowedTypes: [ "public.image" ]
+              , title: "Pick Image"
+              , sfSymbol: "photo"
+              , onPickFiles: handler
+                  (nativeEvent >>> unsafeEventFn \e -> E.getFieldArray "files" e)
+                  \paths -> for_ paths \path -> do
+                    setResult "Recognizing..."
+                    launchAff_ do
+                      r <- recognizeText path
+                      liftEffect (setResult r)
+              , style: Style.style { height: 24.0, width: 140.0 }
+              }
+          ]
+      , if result /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: dp.cardBg } }
+          [ text { style: tw "text-xs font-mono" <> Style.style { color: dp.fg } } result ]
+        else mempty
+      ]
+
+speechRecognitionDemo :: DemoProps -> JSX
+speechRecognitionDemo = component "SpeechRecognitionDemo" \dp -> React.do
+  speech <- useSpeechRecognition
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Speech Recognition"
+      , desc dp "Live microphone-to-text (click Start, speak, click Stop)"
+      , view { style: tw "flex-row items-center mb-2" }
+          [ nativeButton
+              { title: if speech.listening then "Listening..." else "Start"
+              , sfSymbol: if speech.listening then "mic.fill" else "mic"
+              , bezelStyle: T.push
+              , onPress: handler_ speech.start
+              , style: Style.style { height: 24.0, width: 130.0 }
+              }
+          , nativeButton
+              { title: "Stop"
+              , sfSymbol: "stop.circle"
+              , bezelStyle: T.push
+              , onPress: handler_ speech.stop
+              , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
+              }
+          ]
+      , if speech.transcript /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: dp.cardBg } }
+          [ text { style: tw "text-xs font-mono" <> Style.style { color: dp.fg } } speech.transcript ]
+        else mempty
+      ]
+
+naturalLanguageDemo :: DemoProps -> JSX
+naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
+  txt /\ setTxt <- useState' "I love this amazing app! C'est magnifique."
+  result /\ setResult <- useState' ""
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Natural Language"
+      , desc dp "Language detection, sentiment, tokenization (NaturalLanguage.framework)"
+      , nativeTextField
+          { text: txt
+          , placeholder: "Enter text to analyze..."
+          , onChangeText: E.onString "text" setTxt
+          , style: Style.style { height: 24.0 } <> tw "mb-2"
+          }
+      , view { style: tw "flex-row items-center mb-2" }
+          [ nativeButton
+              { title: "Language"
+              , sfSymbol: "globe"
+              , bezelStyle: T.push
+              , onPress: handler_ $ launchAff_ do
+                  lang <- detectLanguage txt
+                  liftEffect (setResult ("Language: " <> lang))
+              , style: Style.style { height: 24.0, width: 110.0 }
+              }
+          , nativeButton
+              { title: "Sentiment"
+              , sfSymbol: "face.smiling"
+              , bezelStyle: T.push
+              , onPress: handler_ $ launchAff_ do
+                  score <- analyzeSentiment txt
+                  liftEffect (setResult ("Sentiment: " <> show score))
+              , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
+              }
+          , nativeButton
+              { title: "Tokenize"
+              , sfSymbol: "text.word.spacing"
+              , bezelStyle: T.push
+              , onPress: handler_ $ launchAff_ do
+                  tokens <- tokenize txt
+                  liftEffect (setResult ("Tokens: " <> joinWith ", " tokens))
+              , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
+              }
+          ]
+      , if result /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: dp.cardBg } }
+          [ text { style: tw "text-xs font-mono" <> Style.style { color: dp.fg } } result ]
+        else mempty
+      ]
+
+cameraDemo :: DemoProps -> JSX
+cameraDemo = component "CameraDemo" \dp -> React.do
+  on /\ setOn <- useState' false
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Camera"
+      , desc dp "Live camera preview (AVCaptureVideoPreviewLayer)"
+      , nativeButton
+          { title: if on then "Stop Camera" else "Start Camera"
+          , sfSymbol: if on then "video.slash" else "video"
+          , bezelStyle: T.push
+          , onPress: handler_ (setOn (not on))
+          , style: Style.style { height: 24.0, width: 140.0 } <> tw "mb-2"
+          }
+      , if on then nativeCameraView
+          { active: true
+          , style: Style.style { height: 240.0 } <> tw "rounded-lg overflow-hidden mb-2"
+          }
+        else mempty
+      ]
+
+-- Maps & Documents
+
+mapViewDemo :: DemoProps -> JSX
+mapViewDemo = component "MapViewDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Map View"
+      , desc dp "Embedded MKMapView (San Francisco)"
+      , nativeMapView
+          { latitude: 37.7749
+          , longitude: -122.4194
+          , latitudeDelta: 0.05
+          , longitudeDelta: 0.05
+          , mapType: T.standardMap
+          , showsUserLocation: false
+          , annotations:
+              [ { latitude: 37.7749, longitude: -122.4194, title: "San Francisco", subtitle: "California" }
+              , { latitude: 37.8199, longitude: -122.4783, title: "Golden Gate Bridge", subtitle: "" }
+              ]
+          , style: Style.style { height: 250.0 }
+          }
+      ]
+
+pdfViewDemo :: DemoProps -> JSX
+pdfViewDemo = component "PDFViewDemo" \dp -> React.do
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "PDF Viewer"
+      , desc dp "PDFKit document viewer"
+      , nativePDFView
+          { source: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+          , autoScales: true
+          , displayMode: T.singlePageContinuous
+          , style: Style.style { height: 300.0 }
+          }
+      ]
+
+-- Web Browser
+
+webViewDemo :: DemoProps -> JSX
+webViewDemo = component "WebViewDemo" \dp -> React.do
+  url /\ setUrl <- useState' "https://pursuit.purescript.org"
+  urlBar /\ setUrlBar <- useState' "https://pursuit.purescript.org"
+  pure do
+    view { style: tw "flex-1 px-4" }
+      [ sectionTitle dp.fg "Web Browser"
+      , nativeTextField
+          { text: urlBar
+          , placeholder: "Enter URL..."
+          , search: false
+          , onChangeText: E.onString "text" setUrlBar
+          , onSubmit: E.onString "text" setUrl
+          , style: Style.style { height: 24.0, marginBottom: 8.0 }
+          }
+      , nativeWebView
+          { url
+          , onFinishLoad: handler
+              ( nativeEvent >>> unsafeEventFn \e ->
+                  { url: E.getFieldStr "url" e, title: E.getFieldStr "title" e }
+              )
+              \r -> setUrlBar r.url
+          , style: tw "flex-1" <> Style.style { minHeight: 400.0 }
+          }
+      ]
+
+-- Video Player
+
+videoPlayerDemo :: DemoProps -> JSX
+videoPlayerDemo = component "VideoPlayerDemo" \dp -> React.do
+  playing /\ setPlaying <- useState' true
+  pure do
+    scrollWrap dp
+      [ sectionTitle dp.fg "Video Player"
+      , desc dp "Native AVPlayerView with floating controls"
+      , nativeVideoPlayer
+          { source: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4"
+          , playing
+          , looping: true
+          , muted: false
+          , style: Style.style { height: 240.0 } <> tw "rounded-lg overflow-hidden mb-2"
+          }
+      , view { style: tw "flex-row mb-2" }
+          [ nativeButton
+              { title: if playing then "Pause" else "Play"
+              , sfSymbol: if playing then "pause.fill" else "play.fill"
+              , bezelStyle: T.push
+              , onPress: handler_ (setPlaying (not playing))
+              , style: Style.style { height: 24.0, width: 100.0 }
+              }
+          ]
+      ]
+
+-- Chat (Matrix)
 
 type Message =
   { sender :: String
   , body :: String
-  , kind :: String -- "text" | "sticker" | "gif" | "video"
+  , kind :: String
   , eventId :: String
   }
 
@@ -1283,8 +1559,8 @@ avatarColor roomId = fromMaybe "#5856D6" (avatarColors !! (mod (hashCode roomId)
 foreign import charCodes :: String -> Array Int
 foreign import abs :: Int -> Int
 
-chatTab :: ChatProps -> JSX
-chatTab = component "ChatTab" \p -> React.do
+matrixDemo :: DemoProps -> JSX
+matrixDemo = component "MatrixDemo" \dp -> React.do
   session /\ setSession <- useState' (Nothing :: Maybe Session)
   rooms /\ setRooms <- useState' ([] :: Array Room)
   activeRoom /\ setActiveRoom <- useState' (Nothing :: Maybe String)
@@ -1299,7 +1575,6 @@ chatTab = component "ChatTab" \p -> React.do
   sessionRef <- useRef (Nothing :: Maybe Session)
   seenIdsRef <- useRef ([] :: Array String)
 
-  -- Sync polling effect
   useEffect session do
     case session of
       Nothing -> pure mempty
@@ -1398,17 +1673,17 @@ chatTab = component "ChatTab" \p -> React.do
           _ <- try (Matrix.sendMessage sess.homeserver sess.accessToken rid txnId msg)
           pure unit
 
-    sentBubbleBg = if p.isDark then "#65B86A" else "#5CB85C"
-    receivedBubbleBg = if p.isDark then "#3B3B3D" else "#FFFFFF"
-    chatBg = if p.isDark then "#17212B" else "#E8DFD3"
+    sentBubbleBg = if dp.isDark then "#65B86A" else "#5CB85C"
+    receivedBubbleBg = if dp.isDark then "#3B3B3D" else "#FFFFFF"
+    chatBg = if dp.isDark then "#17212B" else "#E8DFD3"
 
     loginForm = view
       { style: tw "flex-1 items-center justify-center"
           <> Style.style { backgroundColor: chatBg }
       }
-      [ view { style: tw "rounded-xl p-6" <> Style.style { backgroundColor: p.cardBg, width: 340.0 } }
-          [ text { style: tw "text-lg font-bold mb-4 text-center" <> Style.style { color: p.fg } } "Matrix Login"
-          , text { style: tw "text-xs mb-1" <> Style.style { color: p.dimFg } } "Homeserver"
+      [ view { style: tw "rounded-xl p-6" <> Style.style { backgroundColor: dp.cardBg, width: 340.0 } }
+          [ text { style: tw "text-lg font-bold mb-4 text-center" <> Style.style { color: dp.fg } } "Matrix Login"
+          , text { style: tw "text-xs mb-1" <> Style.style { color: dp.dimFg } } "Homeserver"
           , nativeTextField
               { text: loginServer
               , placeholder: "https://matrix.org"
@@ -1418,7 +1693,7 @@ chatTab = component "ChatTab" \p -> React.do
               , onSubmit: handler_ (pure unit)
               , style: tw "mb-3" <> Style.style { height: 28.0 }
               }
-          , text { style: tw "text-xs mb-1" <> Style.style { color: p.dimFg } } "Username"
+          , text { style: tw "text-xs mb-1" <> Style.style { color: dp.dimFg } } "Username"
           , nativeTextField
               { text: loginUser
               , placeholder: "username"
@@ -1428,7 +1703,7 @@ chatTab = component "ChatTab" \p -> React.do
               , onSubmit: handler_ (pure unit)
               , style: tw "mb-3" <> Style.style { height: 28.0 }
               }
-          , text { style: tw "text-xs mb-1" <> Style.style { color: p.dimFg } } "Password"
+          , text { style: tw "text-xs mb-1" <> Style.style { color: dp.dimFg } } "Password"
           , nativeTextField
               { text: loginPass
               , placeholder: "password"
@@ -1456,7 +1731,7 @@ chatTab = component "ChatTab" \p -> React.do
           view
             { style: tw "flex-row items-center px-3 py-2 mx-2 rounded-lg"
                 <> Style.style
-                  { backgroundColor: if activeRoom == Just r.roomId then (if p.isDark then "#2B5278" else "#419FD9") else "transparent" }
+                  { backgroundColor: if activeRoom == Just r.roomId then (if dp.isDark then "#2B5278" else "#419FD9") else "transparent" }
             }
             [ view
                 { style: tw "rounded-full items-center justify-center"
@@ -1466,12 +1741,12 @@ chatTab = component "ChatTab" \p -> React.do
             , view { style: tw "ml-2 flex-1" }
                 [ text
                     { style: tw "text-sm font-semibold"
-                        <> Style.style { color: if activeRoom == Just r.roomId then "#FFFFFF" else p.fg }
+                        <> Style.style { color: if activeRoom == Just r.roomId then "#FFFFFF" else dp.fg }
                     }
                     r.name
                 , text
                     { style: tw "text-xs"
-                        <> Style.style { color: if activeRoom == Just r.roomId then "#FFFFFFCC" else p.dimFg }
+                        <> Style.style { color: if activeRoom == Just r.roomId then "#FFFFFFCC" else dp.dimFg }
                     }
                     r.lastMessage
                 ]
@@ -1505,7 +1780,7 @@ chatTab = component "ChatTab" \p -> React.do
         }
         ( view { style: Style.style { alignSelf: align, maxWidth: 320.0 } }
             [ if senderLabel == "" then text { style: Style.style { height: 0.0 } } ""
-              else text { style: tw "text-xs mb-0.5" <> Style.style { color: p.dimFg } } senderLabel
+              else text { style: tw "text-xs mb-0.5" <> Style.style { color: dp.dimFg } } senderLabel
             , if bigEmoji then
                 text
                   { style: Style.style { fontSize: 64.0, lineHeight: 72.0 } }
@@ -1518,7 +1793,7 @@ chatTab = component "ChatTab" \p -> React.do
                   }
                   [ text
                       { style: tw "text-sm"
-                          <> Style.style { color: if isMine then "#FFFFFF" else (if p.isDark then "#FFFFFF" else "#000000") }
+                          <> Style.style { color: if isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000") }
                       }
                       msg.body
                   ]
@@ -1535,13 +1810,13 @@ chatTab = component "ChatTab" \p -> React.do
       , content: view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
           [ view
               { style: tw "px-4 py-2 border-b"
-                  <> Style.style { borderBottomWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
+                  <> Style.style { borderBottomWidth: 0.5, borderColor: dp.dimFg, backgroundColor: "transparent" }
               }
-              [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeRoomName ]
+              [ text { style: tw "text-base font-semibold" <> Style.style { color: dp.fg } } activeRoomName ]
           , nativePatternBackground
-              { patternColor: if p.isDark then "#FFFFFF" else "#000000"
+              { patternColor: if dp.isDark then "#FFFFFF" else "#000000"
               , background: chatBg
-              , patternOpacity: if p.isDark then 0.04 else 0.06
+              , patternOpacity: if dp.isDark then 0.04 else 0.06
               , patternScale: 1.0
               , style: tw "flex-1"
               }
@@ -1552,11 +1827,11 @@ chatTab = component "ChatTab" \p -> React.do
               )
           , view
               { style: tw "flex-row items-center px-3 py-2"
-                  <> Style.style { borderTopWidth: 0.5, borderColor: p.dimFg, backgroundColor: "transparent" }
+                  <> Style.style { borderTopWidth: 0.5, borderColor: dp.dimFg, backgroundColor: "transparent" }
               }
               ( case activeRoom of
                   Nothing ->
-                    [ text { style: tw "text-sm" <> Style.style { color: p.dimFg } } "Select a room to start chatting" ]
+                    [ text { style: tw "text-sm" <> Style.style { color: dp.dimFg } } "Select a room to start chatting" ]
                   Just rid ->
                     [ nativeTextField
                         { text: inputText
@@ -1596,9 +1871,19 @@ foreign import setInterval :: Int -> Effect Unit -> Effect Int
 foreign import clearInterval :: Int -> Effect Unit
 
 -- UI helpers
+
+scrollWrap :: DemoProps -> Array JSX -> JSX
+scrollWrap dp children =
+  nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+    (view { style: tw "px-4 pb-4" } children)
+
 sectionTitle :: String -> String -> JSX
 sectionTitle color title =
   text { style: tw "text-sm font-semibold mt-4 mb-1" <> Style.style { color } } title
+
+desc :: DemoProps -> String -> JSX
+desc dp str =
+  text { style: tw "text-xs mb-2" <> Style.style { color: dp.dimFg } } str
 
 card :: String -> Array JSX -> JSX
 card bg children =
