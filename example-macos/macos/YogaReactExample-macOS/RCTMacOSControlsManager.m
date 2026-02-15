@@ -1565,6 +1565,10 @@ RCT_EXPORT_VIEW_PROPERTY(onCancel, RCTBubblingEventBlock)
   }
 }
 
+- (void)scrollWheel:(NSEvent *)event {
+  [self.nextResponder scrollWheel:event];
+}
+
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 - (void)layout {
   [super layout];
