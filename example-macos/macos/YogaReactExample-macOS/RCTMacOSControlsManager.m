@@ -2176,7 +2176,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 
 @interface RCTBoxView : NSBox
 @property (nonatomic, copy) NSString *boxTitle;
-@property (nonatomic, copy) NSString *fillColor;
+@property (nonatomic, copy) NSString *fillColorStr;
 @property (nonatomic, copy) NSString *borderColorStr;
 @property (nonatomic, assign) CGFloat cornerRadiusValue;
 @end
@@ -2205,9 +2205,9 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   }
 }
 
-- (void)setFillColor:(NSString *)fillColor {
-  _fillColor = fillColor;
-  self.fillColor = [RCTBoxView colorFromHex:fillColor];
+- (void)setFillColorStr:(NSString *)fillColorStr {
+  _fillColorStr = fillColorStr;
+  self.fillColor = [RCTBoxView colorFromHex:fillColorStr];
 }
 
 - (void)setBorderColorStr:(NSString *)borderColorStr {
@@ -2260,7 +2260,7 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_MODULE(MacOSBox)
 - (NSView *)view { return [[RCTBoxView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(boxTitle, NSString)
-RCT_EXPORT_VIEW_PROPERTY(fillColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(fillColorStr, NSString)
 RCT_EXPORT_VIEW_PROPERTY(borderColorStr, NSString)
 RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
 @end

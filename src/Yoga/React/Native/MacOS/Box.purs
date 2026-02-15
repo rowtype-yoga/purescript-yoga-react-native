@@ -14,7 +14,7 @@ nativeBox = createNativeElement _boxImpl
 
 type NativeBoxAttributes = BaseAttributes
   ( boxTitle :: String
-  , fillColor :: String
+  , fillColorStr :: String
   , borderColorStr :: String
   , cornerRadiusValue :: Number
   )

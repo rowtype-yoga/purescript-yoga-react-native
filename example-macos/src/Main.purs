@@ -678,7 +678,7 @@ systemTab = component "SystemTab" \p -> React.do
               "Native NSBox with title and border"
           , nativeBox
               { boxTitle: "Settings"
-              , fillColor: p.cardBg
+              , fillColorStr: p.cardBg
               , borderColorStr: p.dimFg
               , cornerRadiusValue: 8.0
               , style: Style.style { height: 100.0 } <> tw "mb-2"
