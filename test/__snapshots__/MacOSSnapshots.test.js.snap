@@ -1,0 +1,430 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`macOS component snapshots > AnimatedImage 1`] = `
+{
+  "props": {
+    "source": "anim.gif",
+  },
+  "type": "MacOSAnimatedImage",
+}
+`;
+
+exports[`macOS component snapshots > Box with child 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "title": "Group",
+  },
+  "type": "MacOSBox",
+}
+`;
+
+exports[`macOS component snapshots > Button 1`] = `
+{
+  "props": {
+    "bezelStyle": "rounded",
+    "title": "Click Me",
+  },
+  "type": "NativeButton",
+}
+`;
+
+exports[`macOS component snapshots > Checkbox checked 1`] = `
+{
+  "props": {
+    "checked": true,
+    "enabled": true,
+    "title": "Accept terms",
+  },
+  "type": "MacOSCheckbox",
+}
+`;
+
+exports[`macOS component snapshots > Checkbox unchecked 1`] = `
+{
+  "props": {
+    "checked": false,
+    "enabled": true,
+    "title": "Accept terms",
+  },
+  "type": "MacOSCheckbox",
+}
+`;
+
+exports[`macOS component snapshots > ColorWell 1`] = `
+{
+  "props": {
+    "color": "#ff0000",
+  },
+  "type": "NativeColorWell",
+}
+`;
+
+exports[`macOS component snapshots > ComboBox 1`] = `
+{
+  "props": {
+    "items": [
+      "foo",
+      "bar",
+    ],
+    "text": "foo",
+  },
+  "type": "MacOSComboBox",
+}
+`;
+
+exports[`macOS component snapshots > ContextMenu with child 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "menuItems": [
+      {
+        "title": "Copy",
+      },
+    ],
+  },
+  "type": "MacOSContextMenu",
+}
+`;
+
+exports[`macOS component snapshots > DatePicker 1`] = `
+{
+  "props": {
+    "date": "2025-01-15",
+  },
+  "type": "NativeDatePicker",
+}
+`;
+
+exports[`macOS component snapshots > HelpButton 1`] = `
+{
+  "type": "MacOSHelpButton",
+}
+`;
+
+exports[`macOS component snapshots > Image 1`] = `
+{
+  "props": {
+    "resizeMode": "cover",
+    "source": "test.png",
+  },
+  "type": "MacOSImage",
+}
+`;
+
+exports[`macOS component snapshots > LevelIndicator 1`] = `
+{
+  "props": {
+    "maxValue": 5,
+    "minValue": 0,
+    "value": 3,
+  },
+  "type": "NativeLevelIndicator",
+}
+`;
+
+exports[`macOS component snapshots > PathControl 1`] = `
+{
+  "props": {
+    "pathStyle": "standard",
+    "url": "/Users/test/file.txt",
+  },
+  "type": "MacOSPathControl",
+}
+`;
+
+exports[`macOS component snapshots > PatternBackground with child 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "pattern": "dots",
+  },
+  "type": "MacOSPatternBackground",
+}
+`;
+
+exports[`macOS component snapshots > PopUp 1`] = `
+{
+  "props": {
+    "items": [
+      "One",
+      "Two",
+    ],
+    "selectedIndex": 0,
+  },
+  "type": "NativePopUp",
+}
+`;
+
+exports[`macOS component snapshots > Popover with child 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "visible": true,
+  },
+  "type": "MacOSPopover",
+}
+`;
+
+exports[`macOS component snapshots > Progress determinate 1`] = `
+{
+  "props": {
+    "style": "bar",
+    "value": 0.6,
+  },
+  "type": "NativeProgress",
+}
+`;
+
+exports[`macOS component snapshots > RadioButton selected 1`] = `
+{
+  "props": {
+    "enabled": true,
+    "selected": true,
+    "title": "Option A",
+  },
+  "type": "MacOSRadioButton",
+}
+`;
+
+exports[`macOS component snapshots > RadioButton unselected 1`] = `
+{
+  "props": {
+    "enabled": true,
+    "selected": false,
+    "title": "Option B",
+  },
+  "type": "MacOSRadioButton",
+}
+`;
+
+exports[`macOS component snapshots > ScrollView with child 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "type": "MacOSScrollView",
+}
+`;
+
+exports[`macOS component snapshots > SearchField 1`] = `
+{
+  "props": {
+    "placeholder": "Search...",
+    "text": "",
+  },
+  "type": "MacOSSearchField",
+}
+`;
+
+exports[`macOS component snapshots > Segmented 1`] = `
+{
+  "props": {
+    "selectedIndex": 1,
+    "values": [
+      "A",
+      "B",
+      "C",
+    ],
+  },
+  "type": "NativeSegmented",
+}
+`;
+
+exports[`macOS component snapshots > Separator horizontal 1`] = `
+{
+  "props": {
+    "vertical": false,
+  },
+  "type": "MacOSSeparator",
+}
+`;
+
+exports[`macOS component snapshots > Separator vertical 1`] = `
+{
+  "props": {
+    "vertical": true,
+  },
+  "type": "MacOSSeparator",
+}
+`;
+
+exports[`macOS component snapshots > Sheet with child 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "visible": true,
+  },
+  "type": "MacOSSheet",
+}
+`;
+
+exports[`macOS component snapshots > Slider 1`] = `
+{
+  "props": {
+    "maximumValue": 100,
+    "minimumValue": 0,
+    "value": 50,
+  },
+  "type": "NativeSlider",
+}
+`;
+
+exports[`macOS component snapshots > SplitView with children 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "vertical": false,
+  },
+  "type": "MacOSSplitView",
+}
+`;
+
+exports[`macOS component snapshots > Stepper 1`] = `
+{
+  "props": {
+    "maxValue": 10,
+    "minValue": 0,
+    "value": 5,
+  },
+  "type": "MacOSStepper",
+}
+`;
+
+exports[`macOS component snapshots > Switch on 1`] = `
+{
+  "props": {
+    "value": true,
+  },
+  "type": "NativeSwitch",
+}
+`;
+
+exports[`macOS component snapshots > TabView with children 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "selectedIndex": 0,
+  },
+  "type": "MacOSTabView",
+}
+`;
+
+exports[`macOS component snapshots > TableView 1`] = `
+{
+  "props": {
+    "alternatingRows": true,
+    "columns": [
+      {
+        "title": "Name",
+        "width": 100,
+      },
+      {
+        "title": "Age",
+        "width": 50,
+      },
+    ],
+    "headerVisible": true,
+    "rows": [
+      [
+        "Alice",
+        "30",
+      ],
+      [
+        "Bob",
+        "25",
+      ],
+    ],
+  },
+  "type": "MacOSTableView",
+}
+`;
+
+exports[`macOS component snapshots > TextEditor 1`] = `
+{
+  "props": {
+    "text": "Some long text",
+  },
+  "type": "NativeTextEditor",
+}
+`;
+
+exports[`macOS component snapshots > TextField 1`] = `
+{
+  "props": {
+    "placeholder": "Type here",
+    "text": "Hello",
+  },
+  "type": "NativeTextField",
+}
+`;
+
+exports[`macOS component snapshots > TokenField 1`] = `
+{
+  "props": {
+    "placeholder": "Add tag",
+    "tokens": [
+      "swift",
+      "purescript",
+    ],
+  },
+  "type": "MacOSTokenField",
+}
+`;
+
+exports[`macOS component snapshots > VideoPlayer 1`] = `
+{
+  "props": {
+    "autoPlay": false,
+    "source": "video.mp4",
+  },
+  "type": "MacOSVideoPlayer",
+}
+`;
+
+exports[`macOS component snapshots > VisualEffect with child 1`] = `
+{
+  "children": [
+    {
+      "type": "View",
+    },
+  ],
+  "props": {
+    "material": "sidebar",
+  },
+  "type": "MacOSVisualEffectView",
+}
+`;
