@@ -49,5 +49,7 @@
 	<string>This app uses the microphone for speech recognition.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app uses speech recognition to convert speech to text.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app uses the camera for live video preview.</string>
 </dict>
 </plist>

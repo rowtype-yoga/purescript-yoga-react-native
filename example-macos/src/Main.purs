@@ -74,6 +74,7 @@ import Yoga.React.Native.MacOS.FontPanel (macosShowFontPanel)
 import Yoga.React.Native.MacOS.OCR (recognizeText)
 import Yoga.React.Native.MacOS.SpeechRecognition (useSpeechRecognition)
 import Yoga.React.Native.MacOS.NaturalLanguage (detectLanguage, analyzeSentiment, tokenize)
+import Yoga.React.Native.MacOS.CameraView (nativeCameraView)
 import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
@@ -1049,6 +1050,7 @@ aiTab = component "AITab" \p -> React.do
   speech <- useSpeechRecognition
   nlText /\ setNlText <- useState' "I love this amazing app! C'est magnifique."
   nlResult /\ setNlResult <- useState' ""
+  cameraOn /\ setCameraOn <- useState' false
   pure do
     nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
       ( view { style: tw "px-4 pb-4" }
@@ -1222,6 +1224,22 @@ aiTab = component "AITab" \p -> React.do
               ]
           , if nlResult /= "" then view { style: tw "p-2 rounded mb-4" <> Style.style { backgroundColor: p.cardBg } }
               [ text { style: tw "text-xs font-mono" <> Style.style { color: p.fg } } nlResult ]
+            else view {} []
+
+          , sectionTitle p.fg "Camera"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Live camera preview (AVCaptureVideoPreviewLayer)"
+          , nativeButton
+              { title: if cameraOn then "Stop Camera" else "Start Camera"
+              , sfSymbol: if cameraOn then "video.slash" else "video"
+              , bezelStyle: T.push
+              , onPress: handler_ (setCameraOn (not cameraOn))
+              , style: Style.style { height: 24.0, width: 140.0 } <> tw "mb-2"
+              }
+          , if cameraOn then nativeCameraView
+              { active: true
+              , style: Style.style { height: 240.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
             else view {} []
           ]
       )

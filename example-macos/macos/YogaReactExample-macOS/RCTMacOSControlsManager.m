@@ -4201,3 +4201,91 @@ RCT_EXPORT_METHOD(tokenize:(NSString *)text
 }
 
 @end
+
+// ── Section 54: Camera View ─────────────────────────────────────────────────
+// Live camera preview using AVCaptureVideoPreviewLayer
+
+@interface RCTCameraView : NSView
+@property (nonatomic, assign) BOOL active;
+@property (nonatomic, strong) AVCaptureSession *session;
+@property (nonatomic, strong) AVCaptureVideoPreviewLayer *previewLayer;
+@end
+
+@implementation RCTCameraView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    self.wantsLayer = YES;
+    _active = NO;
+  }
+  return self;
+}
+
+- (NSSize)intrinsicContentSize {
+  return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
+}
+
+- (void)setActive:(BOOL)active {
+  _active = active;
+  if (active) {
+    [self startCapture];
+  } else {
+    [self stopCapture];
+  }
+}
+
+- (void)startCapture {
+  if (_session) return;
+
+  AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+  if (!device) {
+    NSLog(@"[CameraView] No video device found");
+    return;
+  }
+
+  NSError *error = nil;
+  AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
+  if (error) {
+    NSLog(@"[CameraView] Input error: %@", error);
+    return;
+  }
+
+  _session = [[AVCaptureSession alloc] init];
+  _session.sessionPreset = AVCaptureSessionPresetMedium;
+  [_session addInput:input];
+
+  _previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:_session];
+  _previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+  _previewLayer.frame = self.bounds;
+  [self.layer addSublayer:_previewLayer];
+
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    [self->_session startRunning];
+  });
+}
+
+- (void)stopCapture {
+  if (!_session) return;
+  [_session stopRunning];
+  [_previewLayer removeFromSuperlayer];
+  _previewLayer = nil;
+  _session = nil;
+}
+
+- (void)layout {
+  [super layout];
+  _previewLayer.frame = self.bounds;
+}
+
+- (void)dealloc {
+  [self stopCapture];
+}
+
+@end
+
+@interface RCTCameraViewManager : RCTViewManager @end
+@implementation RCTCameraViewManager
+RCT_EXPORT_MODULE(MacOSCameraView)
+- (NSView *)view { return [[RCTCameraView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
+@end
