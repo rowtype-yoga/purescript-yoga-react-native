@@ -581,7 +581,7 @@ systemTab = component "SystemTab" \p -> React.do
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
               "Native AVPlayerView with floating controls"
           , nativeVideoPlayer
-              { source: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+              { source: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4"
               , playing: videoPlaying
               , looping: true
               , muted: false
