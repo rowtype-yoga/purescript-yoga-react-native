@@ -1583,6 +1583,8 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 
 RCT_EXPORT_MODULE()
 
++ (BOOL)requiresMainQueueSetup { return NO; }
+
 RCT_EXPORT_METHOD(show:(NSString *)style
                   title:(NSString *)title
                   message:(NSString *)message
@@ -2331,6 +2333,7 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
     _popover = [[NSPopover alloc] init];
     _popover.contentViewController = _popoverVC;
     _popover.behavior = NSPopoverBehaviorTransient;
+    _popover.animates = YES;
     _popover.delegate = self;
     _preferredEdge = @"bottom";
   }
