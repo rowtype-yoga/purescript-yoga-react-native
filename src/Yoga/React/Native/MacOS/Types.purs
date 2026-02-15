@@ -196,6 +196,23 @@ satelliteMap = MapType "satellite"
 hybridMap :: MapType
 hybridMap = MapType "hybrid"
 
+newtype VoiceIdentifier = VoiceIdentifier String
+
+alex :: VoiceIdentifier
+alex = VoiceIdentifier "com.apple.speech.synthesis.voice.Alex"
+
+samantha :: VoiceIdentifier
+samantha = VoiceIdentifier "com.apple.speech.synthesis.voice.samantha"
+
+daniel :: VoiceIdentifier
+daniel = VoiceIdentifier "com.apple.speech.synthesis.voice.daniel.premium"
+
+karen :: VoiceIdentifier
+karen = VoiceIdentifier "com.apple.speech.synthesis.voice.karen.premium"
+
+moira :: VoiceIdentifier
+moira = VoiceIdentifier "com.apple.speech.synthesis.voice.moira.premium"
+
 newtype PDFDisplayMode = PDFDisplayMode String
 
 singlePage :: PDFDisplayMode

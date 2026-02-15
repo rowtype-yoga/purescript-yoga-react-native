@@ -11,7 +11,7 @@ nativePatternBackground = createNativeElement _patternBackgroundImpl
 
 type NativePatternBackgroundAttributes = BaseAttributes
   ( patternColor :: String
-  , backgroundColor2 :: String
+  , background :: String
   , patternOpacity :: Number
   , patternScale :: Number
   )

@@ -13,7 +13,7 @@ import Data.Either (Either(..))
 import Effect.Aff (launchAff_, try)
 import Effect.Class (liftEffect)
 import React.Basic (JSX)
-import React.Basic.Events (EventHandler, handler, handler_, unsafeEventFn)
+import React.Basic.Events (handler, handler_, unsafeEventFn)
 import React.Basic.Hooks (useState, useState', useEffect, useRef, readRef, writeRef, (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
@@ -60,8 +60,7 @@ import Yoga.React.Native.MacOS.Sheet (nativeSheet)
 import Yoga.React.Native.MacOS.TableView (nativeTableView)
 import Yoga.React.Native.MacOS.Menu (macosShowMenu)
 import Yoga.React.Native.MacOS.Pasteboard (copyToClipboard)
-import Foreign (unsafeToForeign)
-import Yoga.React.Native.MacOS.OutlineView (nativeOutlineView)
+import Yoga.React.Native.MacOS.OutlineView (nativeOutlineView, outlineItem)
 import Yoga.React.Native.MacOS.ShareService (macosShare)
 import Yoga.React.Native.MacOS.UserNotification (macosNotify)
 import Yoga.React.Native.MacOS.Sound (macosPlaySound, macosBeep)
@@ -69,12 +68,13 @@ import Yoga.React.Native.MacOS.StatusBarItem (macosSetStatusBarItem, macosRemove
 import Yoga.React.Native.MacOS.MapView (nativeMapView)
 import Yoga.React.Native.MacOS.PDFView (nativePDFView)
 import Yoga.React.Native.MacOS.QuickLook (macosQuickLook)
-import Yoga.React.Native.MacOS.SpeechSynthesizer (macosSay, macosStopSpeaking)
+import Yoga.React.Native.MacOS.SpeechSynthesizer (say, stopSpeaking)
 import Yoga.React.Native.MacOS.ColorPanel (macosShowColorPanel)
 import Yoga.React.Native.MacOS.FontPanel (macosShowFontPanel)
 import Yoga.React.Native.MacOS.OCR (recognizeText)
 import Yoga.React.Native.MacOS.SpeechRecognition (useSpeechRecognition)
 import Yoga.React.Native.MacOS.NaturalLanguage (detectLanguage, analyzeSentiment, tokenize)
+import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
@@ -121,7 +121,7 @@ app = component "App" \_ -> React.do
                   , selectedItem: activeTab
                   , toolbarStyle: T.unified
                   , windowTitle: "PureScript React Native"
-                  , onSelectItem: extractString "itemId" setActiveTab
+                  , onSelectItem: E.onString "itemId" setActiveTab
                   , style: Style.style { height: 0.0, width: 0.0 }
                   }
               , view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
@@ -163,25 +163,6 @@ app = component "App" \_ -> React.do
               ]
           )
       )
-
--- Helpers for extracting native event values
-extractNumber :: String -> (Number -> Effect Unit) -> EventHandler
-extractNumber key cb = handler (nativeEvent >>> unsafeEventFn \e -> getField key e) cb
-
-extractInt :: String -> (Int -> Effect Unit) -> EventHandler
-extractInt key cb = handler (nativeEvent >>> unsafeEventFn \e -> getFieldInt key e) cb
-
-extractString :: String -> (String -> Effect Unit) -> EventHandler
-extractString key cb = handler (nativeEvent >>> unsafeEventFn \e -> getFieldStr key e) cb
-
-extractBool :: String -> (Boolean -> Effect Unit) -> EventHandler
-extractBool key cb = handler (nativeEvent >>> unsafeEventFn \e -> getFieldBool key e) cb
-
-foreign import getField :: String -> forall r. r -> Number
-foreign import getFieldInt :: String -> forall r. r -> Int
-foreign import getFieldStr :: String -> forall r. r -> String
-foreign import getFieldBool :: String -> forall r. r -> Boolean
-foreign import getFieldArray :: String -> forall r. r -> Array String
 
 -- Tab 0: Controls
 type ControlsProps =
@@ -256,7 +237,7 @@ controlsTab = component "ControlsTab" \p -> React.do
           [ view { style: tw "flex-row items-center" }
               [ nativeSwitch
                   { on: p.switchOn
-                  , onChange: extractBool "on" p.setSwitchOn
+                  , onChange: E.onBool "on" p.setSwitchOn
                   , style: Style.style { height: 24.0, width: 48.0 }
                   }
               , label p.dimFg (if p.switchOn then "On" else "Off")
@@ -272,7 +253,7 @@ controlsTab = component "ControlsTab" \p -> React.do
               , minValue: 0.0
               , maxValue: 100.0
               , numberOfTickMarks: 11
-              , onChange: extractNumber "value" p.setSliderValue
+              , onChange: E.onNumber "value" p.setSliderValue
               , style: Style.style { height: 24.0 }
               }
           , label p.dimFg ("Value: " <> show (round p.sliderValue) <> " / 100")
@@ -300,7 +281,7 @@ controlsTab = component "ControlsTab" \p -> React.do
                   , selectedIndex: p.popUpIndex
                   , onChange: handler
                       ( nativeEvent >>> unsafeEventFn \e ->
-                          { idx: (getFieldInt "selectedIndex" e), title: (getFieldStr "title" e) }
+                          { idx: (E.getFieldInt "selectedIndex" e), title: (E.getFieldStr "title" e) }
                       )
                       \r -> do
                         p.setPopUpIndex r.idx
@@ -319,7 +300,7 @@ controlsTab = component "ControlsTab" \p -> React.do
               [ nativeColorWell
                   { color: p.selectedColor
                   , minimal: true
-                  , onChange: extractString "color" p.setSelectedColor
+                  , onChange: E.onString "color" p.setSelectedColor
                   , style: Style.style { height: 32.0, width: 48.0 }
                   }
               , view
@@ -337,7 +318,7 @@ controlsTab = component "ControlsTab" \p -> React.do
       , card p.cardBg
           [ nativeDatePicker
               { graphical: false
-              , onChange: extractString "date" p.setDateText
+              , onChange: E.onString "date" p.setDateText
               , style: Style.style { height: 24.0, width: 200.0 }
               }
           , if p.dateText == "" then mempty
@@ -352,7 +333,7 @@ controlsTab = component "ControlsTab" \p -> React.do
               { placeholder: "Type something..."
               , search: true
               , text: p.searchText
-              , onChangeText: extractString "text" p.setSearchText
+              , onChangeText: E.onString "text" p.setSearchText
               , style: Style.style { height: 24.0 }
               }
           , if p.searchText == "" then mempty
@@ -410,15 +391,15 @@ browserTab = component "BrowserTab" \p -> React.do
           { text: p.urlBarText
           , placeholder: "Enter URL..."
           , search: false
-          , onChangeText: extractString "text" p.setUrlBarText
-          , onSubmit: extractString "text" p.setBrowserUrl
+          , onChangeText: E.onString "text" p.setUrlBarText
+          , onSubmit: E.onString "text" p.setBrowserUrl
           , style: Style.style { height: 24.0, marginBottom: 8.0 }
           }
       , nativeWebView
           { url: p.browserUrl
           , onFinishLoad: handler
               ( nativeEvent >>> unsafeEventFn \e ->
-                  { url: getFieldStr "url" e, title: getFieldStr "title" e }
+                  { url: E.getFieldStr "url" e, title: E.getFieldStr "title" e }
               )
               \r -> p.setUrlBarText r.url
           , style: tw "flex-1" <> Style.style { minHeight: 400.0 }
@@ -529,7 +510,7 @@ systemTab = component "SystemTab" \p -> React.do
                   , { id: "delete", title: "Delete", sfSymbol: "trash" }
                   , { id: "selectAll", title: "Select All", sfSymbol: "selection.pin.in.out" }
                   ]
-              , onSelectItem: extractString "itemId" setMenuResult
+              , onSelectItem: E.onString "itemId" setMenuResult
               , style: Style.style {}
               }
               ( card p.cardBg
@@ -679,7 +660,7 @@ systemTab = component "SystemTab" \p -> React.do
                   , { id: "about", label: "About" }
                   ]
               , selectedItem: "general"
-              , onSelectTab: extractString "tabId" \_ -> pure unit
+              , onSelectTab: E.onString "tabId" \_ -> pure unit
               , style: Style.style { height: 32.0 } <> tw "mb-2"
               }
 
@@ -691,8 +672,8 @@ systemTab = component "SystemTab" \p -> React.do
                   { items: [ "Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape" ]
                   , text: comboText
                   , placeholder: "Type a fruit..."
-                  , onChangeText: extractString "text" setComboText
-                  , onSelectItem: extractString "text" \t -> do
+                  , onChangeText: E.onString "text" setComboText
+                  , onSelectItem: E.onString "text" \t -> do
                       setComboText t
                       setComboResult ("Selected: " <> t)
                   , style: Style.style { height: 28.0 } <> tw "mb-2"
@@ -712,7 +693,7 @@ systemTab = component "SystemTab" \p -> React.do
                       , minValue: 0.0
                       , maxValue: 50.0
                       , increment: 1.0
-                      , onChange: extractNumber "value" setStepperValue
+                      , onChange: E.onNumber "value" setStepperValue
                       , style: Style.style { width: 100.0, height: 24.0 }
                       }
                   ]
@@ -723,9 +704,9 @@ systemTab = component "SystemTab" \p -> React.do
               "Native NSBox with title and border"
           , nativeBox
               { boxTitle: "Settings"
-              , fillColorStr: p.cardBg
-              , borderColorStr: p.dimFg
-              , cornerRadiusValue: 8.0
+              , fillColor2: p.cardBg
+              , borderColor2: p.dimFg
+              , radius: 8.0
               , style: Style.style { height: 100.0 } <> tw "mb-2"
               }
               [ view { style: tw "flex-row items-center p-2" }
@@ -770,14 +751,14 @@ systemTab = component "SystemTab" \p -> React.do
                   { checked: checkboxA
                   , title: "Enable notifications"
                   , enabled: true
-                  , onChange: extractBool "checked" setCheckboxA
+                  , onChange: E.onBool "checked" setCheckboxA
                   , style: Style.style { height: 24.0 } <> tw "mb-1"
                   }
               , nativeCheckbox
                   { checked: checkboxB
                   , title: "Dark mode"
                   , enabled: true
-                  , onChange: extractBool "checked" setCheckboxB
+                  , onChange: E.onBool "checked" setCheckboxB
                   , style: Style.style { height: 24.0 }
                   }
               ]
@@ -812,8 +793,8 @@ systemTab = component "SystemTab" \p -> React.do
           , nativeSearchField
               { text: searchQuery
               , placeholder: "Search..."
-              , onChangeText: extractString "text" setSearchQuery
-              , onSearch: extractString "text" \t -> setSearchResult ("Searched: " <> t)
+              , onChangeText: E.onString "text" setSearchQuery
+              , onSearch: E.onString "text" \t -> setSearchResult ("Searched: " <> t)
               , style: Style.style { height: 28.0 } <> tw "mb-2"
               }
           , if searchResult == "" then mempty
@@ -825,9 +806,7 @@ systemTab = component "SystemTab" \p -> React.do
           , nativeTokenField
               { tokens: tagTokens
               , placeholder: "Add tags..."
-              , onChangeTokens: handler
-                  (nativeEvent >>> unsafeEventFn \e -> getFieldArray "tokens" e)
-                  setTagTokens
+              , onChangeTokens: E.onStrings "tokens" setTagTokens
               , style: Style.style { height: 28.0 } <> tw "mb-2"
               }
 
@@ -850,7 +829,7 @@ systemTab = component "SystemTab" \p -> React.do
           , nativePathControl
               { url: "/Users"
               , pathStyle: T.standardPath
-              , onSelectPath: extractString "url" \_ -> pure unit
+              , onSelectPath: E.onString "url" \_ -> pure unit
               , style: Style.style { height: 24.0 } <> tw "mb-2"
               }
 
@@ -920,8 +899,8 @@ systemTab = component "SystemTab" \p -> React.do
                   ]
               , headerVisible: true
               , alternatingRows: true
-              , onSelectRow: extractInt "rowIndex" \i -> setSelectedRow ("Row " <> show i)
-              , onDoubleClickRow: extractInt "rowIndex" \i -> setSelectedRow ("Double-clicked row " <> show i)
+              , onSelectRow: E.onInt "rowIndex" \i -> setSelectedRow ("Row " <> show i)
+              , onDoubleClickRow: E.onInt "rowIndex" \i -> setSelectedRow ("Double-clicked row " <> show i)
               , style: Style.style { height: 180.0 } <> tw "rounded-lg overflow-hidden mb-2"
               }
           , if selectedRow == "" then mempty
@@ -953,35 +932,23 @@ systemTab = component "SystemTab" \p -> React.do
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
               "Hierarchical tree list (NSOutlineView)"
           , nativeOutlineView
-              { items: unsafeToForeign
-                  [ { id: "src"
-                    , title: "src"
-                    , sfSymbol: "folder"
-                    , children:
-                        [ { id: "main", title: "Main.purs", sfSymbol: "doc", children: [] }
-                        , { id: "macos"
-                          , title: "MacOS"
-                          , sfSymbol: "folder"
-                          , children:
-                              [ { id: "btn", title: "Button.purs", sfSymbol: "doc", children: [] }
-                              , { id: "sl", title: "Slider.purs", sfSymbol: "doc", children: [] }
-                              , { id: "sw", title: "Switch.purs", sfSymbol: "doc", children: [] }
-                              ]
-                          }
-                        ]
-                    }
-                  , { id: "test"
-                    , title: "test"
-                    , sfSymbol: "folder"
-                    , children:
-                        [ { id: "t1", title: "MacOSComponents.test.js", sfSymbol: "doc", children: [] }
-                        , { id: "t2", title: "MacOSSnapshots.test.js", sfSymbol: "doc", children: [] }
-                        ]
-                    }
-                  , { id: "pkg", title: "package.json", sfSymbol: "doc.text", children: [] }
+              { items:
+                  [ outlineItem "src" "src" "folder"
+                      [ outlineItem "main" "Main.purs" "doc" []
+                      , outlineItem "macos" "MacOS" "folder"
+                          [ outlineItem "btn" "Button.purs" "doc" []
+                          , outlineItem "sl" "Slider.purs" "doc" []
+                          , outlineItem "sw" "Switch.purs" "doc" []
+                          ]
+                      ]
+                  , outlineItem "test" "test" "folder"
+                      [ outlineItem "t1" "MacOSComponents.test.js" "doc" []
+                      , outlineItem "t2" "MacOSSnapshots.test.js" "doc" []
+                      ]
+                  , outlineItem "pkg" "package.json" "doc.text" []
                   ]
               , headerVisible: false
-              , onSelectItem: extractString "id" setOutlineSelection
+              , onSelectItem: E.onString "id" setOutlineSelection
               , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
               }
           , if outlineSelection == "" then mempty
@@ -1124,7 +1091,7 @@ aiTab = component "AITab" \p -> React.do
           , nativeTextField
               { text: speechText
               , placeholder: "Text to speak..."
-              , onChangeText: extractString "text" setSpeechText
+              , onChangeText: E.onString "text" setSpeechText
               , style: Style.style { height: 24.0 } <> tw "mb-2"
               }
           , view { style: tw "flex-row items-center mb-4" }
@@ -1132,14 +1099,14 @@ aiTab = component "AITab" \p -> React.do
                   { title: "Speak"
                   , sfSymbol: "speaker.wave.2"
                   , bezelStyle: T.push
-                  , onPress: handler_ (macosSay speechText)
+                  , onPress: handler_ (say speechText)
                   , style: Style.style { height: 24.0, width: 100.0 }
                   }
               , nativeButton
                   { title: "Stop"
                   , sfSymbol: "stop.circle"
                   , bezelStyle: T.push
-                  , onPress: handler_ macosStopSpeaking
+                  , onPress: handler_ stopSpeaking
                   , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
                   }
               ]
@@ -1177,7 +1144,7 @@ aiTab = component "AITab" \p -> React.do
                   , title: "Pick Image"
                   , sfSymbol: "photo"
                   , onPickFiles: handler
-                      (nativeEvent >>> unsafeEventFn \e -> getFieldArray "files" e)
+                      (nativeEvent >>> unsafeEventFn \e -> E.getFieldArray "files" e)
                       \paths -> for_ paths \path -> do
                         setOcrResult "Recognizing..."
                         launchAff_ do
@@ -1217,7 +1184,7 @@ aiTab = component "AITab" \p -> React.do
           , nativeTextField
               { text: nlText
               , placeholder: "Enter text to analyze..."
-              , onChangeText: extractString "text" setNlText
+              , onChangeText: E.onString "text" setNlText
               , style: Style.style { height: 24.0 } <> tw "mb-2"
               }
           , view { style: tw "flex-row items-center mb-2" }
@@ -1425,7 +1392,7 @@ chatTab = component "ChatTab" \p -> React.do
               , placeholder: "https://matrix.org"
               , search: false
               , rounded: true
-              , onChangeText: extractString "text" setLoginServer
+              , onChangeText: E.onString "text" setLoginServer
               , onSubmit: handler_ (pure unit)
               , style: tw "mb-3" <> Style.style { height: 28.0 }
               }
@@ -1435,7 +1402,7 @@ chatTab = component "ChatTab" \p -> React.do
               , placeholder: "username"
               , search: false
               , rounded: true
-              , onChangeText: extractString "text" setLoginUser
+              , onChangeText: E.onString "text" setLoginUser
               , onSubmit: handler_ (pure unit)
               , style: tw "mb-3" <> Style.style { height: 28.0 }
               }
@@ -1445,7 +1412,7 @@ chatTab = component "ChatTab" \p -> React.do
               , placeholder: "password"
               , search: false
               , rounded: true
-              , onChangeText: extractString "text" setLoginPass
+              , onChangeText: E.onString "text" setLoginPass
               , onSubmit: handler_ doLogin
               , style: tw "mb-4" <> Style.style { height: 28.0 }
               }
@@ -1551,7 +1518,7 @@ chatTab = component "ChatTab" \p -> React.do
               [ text { style: tw "text-base font-semibold" <> Style.style { color: p.fg } } activeRoomName ]
           , nativePatternBackground
               { patternColor: if p.isDark then "#FFFFFF" else "#000000"
-              , backgroundColor2: chatBg
+              , background: chatBg
               , patternOpacity: if p.isDark then 0.04 else 0.06
               , patternScale: 1.0
               , style: tw "flex-1"
@@ -1574,8 +1541,8 @@ chatTab = component "ChatTab" \p -> React.do
                         , placeholder: "Message..."
                         , search: false
                         , rounded: true
-                        , onChangeText: extractString "text" setInputText
-                        , onSubmit: extractString "text" \t -> sendMessage sess rid t
+                        , onChangeText: E.onString "text" setInputText
+                        , onSubmit: E.onString "text" \t -> sendMessage sess rid t
                         , style: tw "flex-1" <> Style.style { height: 28.0 }
                         }
                     , nativeButton

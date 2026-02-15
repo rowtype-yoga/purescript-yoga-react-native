@@ -1783,7 +1783,7 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 
 @interface RCTPatternBackgroundView : NSView
 @property (nonatomic, copy) NSString *patternColor;
-@property (nonatomic, copy) NSString *backgroundColor2;
+@property (nonatomic, copy) NSString *background;
 @property (nonatomic, assign) CGFloat patternOpacity;
 @property (nonatomic, assign) CGFloat patternScale;
 @end
@@ -1793,7 +1793,7 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
     _patternColor = @"#FFFFFF";
-    _backgroundColor2 = @"#17212B";
+    _background = @"#17212B";
     _patternOpacity = 0.06;
     _patternScale = 1.0;
   }
@@ -1809,8 +1809,8 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
   [self setNeedsDisplay:YES];
 }
 
-- (void)setBackgroundColor2:(NSString *)backgroundColor2 {
-  _backgroundColor2 = backgroundColor2;
+- (void)setBackground:(NSString *)background {
+  _background = background;
   [self setNeedsDisplay:YES];
 }
 
@@ -1841,7 +1841,7 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
   NSRect clip = NSIntersectionRect(dirtyRect, bounds);
   if (NSIsEmptyRect(clip)) return;
 
-  NSColor *bgColor = [self colorFromHex:_backgroundColor2];
+  NSColor *bgColor = [self colorFromHex:_background];
   [bgColor setFill];
   NSRectFill(clip);
 
@@ -1902,7 +1902,7 @@ RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
 RCT_EXPORT_MODULE(MacOSPatternBackground)
 - (NSView *)view { return [[RCTPatternBackgroundView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(patternColor, NSString)
-RCT_EXPORT_VIEW_PROPERTY(backgroundColor2, NSString)
+RCT_EXPORT_VIEW_PROPERTY(background, NSString)
 RCT_EXPORT_VIEW_PROPERTY(patternOpacity, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 @end
@@ -2280,9 +2280,9 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 
 @interface RCTBoxView : NSBox
 @property (nonatomic, copy) NSString *boxTitle;
-@property (nonatomic, copy) NSString *fillColorStr;
-@property (nonatomic, copy) NSString *borderColorStr;
-@property (nonatomic, assign) CGFloat cornerRadiusValue;
+@property (nonatomic, copy) NSString *fillColor2;
+@property (nonatomic, copy) NSString *borderColor2;
+@property (nonatomic, assign) CGFloat radius;
 @end
 
 @implementation RCTBoxView
@@ -2309,19 +2309,19 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
   }
 }
 
-- (void)setFillColorStr:(NSString *)fillColorStr {
-  _fillColorStr = fillColorStr;
-  self.fillColor = [RCTBoxView colorFromHex:fillColorStr];
+- (void)setFillColor2:(NSString *)fillColor2 {
+  _fillColor2 = fillColor2;
+  self.fillColor = [RCTBoxView colorFromHex:fillColor2];
 }
 
-- (void)setBorderColorStr:(NSString *)borderColorStr {
-  _borderColorStr = borderColorStr;
-  self.borderColor = [RCTBoxView colorFromHex:borderColorStr];
+- (void)setBorderColor2:(NSString *)borderColor2 {
+  _borderColor2 = borderColor2;
+  self.borderColor = [RCTBoxView colorFromHex:borderColor2];
 }
 
-- (void)setCornerRadiusValue:(CGFloat)cornerRadiusValue {
-  _cornerRadiusValue = cornerRadiusValue;
-  self.cornerRadius = cornerRadiusValue;
+- (void)setRadius:(CGFloat)radius {
+  _radius = radius;
+  self.cornerRadius = radius;
 }
 
 + (NSColor *)colorFromHex:(NSString *)hex {
@@ -2364,9 +2364,9 @@ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_MODULE(MacOSBox)
 - (NSView *)view { return [[RCTBoxView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(boxTitle, NSString)
-RCT_EXPORT_VIEW_PROPERTY(fillColorStr, NSString)
-RCT_EXPORT_VIEW_PROPERTY(borderColorStr, NSString)
-RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(fillColor2, NSString)
+RCT_EXPORT_VIEW_PROPERTY(borderColor2, NSString)
+RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 @end
 
 // ===========================================================================
