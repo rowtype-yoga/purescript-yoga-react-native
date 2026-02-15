@@ -1904,22 +1904,11 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 @implementation RCTSplitPaneWrapper
 - (void)layout {
   [super layout];
-  if (_reactChild) {
-    _reactChild.frame = self.bounds;
-    // Also resize all immediate Yoga-managed children to match
-    for (NSView *sub in _reactChild.subviews) {
-      sub.frame = _reactChild.bounds;
-    }
-  }
+  if (_reactChild) _reactChild.frame = self.bounds;
 }
 - (void)setFrameSize:(NSSize)newSize {
   [super setFrameSize:newSize];
-  if (_reactChild) {
-    _reactChild.frame = self.bounds;
-    for (NSView *sub in _reactChild.subviews) {
-      sub.frame = _reactChild.bounds;
-    }
-  }
+  if (_reactChild) _reactChild.frame = self.bounds;
 }
 @end
 

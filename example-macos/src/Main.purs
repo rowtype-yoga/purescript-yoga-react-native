@@ -619,10 +619,14 @@ systemTab = component "SystemTab" \p -> React.do
               { isVertical: true
               , style: Style.style { height: 150.0 } <> tw "rounded-lg overflow-hidden mb-2"
               }
-              [ view { style: tw "flex-1 items-center justify-center" <> Style.style { backgroundColor: p.cardBg } }
-                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } "Left pane" ]
-              , view { style: tw "flex-1 items-center justify-center" <> Style.style { backgroundColor: p.cardBg } }
-                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } "Right pane" ]
+              [ view { style: tw "flex-1 p-4" <> Style.style { backgroundColor: p.cardBg } }
+                  [ text { style: tw "text-sm font-semibold" <> Style.style { color: p.fg } } "Left Pane"
+                  , text { style: tw "text-xs mt-1" <> Style.style { color: p.dimFg } } "Drag the divider to resize"
+                  ]
+              , view { style: tw "flex-1 p-4" <> Style.style { backgroundColor: p.cardBg } }
+                  [ text { style: tw "text-sm font-semibold" <> Style.style { color: p.fg } } "Right Pane"
+                  , text { style: tw "text-xs mt-1" <> Style.style { color: p.dimFg } } "Content fills available space"
+                  ]
               ]
 
           , sectionTitle p.fg "Tab View"
