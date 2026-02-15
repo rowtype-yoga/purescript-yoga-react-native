@@ -71,6 +71,8 @@ import { _animatedImageImpl } from "../src/Yoga/React/Native/MacOS/AnimatedImage
 import { _videoPlayerImpl } from "../src/Yoga/React/Native/MacOS/VideoPlayer.js";
 import { _tableViewImpl } from "../src/Yoga/React/Native/MacOS/TableView.js";
 import { _outlineViewImpl } from "../src/Yoga/React/Native/MacOS/OutlineView.js";
+import { _mapViewImpl } from "../src/Yoga/React/Native/MacOS/MapView.js";
+import { _pdfViewImpl } from "../src/Yoga/React/Native/MacOS/PDFView.js";
 
 // Container components (with children)
 import { _sheetImpl } from "../src/Yoga/React/Native/MacOS/Sheet.js";
@@ -359,6 +361,35 @@ describe("macOS component snapshots", () => {
         ],
         headerVisible: false,
         onSelectItem: noop,
+      }),
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it("MapView", () => {
+    const { toJSON } = render(
+      el(_mapViewImpl, {
+        latitude: 37.7749,
+        longitude: -122.4194,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+        mapType: "standard",
+        showsUserLocation: false,
+        annotations: [{ latitude: 37.7749, longitude: -122.4194, title: "SF" }],
+        onRegionChange: noop,
+        onSelectAnnotation: noop,
+      }),
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it("PDFView", () => {
+    const { toJSON } = render(
+      el(_pdfViewImpl, {
+        source: "/tmp/test.pdf",
+        autoScales: true,
+        displayMode: "singlePageContinuous",
+        onPageChange: noop,
       }),
     );
     expect(toJSON()).toMatchSnapshot();

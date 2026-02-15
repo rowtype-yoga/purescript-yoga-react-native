@@ -131,6 +131,27 @@ exports[`macOS component snapshots > LevelIndicator 1`] = `
 }
 `;
 
+exports[`macOS component snapshots > MapView 1`] = `
+{
+  "props": {
+    "annotations": [
+      {
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "title": "SF",
+      },
+    ],
+    "latitude": 37.7749,
+    "latitudeDelta": 0.05,
+    "longitude": -122.4194,
+    "longitudeDelta": 0.05,
+    "mapType": "standard",
+    "showsUserLocation": false,
+  },
+  "type": "MacOSMapView",
+}
+`;
+
 exports[`macOS component snapshots > OutlineView 1`] = `
 {
   "props": {
@@ -154,6 +175,17 @@ exports[`macOS component snapshots > OutlineView 1`] = `
     ],
   },
   "type": "MacOSOutlineView",
+}
+`;
+
+exports[`macOS component snapshots > PDFView 1`] = `
+{
+  "props": {
+    "autoScales": true,
+    "displayMode": "singlePageContinuous",
+    "source": "/tmp/test.pdf",
+  },
+  "type": "MacOSPDFView",
 }
 `;
 

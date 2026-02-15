@@ -8,6 +8,8 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UserNotifications/UserNotifications.h>
+#import <MapKit/MapKit.h>
+#import <Quartz/Quartz.h>
 #import <objc/message.h>
 @import RiveRuntime;
 
@@ -3551,6 +3553,401 @@ RCT_EXPORT_METHOD(remove:(RCTPromiseResolveBlock)resolve
       [[NSStatusBar systemStatusBar] removeStatusItem:self.statusItem];
       self.statusItem = nil;
     }
+    resolve(@(YES));
+  });
+}
+
+@end
+
+// ============================================================
+// 45. MKMapView — MacOSMapView
+// ============================================================
+
+@interface RCTMapViewWrapper : NSView <MKMapViewDelegate>
+@property (nonatomic, strong) MKMapView *mapView;
+@property (nonatomic, assign) CLLocationDegrees latitude;
+@property (nonatomic, assign) CLLocationDegrees longitude;
+@property (nonatomic, assign) CLLocationDegrees latitudeDelta;
+@property (nonatomic, assign) CLLocationDegrees longitudeDelta;
+@property (nonatomic, copy) NSString *mapType;
+@property (nonatomic, assign) BOOL showsUserLocation;
+@property (nonatomic, strong) NSArray<NSDictionary *> *annotations;
+@property (nonatomic, copy) RCTBubblingEventBlock onRegionChange;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectAnnotation;
+@property (nonatomic, assign) BOOL suppressRegionChange;
+@end
+
+@implementation RCTMapViewWrapper
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _mapView = [[MKMapView alloc] initWithFrame:self.bounds];
+    _mapView.delegate = self;
+    _mapView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    _latitude = 37.7749;
+    _longitude = -122.4194;
+    _latitudeDelta = 0.05;
+    _longitudeDelta = 0.05;
+    [self addSubview:_mapView];
+  }
+  return self;
+}
+
+- (void)updateRegion {
+  _suppressRegionChange = YES;
+  MKCoordinateRegion region = MKCoordinateRegionMake(
+    CLLocationCoordinate2DMake(_latitude, _longitude),
+    MKCoordinateSpanMake(_latitudeDelta, _longitudeDelta)
+  );
+  [_mapView setRegion:region animated:YES];
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    self->_suppressRegionChange = NO;
+  });
+}
+
+- (void)setLatitude:(CLLocationDegrees)latitude {
+  _latitude = latitude;
+  [self updateRegion];
+}
+
+- (void)setLongitude:(CLLocationDegrees)longitude {
+  _longitude = longitude;
+  [self updateRegion];
+}
+
+- (void)setLatitudeDelta:(CLLocationDegrees)latitudeDelta {
+  _latitudeDelta = latitudeDelta;
+  [self updateRegion];
+}
+
+- (void)setLongitudeDelta:(CLLocationDegrees)longitudeDelta {
+  _longitudeDelta = longitudeDelta;
+  [self updateRegion];
+}
+
+- (void)setMapType:(NSString *)mapType {
+  _mapType = mapType;
+  if ([mapType isEqualToString:@"satellite"]) _mapView.mapType = MKMapTypeSatellite;
+  else if ([mapType isEqualToString:@"hybrid"]) _mapView.mapType = MKMapTypeHybrid;
+  else _mapView.mapType = MKMapTypeStandard;
+}
+
+- (void)setShowsUserLocation:(BOOL)showsUserLocation {
+  _showsUserLocation = showsUserLocation;
+  _mapView.showsUserLocation = showsUserLocation;
+}
+
+- (void)setAnnotations:(NSArray<NSDictionary *> *)annotations {
+  _annotations = annotations;
+  [_mapView removeAnnotations:_mapView.annotations];
+  for (NSDictionary *ann in annotations) {
+    MKPointAnnotation *point = [[MKPointAnnotation alloc] init];
+    point.coordinate = CLLocationCoordinate2DMake(
+      [ann[@"latitude"] doubleValue],
+      [ann[@"longitude"] doubleValue]
+    );
+    point.title = ann[@"title"] ?: @"";
+    point.subtitle = ann[@"subtitle"] ?: @"";
+    [_mapView addAnnotation:point];
+  }
+}
+
+- (void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated {
+  if (_suppressRegionChange) return;
+  if (_onRegionChange) {
+    MKCoordinateRegion r = mapView.region;
+    _onRegionChange(@{
+      @"latitude": @(r.center.latitude),
+      @"longitude": @(r.center.longitude),
+      @"latitudeDelta": @(r.span.latitudeDelta),
+      @"longitudeDelta": @(r.span.longitudeDelta),
+    });
+  }
+}
+
+- (void)mapView:(MKMapView *)mapView didSelectAnnotationView:(MKAnnotationView *)view {
+  if (_onSelectAnnotation && view.annotation) {
+    id<MKAnnotation> ann = view.annotation;
+    _onSelectAnnotation(@{
+      @"title": ann.title ?: @"",
+      @"latitude": @(ann.coordinate.latitude),
+      @"longitude": @(ann.coordinate.longitude),
+    });
+  }
+}
+
+- (void)layout {
+  [super layout];
+  _mapView.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTMapViewManager : RCTViewManager @end
+@implementation RCTMapViewManager
+RCT_EXPORT_MODULE(MacOSMapView)
+- (NSView *)view { return [[RCTMapViewWrapper alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(latitude, double)
+RCT_EXPORT_VIEW_PROPERTY(longitude, double)
+RCT_EXPORT_VIEW_PROPERTY(latitudeDelta, double)
+RCT_EXPORT_VIEW_PROPERTY(longitudeDelta, double)
+RCT_EXPORT_VIEW_PROPERTY(mapType, NSString)
+RCT_EXPORT_VIEW_PROPERTY(showsUserLocation, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(annotations, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(onRegionChange, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onSelectAnnotation, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 46. PDFView — MacOSPDFView
+// ============================================================
+
+@interface RCTPDFViewWrapper : NSView
+@property (nonatomic, strong) PDFView *pdfView;
+@property (nonatomic, copy) NSString *source;
+@property (nonatomic, assign) BOOL autoScales;
+@property (nonatomic, copy) NSString *displayMode;
+@property (nonatomic, copy) RCTBubblingEventBlock onPageChange;
+@end
+
+@implementation RCTPDFViewWrapper
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _pdfView = [[PDFView alloc] initWithFrame:self.bounds];
+    _pdfView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    _pdfView.autoScales = YES;
+    [self addSubview:_pdfView];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(pageChanged:)
+                                                 name:PDFViewPageChangedNotification
+                                               object:_pdfView];
+  }
+  return self;
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)pageChanged:(NSNotification *)note {
+  if (_onPageChange && _pdfView.document) {
+    PDFPage *page = _pdfView.currentPage;
+    NSUInteger idx = page ? [_pdfView.document indexForPage:page] : 0;
+    NSUInteger total = _pdfView.document.pageCount;
+    _onPageChange(@{ @"pageIndex": @(idx), @"pageCount": @(total) });
+  }
+}
+
+- (void)setSource:(NSString *)source {
+  _source = source;
+  if (source.length == 0) { _pdfView.document = nil; return; }
+  NSURL *url;
+  if ([source hasPrefix:@"/"]) {
+    url = [NSURL fileURLWithPath:source];
+  } else {
+    url = [NSURL URLWithString:source];
+  }
+  if (url) {
+    PDFDocument *doc = [[PDFDocument alloc] initWithURL:url];
+    _pdfView.document = doc;
+  }
+}
+
+- (void)setAutoScales:(BOOL)autoScales {
+  _autoScales = autoScales;
+  _pdfView.autoScales = autoScales;
+}
+
+- (void)setDisplayMode:(NSString *)displayMode {
+  _displayMode = displayMode;
+  if ([displayMode isEqualToString:@"singlePage"]) _pdfView.displayMode = kPDFDisplaySinglePage;
+  else if ([displayMode isEqualToString:@"twoUp"]) _pdfView.displayMode = kPDFDisplayTwoUp;
+  else if ([displayMode isEqualToString:@"singlePageContinuous"]) _pdfView.displayMode = kPDFDisplaySinglePageContinuous;
+  else _pdfView.displayMode = kPDFDisplaySinglePageContinuous;
+}
+
+- (void)layout {
+  [super layout];
+  _pdfView.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTPDFViewManager : RCTViewManager @end
+@implementation RCTPDFViewManager
+RCT_EXPORT_MODULE(MacOSPDFView)
+- (NSView *)view { return [[RCTPDFViewWrapper alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(source, NSString)
+RCT_EXPORT_VIEW_PROPERTY(autoScales, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(displayMode, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onPageChange, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 47. QLPreviewPanel — MacOSQuickLookModule (imperative)
+// ============================================================
+
+@interface MacOSQuickLookModule : NSObject <RCTBridgeModule, QLPreviewPanelDataSource, QLPreviewPanelDelegate>
+@property (nonatomic, copy) NSString *filePath;
+@end
+
+@implementation MacOSQuickLookModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+- (BOOL)acceptsPreviewPanelControl:(QLPreviewPanel *)panel { return YES; }
+- (void)beginPreviewPanelControl:(QLPreviewPanel *)panel {
+  panel.dataSource = self;
+  panel.delegate = self;
+}
+- (void)endPreviewPanelControl:(QLPreviewPanel *)panel {}
+
+- (NSInteger)numberOfPreviewItemsInPreviewPanel:(QLPreviewPanel *)panel { return 1; }
+
+- (id<QLPreviewItem>)previewPanel:(QLPreviewPanel *)panel previewItemAtIndex:(NSInteger)index {
+  if (_filePath.length > 0) {
+    return [NSURL fileURLWithPath:_filePath];
+  }
+  return nil;
+}
+
+RCT_EXPORT_METHOD(preview:(NSString *)path
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    self.filePath = path;
+    QLPreviewPanel *panel = [QLPreviewPanel sharedPreviewPanel];
+    panel.dataSource = self;
+    panel.delegate = self;
+    if (panel.isVisible) {
+      [panel reloadData];
+    } else {
+      [panel makeKeyAndOrderFront:nil];
+    }
+    resolve(@(YES));
+  });
+}
+
+@end
+
+// ============================================================
+// 48. NSSpeechSynthesizer — MacOSSpeechModule (imperative)
+// ============================================================
+
+@interface MacOSSpeechModule : NSObject <RCTBridgeModule>
+@property (nonatomic, strong) NSSpeechSynthesizer *synth;
+@end
+
+@implementation MacOSSpeechModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(say:(NSString *)text
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (!self.synth) self.synth = [[NSSpeechSynthesizer alloc] initWithVoice:nil];
+    [self.synth stopSpeaking];
+    [self.synth startSpeakingString:text ?: @""];
+    resolve(@(YES));
+  });
+}
+
+RCT_EXPORT_METHOD(sayWithVoice:(NSString *)text
+                  voice:(NSString *)voice
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (!self.synth) self.synth = [[NSSpeechSynthesizer alloc] initWithVoice:nil];
+    [self.synth setVoice:voice];
+    [self.synth stopSpeaking];
+    [self.synth startSpeakingString:text ?: @""];
+    resolve(@(YES));
+  });
+}
+
+RCT_EXPORT_METHOD(stop:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.synth stopSpeaking];
+    resolve(@(YES));
+  });
+}
+
+@end
+
+// ============================================================
+// 49. NSColorPanel — MacOSColorPanelModule (imperative)
+// ============================================================
+
+@interface MacOSColorPanelModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSColorPanelModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(show:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSColorPanel sharedColorPanel] orderFront:nil];
+    resolve(@(YES));
+  });
+}
+
+RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSColorPanel sharedColorPanel] close];
+    resolve(@(YES));
+  });
+}
+
+@end
+
+// ============================================================
+// 50. NSFontPanel — MacOSFontPanelModule (imperative)
+// ============================================================
+
+@interface MacOSFontPanelModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSFontPanelModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(show:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSFontManager sharedFontManager] orderFrontFontPanel:nil];
+    resolve(@(YES));
+  });
+}
+
+RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSFontPanel sharedFontPanel] close];
     resolve(@(YES));
   });
 }

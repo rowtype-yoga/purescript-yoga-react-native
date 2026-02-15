@@ -191,3 +191,17 @@ describe("macOS native component FFI exports (batch 3)", () => {
     expect(_outlineViewImpl).toBe("MacOSOutlineView");
   });
 });
+
+// Batch 4
+import { _mapViewImpl } from "../src/Yoga/React/Native/MacOS/MapView.js";
+import { _pdfViewImpl } from "../src/Yoga/React/Native/MacOS/PDFView.js";
+
+describe("macOS native component FFI exports (batch 4)", () => {
+  it("MapView resolves to MacOSMapView", () => {
+    expect(_mapViewImpl).toBe("MacOSMapView");
+  });
+
+  it("PDFView resolves to MacOSPDFView", () => {
+    expect(_pdfViewImpl).toBe("MacOSPDFView");
+  });
+});

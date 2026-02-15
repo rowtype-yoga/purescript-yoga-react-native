@@ -66,6 +66,12 @@ import Yoga.React.Native.MacOS.ShareService (macosShare)
 import Yoga.React.Native.MacOS.UserNotification (macosNotify)
 import Yoga.React.Native.MacOS.Sound (macosPlaySound, macosBeep)
 import Yoga.React.Native.MacOS.StatusBarItem (macosSetStatusBarItem, macosRemoveStatusBarItem)
+import Yoga.React.Native.MacOS.MapView (nativeMapView)
+import Yoga.React.Native.MacOS.PDFView (nativePDFView)
+import Yoga.React.Native.MacOS.QuickLook (macosQuickLook)
+import Yoga.React.Native.MacOS.SpeechSynthesizer (macosSay, macosStopSpeaking)
+import Yoga.React.Native.MacOS.ColorPanel (macosShowColorPanel)
+import Yoga.React.Native.MacOS.FontPanel (macosShowFontPanel)
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
@@ -501,6 +507,7 @@ systemTab = component "SystemTab" \p -> React.do
   selectedRow /\ setSelectedRow <- useState' ""
   outlineSelection /\ setOutlineSelection <- useState' ""
   statusBarActive /\ setStatusBarActive <- useState' false
+  speechText /\ setSpeechText <- useState' "Hello from PureScript React Native on macOS!"
   let
     accentBorder = if isDragging then "#007AFF" else p.dimFg
   pure do
@@ -1046,6 +1053,95 @@ systemTab = component "SystemTab" \p -> React.do
                             }
                           setStatusBarActive true
                       )
+                  , style: Style.style { height: 24.0, width: 180.0 }
+                  }
+              ]
+          , sectionTitle p.fg "Map"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Embedded MKMapView (San Francisco)"
+          , nativeMapView
+              { latitude: 37.7749
+              , longitude: -122.4194
+              , latitudeDelta: 0.05
+              , longitudeDelta: 0.05
+              , mapType: "standard"
+              , showsUserLocation: false
+              , annotations: unsafeToForeign
+                  [ { latitude: 37.7749, longitude: -122.4194, title: "San Francisco", subtitle: "California" }
+                  , { latitude: 37.8199, longitude: -122.4783, title: "Golden Gate Bridge", subtitle: "" }
+                  ]
+              , onRegionChange: handler_ (pure unit)
+              , onSelectAnnotation: handler_ (pure unit)
+              , style: Style.style { height: 250.0 }
+              }
+          , sectionTitle p.fg "PDF Viewer"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "PDFKit document viewer"
+          , nativePDFView
+              { source: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+              , autoScales: true
+              , displayMode: "singlePageContinuous"
+              , onPageChange: handler_ (pure unit)
+              , style: Style.style { height: 300.0 }
+              }
+          , sectionTitle p.fg "Quick Look"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Preview files with QLPreviewPanel"
+          , view { style: tw "flex-row items-center mb-4" }
+              [ nativeButton
+                  { title: "Preview /etc/hosts"
+                  , sfSymbol: "eye"
+                  , bezelStyle: T.push
+                  , onPress: handler_ (macosQuickLook "/etc/hosts")
+                  , style: Style.style { height: 24.0, width: 180.0 }
+                  }
+              ]
+          , sectionTitle p.fg "Speech"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Text-to-speech (NSSpeechSynthesizer)"
+          , nativeTextField
+              { text: speechText
+              , placeholder: "Text to speak..."
+              , onChangeText: extractString "text" setSpeechText
+              , style: Style.style { height: 24.0 } <> tw "mb-2"
+              }
+          , view { style: tw "flex-row items-center mb-4" }
+              [ nativeButton
+                  { title: "Speak"
+                  , sfSymbol: "speaker.wave.2"
+                  , bezelStyle: T.push
+                  , onPress: handler_ (macosSay speechText)
+                  , style: Style.style { height: 24.0, width: 100.0 }
+                  }
+              , nativeButton
+                  { title: "Stop"
+                  , sfSymbol: "stop.circle"
+                  , bezelStyle: T.push
+                  , onPress: handler_ macosStopSpeaking
+                  , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
+                  }
+              ]
+          , sectionTitle p.fg "Color Picker"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "System color panel (NSColorPanel)"
+          , view { style: tw "flex-row items-center mb-4" }
+              [ nativeButton
+                  { title: "Show Color Panel"
+                  , sfSymbol: "paintpalette"
+                  , bezelStyle: T.push
+                  , onPress: handler_ macosShowColorPanel
+                  , style: Style.style { height: 24.0, width: 180.0 }
+                  }
+              ]
+          , sectionTitle p.fg "Font Panel"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "System font panel (NSFontPanel)"
+          , view { style: tw "flex-row items-center mb-4" }
+              [ nativeButton
+                  { title: "Show Font Panel"
+                  , sfSymbol: "textformat"
+                  , bezelStyle: T.push
+                  , onPress: handler_ macosShowFontPanel
                   , style: Style.style { height: 24.0, width: 180.0 }
                   }
               ]

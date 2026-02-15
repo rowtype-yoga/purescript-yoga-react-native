@@ -296,6 +296,22 @@ const NativeModules = {
     set: (config) => Promise.resolve(true),
     remove: () => Promise.resolve(true),
   },
+  MacOSQuickLookModule: {
+    preview: (path) => Promise.resolve(true),
+  },
+  MacOSSpeechModule: {
+    say: (text) => Promise.resolve(true),
+    sayWithVoice: (text, voice) => Promise.resolve(true),
+    stop: () => Promise.resolve(true),
+  },
+  MacOSColorPanelModule: {
+    show: () => Promise.resolve(true),
+    hide: () => Promise.resolve(true),
+  },
+  MacOSFontPanelModule: {
+    show: () => Promise.resolve(true),
+    hide: () => Promise.resolve(true),
+  },
 };
 
 export {

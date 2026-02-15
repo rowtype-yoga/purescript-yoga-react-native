@@ -16,6 +16,20 @@ import {
   setStatusBarItemImpl,
   removeStatusBarItemImpl,
 } from "../src/Yoga/React/Native/MacOS/StatusBarItem.js";
+import { previewImpl } from "../src/Yoga/React/Native/MacOS/QuickLook.js";
+import {
+  sayImpl,
+  sayWithVoiceImpl,
+  stopSpeakingImpl,
+} from "../src/Yoga/React/Native/MacOS/SpeechSynthesizer.js";
+import {
+  showColorPanelImpl,
+  hideColorPanelImpl,
+} from "../src/Yoga/React/Native/MacOS/ColorPanel.js";
+import {
+  showFontPanelImpl,
+  hideFontPanelImpl,
+} from "../src/Yoga/React/Native/MacOS/FontPanel.js";
 
 describe("macOS Alert FFI", () => {
   it("alertImpl calls NativeModules.MacOSAlertModule.show", () => {
@@ -145,6 +159,70 @@ describe("macOS StatusBarItem FFI", () => {
   it("removeStatusBarItemImpl calls NativeModules.MacOSStatusBarModule.remove", () => {
     const spy = vi.spyOn(NativeModules.MacOSStatusBarModule, "remove");
     removeStatusBarItemImpl();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});
+
+describe("macOS QuickLook FFI", () => {
+  it("previewImpl calls NativeModules.MacOSQuickLookModule.preview", () => {
+    const spy = vi.spyOn(NativeModules.MacOSQuickLookModule, "preview");
+    previewImpl("/tmp/test.txt");
+    expect(spy).toHaveBeenCalledWith("/tmp/test.txt");
+    spy.mockRestore();
+  });
+});
+
+describe("macOS SpeechSynthesizer FFI", () => {
+  it("sayImpl calls NativeModules.MacOSSpeechModule.say", () => {
+    const spy = vi.spyOn(NativeModules.MacOSSpeechModule, "say");
+    sayImpl("Hello");
+    expect(spy).toHaveBeenCalledWith("Hello");
+    spy.mockRestore();
+  });
+
+  it("sayWithVoiceImpl calls NativeModules.MacOSSpeechModule.sayWithVoice", () => {
+    const spy = vi.spyOn(NativeModules.MacOSSpeechModule, "sayWithVoice");
+    sayWithVoiceImpl("Hello", "com.apple.voice.Alex");
+    expect(spy).toHaveBeenCalledWith("Hello", "com.apple.voice.Alex");
+    spy.mockRestore();
+  });
+
+  it("stopSpeakingImpl calls NativeModules.MacOSSpeechModule.stop", () => {
+    const spy = vi.spyOn(NativeModules.MacOSSpeechModule, "stop");
+    stopSpeakingImpl();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});
+
+describe("macOS ColorPanel FFI", () => {
+  it("showColorPanelImpl calls NativeModules.MacOSColorPanelModule.show", () => {
+    const spy = vi.spyOn(NativeModules.MacOSColorPanelModule, "show");
+    showColorPanelImpl();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("hideColorPanelImpl calls NativeModules.MacOSColorPanelModule.hide", () => {
+    const spy = vi.spyOn(NativeModules.MacOSColorPanelModule, "hide");
+    hideColorPanelImpl();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});
+
+describe("macOS FontPanel FFI", () => {
+  it("showFontPanelImpl calls NativeModules.MacOSFontPanelModule.show", () => {
+    const spy = vi.spyOn(NativeModules.MacOSFontPanelModule, "show");
+    showFontPanelImpl();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("hideFontPanelImpl calls NativeModules.MacOSFontPanelModule.hide", () => {
+    const spy = vi.spyOn(NativeModules.MacOSFontPanelModule, "hide");
+    hideFontPanelImpl();
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
