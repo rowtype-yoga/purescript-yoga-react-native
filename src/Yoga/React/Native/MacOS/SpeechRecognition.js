@@ -26,6 +26,6 @@ export const getTranscriptImpl = (callback) => {
     mod
       .getTranscript()
       .then((text) => callback(text)())
-      .catch((e) => console.error("[macosGetTranscript]", e));
+      .catch(() => {});
   }
 };

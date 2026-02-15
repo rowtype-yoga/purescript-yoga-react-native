@@ -1207,11 +1207,9 @@ aiTab = component "AITab" \p -> React.do
                   , sfSymbol: if listening then "mic.fill" else "mic"
                   , bezelStyle: T.push
                   , onPress: handler_ do
-                      if listening then pure unit
-                      else do
-                        setListening true
-                        setTranscript ""
-                        macosStartListening
+                      setListening true
+                      setTranscript ""
+                      macosStartListening
                   , style: Style.style { height: 24.0, width: 130.0 }
                   }
               , nativeButton
@@ -1219,9 +1217,9 @@ aiTab = component "AITab" \p -> React.do
                   , sfSymbol: "stop.circle"
                   , bezelStyle: T.push
                   , onPress: handler_ do
+                      setListening false
                       macosStopListening \finalText -> do
                         setTranscript finalText
-                        setListening false
                   , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
                   }
               ]

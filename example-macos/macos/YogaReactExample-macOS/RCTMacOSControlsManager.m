@@ -4069,8 +4069,14 @@ RCT_EXPORT_METHOD(start:(RCTPromiseResolveBlock)resolve
       }
 
       self.latestTranscript = @"";
-      self.recognizer = [[SFSpeechRecognizer alloc] initWithLocale:[NSLocale currentLocale]];
-      NSLog(@"[SpeechRecognition] Recognizer available: %d, locale: %@", self.recognizer.isAvailable, self.recognizer.locale.localeIdentifier);
+      // Use en-US explicitly — currentLocale can return region-specific locales that
+      // on-device speech recognition doesn't support
+      NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en-US"];
+      self.recognizer = [[SFSpeechRecognizer alloc] initWithLocale:locale];
+      NSLog(@"[SpeechRecognition] Recognizer available: %d, supportsOnDevice: %d, locale: %@",
+            self.recognizer.isAvailable,
+            self.recognizer.supportsOnDeviceRecognition,
+            self.recognizer.locale.localeIdentifier);
 
       if (!self.recognizer.isAvailable) {
         reject(@"UNAVAILABLE", @"Speech recognizer is not available for this locale", nil);
@@ -4080,19 +4086,24 @@ RCT_EXPORT_METHOD(start:(RCTPromiseResolveBlock)resolve
       self.audioEngine = [[AVAudioEngine alloc] init];
       self.recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
       self.recognitionRequest.shouldReportPartialResults = YES;
+      // Do NOT require on-device — let it use server-based recognition
+      // On-device may not have the language model downloaded
+      self.recognitionRequest.requiresOnDeviceRecognition = NO;
 
       AVAudioInputNode *inputNode = self.audioEngine.inputNode;
+      // Use nil format — let the system pick the right format for the input node
       AVAudioFormat *format = [inputNode outputFormatForBus:0];
-      NSLog(@"[SpeechRecognition] Audio format: %@", format);
+      NSLog(@"[SpeechRecognition] Audio format: sampleRate=%f channels=%u", format.sampleRate, format.channelCount);
 
-      [inputNode installTapOnBus:0 bufferSize:1024 format:format block:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
+      [inputNode installTapOnBus:0 bufferSize:4096 format:format block:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
         [self.recognitionRequest appendAudioPCMBuffer:buffer];
       }];
 
       self.recognitionTask = [self.recognizer recognitionTaskWithRequest:self.recognitionRequest
                                                           resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
         if (error) {
-          NSLog(@"[SpeechRecognition] Error: %@", error.localizedDescription);
+          NSLog(@"[SpeechRecognition] Error: %@ (code: %ld, domain: %@)",
+                error.localizedDescription, (long)error.code, error.domain);
         }
         if (result) {
           self.latestTranscript = result.bestTranscription.formattedString;
