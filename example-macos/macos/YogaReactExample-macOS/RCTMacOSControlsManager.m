@@ -1947,22 +1947,20 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 - (void)doLayout {
   _splitView.frame = self.bounds;
   [_splitView adjustSubviews];
-  [self syncPaneFrames];
 }
 
 - (void)reactSetFrame:(CGRect)frame {
   [super reactSetFrame:frame];
   _splitView.frame = self.bounds;
   [_splitView adjustSubviews];
-  [self syncPaneFrames];
 }
 
-- (void)syncPaneFrames {
+// After NSSplitView resizes panes, tell React about the new sizes
+- (void)splitView:(NSSplitView *)splitView resizeSubviewsWithOldSize:(NSSize)oldSize {
+  [splitView adjustSubviews];
   for (NSView *pane in _panes) {
-    if ([pane respondsToSelector:@selector(reactSetFrame:)]) {
-      CGRect f = pane.frame;
-      ((void (*)(id, SEL, CGRect))objc_msgSend)(pane, @selector(reactSetFrame:), f);
-    }
+    CGRect f = pane.frame;
+    ((void (*)(id, SEL, CGRect))objc_msgSend)(pane, @selector(reactSetFrame:), f);
   }
 }
 
