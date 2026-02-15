@@ -115,6 +115,7 @@ app = component "App" \_ -> React.do
                       , { id: "browser", label: "Browser", sfSymbol: "globe" }
                       , { id: "rive", label: "Rive", sfSymbol: "play.circle" }
                       , { id: "system", label: "System", sfSymbol: "gearshape.2" }
+                      , { id: "ai", label: "AI", sfSymbol: "brain" }
                       , { id: "chat", label: "Chat", sfSymbol: "bubble.left.and.bubble.right" }
                       ]
                   , selectedItem: activeTab
@@ -156,6 +157,7 @@ app = component "App" \_ -> React.do
                       }
                     else if activeTab == "rive" then riveTab { fg, bg }
                     else if activeTab == "system" then systemTab { fg, dimFg, cardBg, bg }
+                    else if activeTab == "ai" then aiTab { fg, dimFg, cardBg, bg }
                     else chatTab { fg, dimFg, cardBg, bg, isDark }
                   ]
               ]
@@ -510,12 +512,6 @@ systemTab = component "SystemTab" \p -> React.do
   selectedRow /\ setSelectedRow <- useState' ""
   outlineSelection /\ setOutlineSelection <- useState' ""
   statusBarActive /\ setStatusBarActive <- useState' false
-  speechText /\ setSpeechText <- useState' "Hello from PureScript React Native on macOS!"
-  ocrResult /\ setOcrResult <- useState' ""
-  listening /\ setListening <- useState' false
-  transcript /\ setTranscript <- useState' ""
-  nlText /\ setNlText <- useState' "I love this amazing app! C'est magnifique."
-  nlResult /\ setNlResult <- useState' ""
   let
     accentBorder = if isDragging then "#007AFF" else p.dimFg
   pure do
@@ -1064,7 +1060,29 @@ systemTab = component "SystemTab" \p -> React.do
                   , style: Style.style { height: 24.0, width: 180.0 }
                   }
               ]
-          , sectionTitle p.fg "Map"
+          ]
+      )
+
+-- Tab 6: AI & Tools
+type AIProps =
+  { fg :: String
+  , dimFg :: String
+  , cardBg :: String
+  , bg :: String
+  }
+
+aiTab :: AIProps -> JSX
+aiTab = component "AITab" \p -> React.do
+  speechText /\ setSpeechText <- useState' "Hello from PureScript React Native on macOS!"
+  ocrResult /\ setOcrResult <- useState' ""
+  listening /\ setListening <- useState' false
+  transcript /\ setTranscript <- useState' ""
+  nlText /\ setNlText <- useState' "I love this amazing app! C'est magnifique."
+  nlResult /\ setNlResult <- useState' ""
+  pure do
+    nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+      ( view { style: tw "px-4 pb-4" }
+          [ sectionTitle p.fg "Map"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
               "Embedded MKMapView (San Francisco)"
           , nativeMapView
@@ -1256,7 +1274,7 @@ systemTab = component "SystemTab" \p -> React.do
           ]
       )
 
--- Tab 5: Chat (Matrix)
+-- Tab 7: Chat (Matrix)
 type ChatProps =
   { fg :: String
   , dimFg :: String
