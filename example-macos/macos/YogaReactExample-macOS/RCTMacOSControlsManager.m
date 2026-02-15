@@ -7,6 +7,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <QuartzCore/QuartzCore.h>
+#import <objc/message.h>
 @import RiveRuntime;
 
 // ============================================================
@@ -1944,13 +1945,25 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 }
 
 - (void)doLayout {
+  _splitView.frame = self.bounds;
   [_splitView adjustSubviews];
+  [self syncPaneFrames];
 }
 
 - (void)reactSetFrame:(CGRect)frame {
   [super reactSetFrame:frame];
   _splitView.frame = self.bounds;
   [_splitView adjustSubviews];
+  [self syncPaneFrames];
+}
+
+- (void)syncPaneFrames {
+  for (NSView *pane in _panes) {
+    if ([pane respondsToSelector:@selector(reactSetFrame:)]) {
+      CGRect f = pane.frame;
+      ((void (*)(id, SEL, CGRect))objc_msgSend)(pane, @selector(reactSetFrame:), f);
+    }
+  }
 }
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMinimumPosition ofSubviewAt:(NSInteger)dividerIndex {
