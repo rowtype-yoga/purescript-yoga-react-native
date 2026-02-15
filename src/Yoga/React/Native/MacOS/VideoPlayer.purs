@@ -5,10 +5,10 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (ControlsStyle)
 
-foreign import _videoPlayerImpl :: forall props. ReactComponent props
+foreign import videoPlayerImpl :: forall props. ReactComponent props
 
 nativeVideoPlayer :: FFINativeComponent_ NativeVideoPlayerAttributes
-nativeVideoPlayer = createNativeElement_ _videoPlayerImpl
+nativeVideoPlayer = createNativeElement_ videoPlayerImpl
 
 type NativeVideoPlayerAttributes = BaseAttributes
   ( source :: String

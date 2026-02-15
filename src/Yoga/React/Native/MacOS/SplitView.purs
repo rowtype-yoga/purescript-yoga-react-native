@@ -7,10 +7,10 @@ import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 
-foreign import _splitViewImpl :: forall props. ReactComponent props
+foreign import splitViewImpl :: forall props. ReactComponent props
 
 nativeSplitView :: FFINativeComponent NativeSplitViewAttributes
-nativeSplitView = createNativeElement _splitViewImpl
+nativeSplitView = createNativeElement splitViewImpl
 
 type NativeSplitViewAttributes = BaseAttributes
   ( isVertical :: Boolean

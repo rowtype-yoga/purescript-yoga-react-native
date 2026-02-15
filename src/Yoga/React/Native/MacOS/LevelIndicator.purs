@@ -4,10 +4,10 @@ import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _levelIndicatorImpl :: forall props. ReactComponent props
+foreign import levelIndicatorImpl :: forall props. ReactComponent props
 
 nativeLevelIndicator :: FFINativeComponent_ NativeLevelIndicatorAttributes
-nativeLevelIndicator = createNativeElement_ _levelIndicatorImpl
+nativeLevelIndicator = createNativeElement_ levelIndicatorImpl
 
 type NativeLevelIndicatorAttributes = BaseAttributes
   ( value :: Number

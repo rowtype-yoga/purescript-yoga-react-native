@@ -5,10 +5,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _switchImpl :: forall props. ReactComponent props
+foreign import switchImpl :: forall props. ReactComponent props
 
 nativeSwitch :: FFINativeComponent_ NativeSwitchAttributes
-nativeSwitch = createNativeElement_ _switchImpl
+nativeSwitch = createNativeElement_ switchImpl
 
 type NativeSwitchAttributes = BaseAttributes
   ( on :: Boolean

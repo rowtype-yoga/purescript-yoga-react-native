@@ -7,10 +7,10 @@ import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 
-foreign import _boxImpl :: forall props. ReactComponent props
+foreign import boxImpl :: forall props. ReactComponent props
 
 nativeBox :: FFINativeComponent NativeBoxAttributes
-nativeBox = createNativeElement _boxImpl
+nativeBox = createNativeElement boxImpl
 
 type NativeBoxAttributes = BaseAttributes
   ( boxTitle :: String

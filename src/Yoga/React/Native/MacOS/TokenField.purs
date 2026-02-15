@@ -8,10 +8,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _tokenFieldImpl :: forall props. ReactComponent props
+foreign import tokenFieldImpl :: forall props. ReactComponent props
 
 nativeTokenField :: FFINativeComponent_ NativeTokenFieldAttributes
-nativeTokenField = createNativeElement_ _tokenFieldImpl
+nativeTokenField = createNativeElement_ tokenFieldImpl
 
 type NativeTokenFieldAttributes = BaseAttributes
   ( tokens :: Array String

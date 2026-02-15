@@ -1,25 +1,28 @@
 module Yoga.React.Native.MacOS.OutlineView
   ( nativeOutlineView
   , NativeOutlineViewAttributes
-  , outlineItem
+  , OutlineItem(..)
   ) where
 
 import React.Basic (ReactComponent)
 import React.Basic.Events (EventHandler)
-import Foreign (Foreign, unsafeToForeign)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _outlineViewImpl :: forall props. ReactComponent props
+foreign import outlineViewImpl :: forall props. ReactComponent props
 
 nativeOutlineView :: FFINativeComponent_ NativeOutlineViewAttributes
-nativeOutlineView = createNativeElement_ _outlineViewImpl
+nativeOutlineView = createNativeElement_ outlineViewImpl
 
-outlineItem :: String -> String -> String -> Array Foreign -> Foreign
-outlineItem id title sfSymbol children = unsafeToForeign { id, title, sfSymbol, children }
+newtype OutlineItem = OutlineItem
+  { id :: String
+  , title :: String
+  , sfSymbol :: String
+  , children :: Array OutlineItem
+  }
 
 type NativeOutlineViewAttributes = BaseAttributes
-  ( items :: Array Foreign
+  ( items :: Array OutlineItem
   , headerVisible :: Boolean
   , onSelectItem :: EventHandler
   )

@@ -5,10 +5,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _sliderImpl :: forall props. ReactComponent props
+foreign import sliderImpl :: forall props. ReactComponent props
 
 nativeSlider :: FFINativeComponent_ NativeSliderAttributes
-nativeSlider = createNativeElement_ _sliderImpl
+nativeSlider = createNativeElement_ sliderImpl
 
 type NativeSliderAttributes = BaseAttributes
   ( value :: Number

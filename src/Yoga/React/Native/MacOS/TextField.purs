@@ -5,10 +5,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _textFieldImpl :: forall props. ReactComponent props
+foreign import textFieldImpl :: forall props. ReactComponent props
 
 nativeTextField :: FFINativeComponent_ NativeTextFieldAttributes
-nativeTextField = createNativeElement_ _textFieldImpl
+nativeTextField = createNativeElement_ textFieldImpl
 
 type NativeTextFieldAttributes = BaseAttributes
   ( text :: String

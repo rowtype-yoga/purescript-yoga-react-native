@@ -5,10 +5,10 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 import Yoga.React.Native.MacOS.Types (VisualEffectMaterial, BlendingMode, VisualEffectState)
 
-foreign import _visualEffectImpl :: forall props. ReactComponent props
+foreign import visualEffectImpl :: forall props. ReactComponent props
 
 nativeVisualEffect :: FFINativeComponent NativeVisualEffectAttributes
-nativeVisualEffect = createNativeElement _visualEffectImpl
+nativeVisualEffect = createNativeElement visualEffectImpl
 
 type NativeVisualEffectAttributes = BaseAttributes
   ( materialName :: VisualEffectMaterial

@@ -4,10 +4,10 @@ import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 
-foreign import _patternBackgroundImpl :: forall props. ReactComponent props
+foreign import patternBackgroundImpl :: forall props. ReactComponent props
 
 nativePatternBackground :: FFINativeComponent NativePatternBackgroundAttributes
-nativePatternBackground = createNativeElement _patternBackgroundImpl
+nativePatternBackground = createNativeElement patternBackgroundImpl
 
 type NativePatternBackgroundAttributes = BaseAttributes
   ( patternColor :: String

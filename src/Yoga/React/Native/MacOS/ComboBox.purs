@@ -8,10 +8,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _comboBoxImpl :: forall props. ReactComponent props
+foreign import comboBoxImpl :: forall props. ReactComponent props
 
 nativeComboBox :: FFINativeComponent_ NativeComboBoxAttributes
-nativeComboBox = createNativeElement_ _comboBoxImpl
+nativeComboBox = createNativeElement_ comboBoxImpl
 
 type NativeComboBoxAttributes = BaseAttributes
   ( items :: Array String

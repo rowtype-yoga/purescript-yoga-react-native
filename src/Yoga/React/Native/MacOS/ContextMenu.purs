@@ -5,10 +5,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 
-foreign import _contextMenuImpl :: forall props. ReactComponent props
+foreign import contextMenuImpl :: forall props. ReactComponent props
 
 nativeContextMenu :: FFINativeComponent NativeContextMenuAttributes
-nativeContextMenu = createNativeElement _contextMenuImpl
+nativeContextMenu = createNativeElement contextMenuImpl
 
 type ContextMenuItem =
   { id :: String

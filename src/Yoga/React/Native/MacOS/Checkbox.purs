@@ -8,10 +8,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _checkboxImpl :: forall props. ReactComponent props
+foreign import checkboxImpl :: forall props. ReactComponent props
 
 nativeCheckbox :: FFINativeComponent_ NativeCheckboxAttributes
-nativeCheckbox = createNativeElement_ _checkboxImpl
+nativeCheckbox = createNativeElement_ checkboxImpl
 
 type NativeCheckboxAttributes = BaseAttributes
   ( checked :: Boolean

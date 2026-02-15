@@ -6,10 +6,10 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (FilePickerMode)
 
-foreign import _filePickerImpl :: forall props. ReactComponent props
+foreign import filePickerImpl :: forall props. ReactComponent props
 
 nativeFilePicker :: FFINativeComponent_ NativeFilePickerAttributes
-nativeFilePicker = createNativeElement_ _filePickerImpl
+nativeFilePicker = createNativeElement_ filePickerImpl
 
 type NativeFilePickerAttributes = BaseAttributes
   ( mode :: FilePickerMode

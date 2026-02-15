@@ -10,10 +10,10 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (MapType)
 
-foreign import _mapViewImpl :: forall props. ReactComponent props
+foreign import mapViewImpl :: forall props. ReactComponent props
 
 nativeMapView :: FFINativeComponent_ NativeMapViewAttributes
-nativeMapView = createNativeElement_ _mapViewImpl
+nativeMapView = createNativeElement_ mapViewImpl
 
 type MapAnnotation =
   { latitude :: Number

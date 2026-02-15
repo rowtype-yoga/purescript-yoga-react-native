@@ -8,10 +8,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _stepperImpl :: forall props. ReactComponent props
+foreign import stepperImpl :: forall props. ReactComponent props
 
 nativeStepper :: FFINativeComponent_ NativeStepperAttributes
-nativeStepper = createNativeElement_ _stepperImpl
+nativeStepper = createNativeElement_ stepperImpl
 
 type NativeStepperAttributes = BaseAttributes
   ( value :: Number

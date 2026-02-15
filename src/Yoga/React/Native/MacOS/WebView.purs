@@ -5,10 +5,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _webViewImpl :: forall props. ReactComponent props
+foreign import webViewImpl :: forall props. ReactComponent props
 
 nativeWebView :: FFINativeComponent_ NativeWebViewAttributes
-nativeWebView = createNativeElement_ _webViewImpl
+nativeWebView = createNativeElement_ webViewImpl
 
 type NativeWebViewAttributes = BaseAttributes
   ( url :: String

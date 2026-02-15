@@ -9,10 +9,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _tableViewImpl :: forall props. ReactComponent props
+foreign import tableViewImpl :: forall props. ReactComponent props
 
 nativeTableView :: FFINativeComponent_ NativeTableViewAttributes
-nativeTableView = createNativeElement_ _tableViewImpl
+nativeTableView = createNativeElement_ tableViewImpl
 
 type TableColumn =
   { id :: String

@@ -9,10 +9,10 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (PathControlStyle)
 
-foreign import _pathControlImpl :: forall props. ReactComponent props
+foreign import pathControlImpl :: forall props. ReactComponent props
 
 nativePathControl :: FFINativeComponent_ NativePathControlAttributes
-nativePathControl = createNativeElement_ _pathControlImpl
+nativePathControl = createNativeElement_ pathControlImpl
 
 type NativePathControlAttributes = BaseAttributes
   ( url :: String

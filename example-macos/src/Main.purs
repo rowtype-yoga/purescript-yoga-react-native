@@ -60,7 +60,7 @@ import Yoga.React.Native.MacOS.Sheet (nativeSheet)
 import Yoga.React.Native.MacOS.TableView (nativeTableView)
 import Yoga.React.Native.MacOS.Menu (macosShowMenu)
 import Yoga.React.Native.MacOS.Pasteboard (copyToClipboard)
-import Yoga.React.Native.MacOS.OutlineView (nativeOutlineView, outlineItem)
+import Yoga.React.Native.MacOS.OutlineView (nativeOutlineView, OutlineItem(..))
 import Yoga.React.Native.MacOS.ShareService (macosShare)
 import Yoga.React.Native.MacOS.UserNotification (macosNotify)
 import Yoga.React.Native.MacOS.Sound (macosPlaySound, macosBeep)
@@ -933,20 +933,24 @@ systemTab = component "SystemTab" \p -> React.do
               "Hierarchical tree list (NSOutlineView)"
           , nativeOutlineView
               { items:
-                  [ outlineItem "src" "src" "folder"
-                      [ outlineItem "main" "Main.purs" "doc" []
-                      , outlineItem "macos" "MacOS" "folder"
-                          [ outlineItem "btn" "Button.purs" "doc" []
-                          , outlineItem "sl" "Slider.purs" "doc" []
-                          , outlineItem "sw" "Switch.purs" "doc" []
-                          ]
-                      ]
-                  , outlineItem "test" "test" "folder"
-                      [ outlineItem "t1" "MacOSComponents.test.js" "doc" []
-                      , outlineItem "t2" "MacOSSnapshots.test.js" "doc" []
-                      ]
-                  , outlineItem "pkg" "package.json" "doc.text" []
-                  ]
+                  let
+                    file id title = OutlineItem { id, title, sfSymbol: "doc", children: [] }
+                    folder id title children = OutlineItem { id, title, sfSymbol: "folder", children }
+                  in
+                    [ folder "src" "src"
+                        [ file "main" "Main.purs"
+                        , folder "macos" "MacOS"
+                            [ file "btn" "Button.purs"
+                            , file "sl" "Slider.purs"
+                            , file "sw" "Switch.purs"
+                            ]
+                        ]
+                    , folder "test" "test"
+                        [ file "t1" "MacOSComponents.test.js"
+                        , file "t2" "MacOSSnapshots.test.js"
+                        ]
+                    , OutlineItem { id: "pkg", title: "package.json", sfSymbol: "doc.text", children: [] }
+                    ]
               , headerVisible: false
               , onSelectItem: E.onString "id" setOutlineSelection
               , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"

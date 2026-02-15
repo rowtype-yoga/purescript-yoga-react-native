@@ -5,10 +5,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _segmentedImpl :: forall props. ReactComponent props
+foreign import segmentedImpl :: forall props. ReactComponent props
 
 nativeSegmented :: FFINativeComponent_ NativeSegmentedAttributes
-nativeSegmented = createNativeElement_ _segmentedImpl
+nativeSegmented = createNativeElement_ segmentedImpl
 
 type NativeSegmentedAttributes = BaseAttributes
   ( labels :: Array String

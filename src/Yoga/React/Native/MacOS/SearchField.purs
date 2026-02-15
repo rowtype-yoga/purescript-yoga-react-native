@@ -8,10 +8,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _searchFieldImpl :: forall props. ReactComponent props
+foreign import searchFieldImpl :: forall props. ReactComponent props
 
 nativeSearchField :: FFINativeComponent_ NativeSearchFieldAttributes
-nativeSearchField = createNativeElement_ _searchFieldImpl
+nativeSearchField = createNativeElement_ searchFieldImpl
 
 type NativeSearchFieldAttributes = BaseAttributes
   ( text :: String

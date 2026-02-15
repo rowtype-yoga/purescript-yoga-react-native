@@ -8,10 +8,10 @@ import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _helpButtonImpl :: forall props. ReactComponent props
+foreign import helpButtonImpl :: forall props. ReactComponent props
 
 nativeHelpButton :: FFINativeComponent_ NativeHelpButtonAttributes
-nativeHelpButton = createNativeElement_ _helpButtonImpl
+nativeHelpButton = createNativeElement_ helpButtonImpl
 
 type NativeHelpButtonAttributes = BaseAttributes
   ( onPress :: EventHandler

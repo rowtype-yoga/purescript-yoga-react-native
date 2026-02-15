@@ -4,10 +4,10 @@ import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
-foreign import _progressImpl :: forall props. ReactComponent props
+foreign import progressImpl :: forall props. ReactComponent props
 
 nativeProgress :: FFINativeComponent_ NativeProgressAttributes
-nativeProgress = createNativeElement_ _progressImpl
+nativeProgress = createNativeElement_ progressImpl
 
 type NativeProgressAttributes = BaseAttributes
   ( value :: Number

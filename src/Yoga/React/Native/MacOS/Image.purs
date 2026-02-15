@@ -8,10 +8,10 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (ImageContentMode)
 
-foreign import _imageImpl :: forall props. ReactComponent props
+foreign import imageImpl :: forall props. ReactComponent props
 
 nativeImage :: FFINativeComponent_ NativeImageAttributes
-nativeImage = createNativeElement_ _imageImpl
+nativeImage = createNativeElement_ imageImpl
 
 type NativeImageAttributes = BaseAttributes
   ( source :: String

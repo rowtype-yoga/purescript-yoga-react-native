@@ -46,44 +46,44 @@ import {
 } from "../src/Yoga/React/Native/Internal.js";
 
 // Leaf components (no children)
-import { _buttonImpl } from "../src/Yoga/React/Native/MacOS/Button.js";
-import { _checkboxImpl } from "../src/Yoga/React/Native/MacOS/Checkbox.js";
-import { _radioButtonImpl } from "../src/Yoga/React/Native/MacOS/RadioButton.js";
-import { _searchFieldImpl } from "../src/Yoga/React/Native/MacOS/SearchField.js";
-import { _tokenFieldImpl } from "../src/Yoga/React/Native/MacOS/TokenField.js";
-import { _separatorImpl } from "../src/Yoga/React/Native/MacOS/Separator.js";
-import { _helpButtonImpl } from "../src/Yoga/React/Native/MacOS/HelpButton.js";
-import { _pathControlImpl } from "../src/Yoga/React/Native/MacOS/PathControl.js";
-import { _textFieldImpl } from "../src/Yoga/React/Native/MacOS/TextField.js";
-import { _sliderImpl } from "../src/Yoga/React/Native/MacOS/Slider.js";
-import { _switchImpl } from "../src/Yoga/React/Native/MacOS/Switch.js";
-import { _progressImpl } from "../src/Yoga/React/Native/MacOS/Progress.js";
-import { _datePickerImpl } from "../src/Yoga/React/Native/MacOS/DatePicker.js";
-import { _colorWellImpl } from "../src/Yoga/React/Native/MacOS/ColorWell.js";
-import { _popUpImpl } from "../src/Yoga/React/Native/MacOS/PopUp.js";
-import { _textEditorImpl } from "../src/Yoga/React/Native/MacOS/TextEditor.js";
-import { _levelIndicatorImpl } from "../src/Yoga/React/Native/MacOS/LevelIndicator.js";
-import { _segmentedImpl } from "../src/Yoga/React/Native/MacOS/Segmented.js";
-import { _stepperImpl } from "../src/Yoga/React/Native/MacOS/Stepper.js";
-import { _comboBoxImpl } from "../src/Yoga/React/Native/MacOS/ComboBox.js";
-import { _imageImpl } from "../src/Yoga/React/Native/MacOS/Image.js";
-import { _animatedImageImpl } from "../src/Yoga/React/Native/MacOS/AnimatedImage.js";
-import { _videoPlayerImpl } from "../src/Yoga/React/Native/MacOS/VideoPlayer.js";
-import { _tableViewImpl } from "../src/Yoga/React/Native/MacOS/TableView.js";
-import { _outlineViewImpl } from "../src/Yoga/React/Native/MacOS/OutlineView.js";
-import { _mapViewImpl } from "../src/Yoga/React/Native/MacOS/MapView.js";
-import { _pdfViewImpl } from "../src/Yoga/React/Native/MacOS/PDFView.js";
+import { buttonImpl } from "../src/Yoga/React/Native/MacOS/Button.js";
+import { checkboxImpl } from "../src/Yoga/React/Native/MacOS/Checkbox.js";
+import { radioButtonImpl } from "../src/Yoga/React/Native/MacOS/RadioButton.js";
+import { searchFieldImpl } from "../src/Yoga/React/Native/MacOS/SearchField.js";
+import { tokenFieldImpl } from "../src/Yoga/React/Native/MacOS/TokenField.js";
+import { separatorImpl } from "../src/Yoga/React/Native/MacOS/Separator.js";
+import { helpButtonImpl } from "../src/Yoga/React/Native/MacOS/HelpButton.js";
+import { pathControlImpl } from "../src/Yoga/React/Native/MacOS/PathControl.js";
+import { textFieldImpl } from "../src/Yoga/React/Native/MacOS/TextField.js";
+import { sliderImpl } from "../src/Yoga/React/Native/MacOS/Slider.js";
+import { switchImpl } from "../src/Yoga/React/Native/MacOS/Switch.js";
+import { progressImpl } from "../src/Yoga/React/Native/MacOS/Progress.js";
+import { datePickerImpl } from "../src/Yoga/React/Native/MacOS/DatePicker.js";
+import { colorWellImpl } from "../src/Yoga/React/Native/MacOS/ColorWell.js";
+import { popUpImpl } from "../src/Yoga/React/Native/MacOS/PopUp.js";
+import { textEditorImpl } from "../src/Yoga/React/Native/MacOS/TextEditor.js";
+import { levelIndicatorImpl } from "../src/Yoga/React/Native/MacOS/LevelIndicator.js";
+import { segmentedImpl } from "../src/Yoga/React/Native/MacOS/Segmented.js";
+import { stepperImpl } from "../src/Yoga/React/Native/MacOS/Stepper.js";
+import { comboBoxImpl } from "../src/Yoga/React/Native/MacOS/ComboBox.js";
+import { imageImpl } from "../src/Yoga/React/Native/MacOS/Image.js";
+import { animatedImageImpl } from "../src/Yoga/React/Native/MacOS/AnimatedImage.js";
+import { videoPlayerImpl } from "../src/Yoga/React/Native/MacOS/VideoPlayer.js";
+import { tableViewImpl } from "../src/Yoga/React/Native/MacOS/TableView.js";
+import { outlineViewImpl } from "../src/Yoga/React/Native/MacOS/OutlineView.js";
+import { mapViewImpl } from "../src/Yoga/React/Native/MacOS/MapView.js";
+import { pdfViewImpl } from "../src/Yoga/React/Native/MacOS/PDFView.js";
 
 // Container components (with children)
-import { _sheetImpl } from "../src/Yoga/React/Native/MacOS/Sheet.js";
-import { _boxImpl } from "../src/Yoga/React/Native/MacOS/Box.js";
-import { _popoverImpl } from "../src/Yoga/React/Native/MacOS/Popover.js";
-import { _nativeScrollViewImpl } from "../src/Yoga/React/Native/MacOS/ScrollView.js";
-import { _visualEffectImpl } from "../src/Yoga/React/Native/MacOS/VisualEffect.js";
-import { _contextMenuImpl } from "../src/Yoga/React/Native/MacOS/ContextMenu.js";
-import { _splitViewImpl } from "../src/Yoga/React/Native/MacOS/SplitView.js";
-import { _tabViewImpl } from "../src/Yoga/React/Native/MacOS/TabView.js";
-import { _patternBackgroundImpl } from "../src/Yoga/React/Native/MacOS/PatternBackground.js";
+import { sheetImpl } from "../src/Yoga/React/Native/MacOS/Sheet.js";
+import { boxImpl } from "../src/Yoga/React/Native/MacOS/Box.js";
+import { popoverImpl } from "../src/Yoga/React/Native/MacOS/Popover.js";
+import { nativeScrollViewImpl } from "../src/Yoga/React/Native/MacOS/ScrollView.js";
+import { visualEffectImpl } from "../src/Yoga/React/Native/MacOS/VisualEffect.js";
+import { contextMenuImpl } from "../src/Yoga/React/Native/MacOS/ContextMenu.js";
+import { splitViewImpl } from "../src/Yoga/React/Native/MacOS/SplitView.js";
+import { tabViewImpl } from "../src/Yoga/React/Native/MacOS/TabView.js";
+import { patternBackgroundImpl } from "../src/Yoga/React/Native/MacOS/PatternBackground.js";
 
 const noop = () => {};
 
@@ -92,7 +92,7 @@ describe("macOS component snapshots", () => {
 
   it("Button", () => {
     const { toJSON } = render(
-      el(_buttonImpl, {
+      el(buttonImpl, {
         title: "Click Me",
         bezelStyle: "rounded",
         onPress: noop,
@@ -103,7 +103,7 @@ describe("macOS component snapshots", () => {
 
   it("Checkbox checked", () => {
     const { toJSON } = render(
-      el(_checkboxImpl, {
+      el(checkboxImpl, {
         checked: true,
         title: "Accept terms",
         enabled: true,
@@ -114,7 +114,7 @@ describe("macOS component snapshots", () => {
 
   it("Checkbox unchecked", () => {
     const { toJSON } = render(
-      el(_checkboxImpl, {
+      el(checkboxImpl, {
         checked: false,
         title: "Accept terms",
         enabled: true,
@@ -125,7 +125,7 @@ describe("macOS component snapshots", () => {
 
   it("RadioButton selected", () => {
     const { toJSON } = render(
-      el(_radioButtonImpl, {
+      el(radioButtonImpl, {
         selected: true,
         title: "Option A",
         enabled: true,
@@ -136,7 +136,7 @@ describe("macOS component snapshots", () => {
 
   it("RadioButton unselected", () => {
     const { toJSON } = render(
-      el(_radioButtonImpl, {
+      el(radioButtonImpl, {
         selected: false,
         title: "Option B",
         enabled: true,
@@ -146,13 +146,13 @@ describe("macOS component snapshots", () => {
   });
 
   it("Switch on", () => {
-    const { toJSON } = render(el(_switchImpl, { value: true, onChange: noop }));
+    const { toJSON } = render(el(switchImpl, { value: true, onChange: noop }));
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("Slider", () => {
     const { toJSON } = render(
-      el(_sliderImpl, {
+      el(sliderImpl, {
         value: 50,
         minimumValue: 0,
         maximumValue: 100,
@@ -164,7 +164,7 @@ describe("macOS component snapshots", () => {
 
   it("Stepper", () => {
     const { toJSON } = render(
-      el(_stepperImpl, {
+      el(stepperImpl, {
         value: 5,
         minValue: 0,
         maxValue: 10,
@@ -176,7 +176,7 @@ describe("macOS component snapshots", () => {
 
   it("Segmented", () => {
     const { toJSON } = render(
-      el(_segmentedImpl, {
+      el(segmentedImpl, {
         values: ["A", "B", "C"],
         selectedIndex: 1,
         onChange: noop,
@@ -186,13 +186,13 @@ describe("macOS component snapshots", () => {
   });
 
   it("HelpButton", () => {
-    const { toJSON } = render(el(_helpButtonImpl, { onPress: noop }));
+    const { toJSON } = render(el(helpButtonImpl, { onPress: noop }));
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("PopUp", () => {
     const { toJSON } = render(
-      el(_popUpImpl, {
+      el(popUpImpl, {
         items: ["One", "Two"],
         selectedIndex: 0,
         onChange: noop,
@@ -203,7 +203,7 @@ describe("macOS component snapshots", () => {
 
   it("ComboBox", () => {
     const { toJSON } = render(
-      el(_comboBoxImpl, {
+      el(comboBoxImpl, {
         items: ["foo", "bar"],
         text: "foo",
         onChangeText: noop,
@@ -216,7 +216,7 @@ describe("macOS component snapshots", () => {
 
   it("TextField", () => {
     const { toJSON } = render(
-      el(_textFieldImpl, {
+      el(textFieldImpl, {
         text: "Hello",
         placeholder: "Type here",
         onChangeText: noop,
@@ -227,7 +227,7 @@ describe("macOS component snapshots", () => {
 
   it("SearchField", () => {
     const { toJSON } = render(
-      el(_searchFieldImpl, {
+      el(searchFieldImpl, {
         text: "",
         placeholder: "Search...",
         onChangeText: noop,
@@ -238,7 +238,7 @@ describe("macOS component snapshots", () => {
 
   it("TokenField", () => {
     const { toJSON } = render(
-      el(_tokenFieldImpl, {
+      el(tokenFieldImpl, {
         tokens: ["swift", "purescript"],
         placeholder: "Add tag",
       }),
@@ -248,7 +248,7 @@ describe("macOS component snapshots", () => {
 
   it("TextEditor", () => {
     const { toJSON } = render(
-      el(_textEditorImpl, { text: "Some long text", onChangeText: noop }),
+      el(textEditorImpl, { text: "Some long text", onChangeText: noop }),
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -256,13 +256,13 @@ describe("macOS component snapshots", () => {
   // -- Indicators --
 
   it("Progress determinate", () => {
-    const { toJSON } = render(el(_progressImpl, { value: 0.6, style: "bar" }));
+    const { toJSON } = render(el(progressImpl, { value: 0.6, style: "bar" }));
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("LevelIndicator", () => {
     const { toJSON } = render(
-      el(_levelIndicatorImpl, { value: 3, minValue: 0, maxValue: 5 }),
+      el(levelIndicatorImpl, { value: 3, minValue: 0, maxValue: 5 }),
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -271,21 +271,21 @@ describe("macOS component snapshots", () => {
 
   it("DatePicker", () => {
     const { toJSON } = render(
-      el(_datePickerImpl, { date: "2025-01-15", onChange: noop }),
+      el(datePickerImpl, { date: "2025-01-15", onChange: noop }),
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("ColorWell", () => {
     const { toJSON } = render(
-      el(_colorWellImpl, { color: "#ff0000", onChange: noop }),
+      el(colorWellImpl, { color: "#ff0000", onChange: noop }),
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("PathControl", () => {
     const { toJSON } = render(
-      el(_pathControlImpl, {
+      el(pathControlImpl, {
         url: "/Users/test/file.txt",
         pathStyle: "standard",
       }),
@@ -297,19 +297,19 @@ describe("macOS component snapshots", () => {
 
   it("Image", () => {
     const { toJSON } = render(
-      el(_imageImpl, { source: "test.png", resizeMode: "cover" }),
+      el(imageImpl, { source: "test.png", resizeMode: "cover" }),
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("AnimatedImage", () => {
-    const { toJSON } = render(el(_animatedImageImpl, { source: "anim.gif" }));
+    const { toJSON } = render(el(animatedImageImpl, { source: "anim.gif" }));
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("VideoPlayer", () => {
     const { toJSON } = render(
-      el(_videoPlayerImpl, { source: "video.mp4", autoPlay: false }),
+      el(videoPlayerImpl, { source: "video.mp4", autoPlay: false }),
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -317,12 +317,12 @@ describe("macOS component snapshots", () => {
   // -- Layout --
 
   it("Separator horizontal", () => {
-    const { toJSON } = render(el(_separatorImpl, { vertical: false }));
+    const { toJSON } = render(el(separatorImpl, { vertical: false }));
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("Separator vertical", () => {
-    const { toJSON } = render(el(_separatorImpl, { vertical: true }));
+    const { toJSON } = render(el(separatorImpl, { vertical: true }));
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -330,7 +330,7 @@ describe("macOS component snapshots", () => {
 
   it("TableView", () => {
     const { toJSON } = render(
-      el(_tableViewImpl, {
+      el(tableViewImpl, {
         columns: [
           { title: "Name", width: 100 },
           { title: "Age", width: 50 },
@@ -348,7 +348,7 @@ describe("macOS component snapshots", () => {
 
   it("OutlineView", () => {
     const { toJSON } = render(
-      el(_outlineViewImpl, {
+      el(outlineViewImpl, {
         items: [
           {
             id: "1",
@@ -368,7 +368,7 @@ describe("macOS component snapshots", () => {
 
   it("MapView", () => {
     const { toJSON } = render(
-      el(_mapViewImpl, {
+      el(mapViewImpl, {
         latitude: 37.7749,
         longitude: -122.4194,
         latitudeDelta: 0.05,
@@ -385,7 +385,7 @@ describe("macOS component snapshots", () => {
 
   it("PDFView", () => {
     const { toJSON } = render(
-      el(_pdfViewImpl, {
+      el(pdfViewImpl, {
         source: "/tmp/test.pdf",
         autoScales: true,
         displayMode: "singlePageContinuous",
@@ -399,7 +399,7 @@ describe("macOS component snapshots", () => {
 
   it("Sheet with child", () => {
     const { toJSON } = render(
-      elK(_sheetImpl, { visible: true, onDismiss: noop }, [
+      elK(sheetImpl, { visible: true, onDismiss: noop }, [
         el("View", { key: "1" }),
       ]),
     );
@@ -408,28 +408,28 @@ describe("macOS component snapshots", () => {
 
   it("Box with child", () => {
     const { toJSON } = render(
-      elK(_boxImpl, { title: "Group" }, [el("View", { key: "1" })]),
+      elK(boxImpl, { title: "Group" }, [el("View", { key: "1" })]),
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("Popover with child", () => {
     const { toJSON } = render(
-      elK(_popoverImpl, { visible: true }, [el("View", { key: "1" })]),
+      elK(popoverImpl, { visible: true }, [el("View", { key: "1" })]),
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("ScrollView with child", () => {
     const { toJSON } = render(
-      elK(_nativeScrollViewImpl, {}, [el("View", { key: "1" })]),
+      elK(nativeScrollViewImpl, {}, [el("View", { key: "1" })]),
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("VisualEffect with child", () => {
     const { toJSON } = render(
-      elK(_visualEffectImpl, { material: "sidebar" }, [
+      elK(visualEffectImpl, { material: "sidebar" }, [
         el("View", { key: "1" }),
       ]),
     );
@@ -438,7 +438,7 @@ describe("macOS component snapshots", () => {
 
   it("ContextMenu with child", () => {
     const { toJSON } = render(
-      elK(_contextMenuImpl, { menuItems: [{ title: "Copy" }] }, [
+      elK(contextMenuImpl, { menuItems: [{ title: "Copy" }] }, [
         el("View", { key: "1" }),
       ]),
     );
@@ -447,7 +447,7 @@ describe("macOS component snapshots", () => {
 
   it("SplitView with children", () => {
     const { toJSON } = render(
-      elK(_splitViewImpl, { vertical: false }, [
+      elK(splitViewImpl, { vertical: false }, [
         el("View", { key: "1" }),
         el("View", { key: "2" }),
       ]),
@@ -457,14 +457,14 @@ describe("macOS component snapshots", () => {
 
   it("TabView with children", () => {
     const { toJSON } = render(
-      elK(_tabViewImpl, { selectedIndex: 0 }, [el("View", { key: "1" })]),
+      elK(tabViewImpl, { selectedIndex: 0 }, [el("View", { key: "1" })]),
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it("PatternBackground with child", () => {
     const { toJSON } = render(
-      elK(_patternBackgroundImpl, { pattern: "dots" }, [
+      elK(patternBackgroundImpl, { pattern: "dots" }, [
         el("View", { key: "1" }),
       ]),
     );

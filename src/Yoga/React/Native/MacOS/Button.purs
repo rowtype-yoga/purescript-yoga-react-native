@@ -6,10 +6,10 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (BezelStyle)
 
-foreign import _buttonImpl :: forall props. ReactComponent props
+foreign import buttonImpl :: forall props. ReactComponent props
 
 nativeButton :: FFINativeComponent_ NativeButtonAttributes
-nativeButton = createNativeElement_ _buttonImpl
+nativeButton = createNativeElement_ buttonImpl
 
 type NativeButtonAttributes = BaseAttributes
   ( title :: String

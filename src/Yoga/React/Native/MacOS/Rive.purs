@@ -5,13 +5,13 @@ import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, FFINativeComponent_, createNativeElement, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (RiveFit)
 
-foreign import _nativeRiveViewImpl :: forall props. ReactComponent props
+foreign import nativeRiveViewImpl :: forall props. ReactComponent props
 
 nativeRiveView :: FFINativeComponent NativeRiveViewAttributes
-nativeRiveView = createNativeElement _nativeRiveViewImpl
+nativeRiveView = createNativeElement nativeRiveViewImpl
 
 nativeRiveView_ :: FFINativeComponent_ NativeRiveViewAttributes
-nativeRiveView_ = createNativeElement_ _nativeRiveViewImpl
+nativeRiveView_ = createNativeElement_ nativeRiveViewImpl
 
 type NativeRiveViewAttributes = BaseAttributes
   ( resourceName :: String
