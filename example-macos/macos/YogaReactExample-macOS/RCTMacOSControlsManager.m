@@ -46,13 +46,8 @@
 
 - (void)setSfSymbol:(NSString *)sfSymbol {
   _sfSymbol = sfSymbol;
-  if (sfSymbol.length > 0) {
-    NSImage *img = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:sfSymbol];
-    if (img) {
-      _button.image = img;
-      _button.imagePosition = NSImageLeading;
-    }
-  }
+  // SF symbols in push buttons aren't idiomatic macOS (HIG: title-only for push buttons).
+  // Kept as no-op for API compatibility; use toolbar-style buttons for icon-only.
 }
 
 - (void)setBezelStyle:(NSString *)bezelStyle {
