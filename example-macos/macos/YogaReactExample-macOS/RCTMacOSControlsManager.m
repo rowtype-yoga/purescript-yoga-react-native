@@ -1835,3 +1835,596 @@ RCT_EXPORT_VIEW_PROPERTY(backgroundColor2, NSString)
 RCT_EXPORT_VIEW_PROPERTY(patternOpacity, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 @end
+
+// ===========================================================================
+// MARK: - NSSplitView
+// ===========================================================================
+
+@interface RCTSplitView : NSSplitView <NSSplitViewDelegate>
+@property (nonatomic, assign) BOOL isVertical;
+@property (nonatomic, assign) CGFloat dividerThicknessValue;
+@property (nonatomic, strong) NSMutableArray<NSView *> *panes;
+@end
+
+@implementation RCTSplitView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    self.delegate = self;
+    self.dividerStyle = NSSplitViewDividerStyleThin;
+    _panes = [NSMutableArray new];
+    _isVertical = YES;
+    self.vertical = YES;
+  }
+  return self;
+}
+
+- (void)setIsVertical:(BOOL)isVertical {
+  _isVertical = isVertical;
+  self.vertical = isVertical;
+}
+
+- (void)setDividerThicknessValue:(CGFloat)dividerThicknessValue {
+  _dividerThicknessValue = dividerThicknessValue;
+}
+
+- (CGFloat)dividerThickness {
+  return _dividerThicknessValue > 0 ? _dividerThicknessValue : [super dividerThickness];
+}
+
+- (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
+  [_panes insertObject:subview atIndex:MIN(atIndex, (NSInteger)_panes.count)];
+  [self addSubview:subview];
+  [self adjustSubviews];
+}
+
+- (void)removeReactSubview:(NSView *)subview {
+  [_panes removeObject:subview];
+  [subview removeFromSuperview];
+  [self adjustSubviews];
+}
+
+- (NSArray<NSView *> *)reactSubviews {
+  return [_panes copy];
+}
+
+- (void)didUpdateReactSubviews {
+  [self performSelector:@selector(adjustSubviews) withObject:nil afterDelay:0];
+}
+
+- (CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMinimumPosition ofSubviewAt:(NSInteger)dividerIndex {
+  return proposedMinimumPosition + 50;
+}
+
+- (CGFloat)splitView:(NSSplitView *)splitView constrainMaxCoordinate:(CGFloat)proposedMaximumPosition ofSubviewAt:(NSInteger)dividerIndex {
+  return proposedMaximumPosition - 50;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTSplitViewManager : RCTViewManager @end
+@implementation RCTSplitViewManager
+RCT_EXPORT_MODULE(MacOSSplitView)
+- (NSView *)view { return [[RCTSplitView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(isVertical, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(dividerThicknessValue, CGFloat)
+@end
+
+// ===========================================================================
+// MARK: - NSTabView
+// ===========================================================================
+
+@interface RCTTabView : NSView
+@property (nonatomic, strong) NSSegmentedControl *tabBar;
+@property (nonatomic, copy) NSArray *items;
+@property (nonatomic, copy) NSString *selectedItem;
+@property (nonatomic, copy) NSString *tabPosition;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectTab;
+@end
+
+@implementation RCTTabView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _tabBar = [NSSegmentedControl segmentedControlWithLabels:@[]
+                                                trackingMode:NSSegmentSwitchTrackingSelectOne
+                                                      target:self
+                                                      action:@selector(handleTabChange)];
+    _tabBar.segmentStyle = NSSegmentStyleAutomatic;
+    [self addSubview:_tabBar];
+  }
+  return self;
+}
+
+- (void)setItems:(NSArray *)items {
+  _items = items;
+  _tabBar.segmentCount = items.count;
+  for (NSUInteger i = 0; i < items.count; i++) {
+    NSDictionary *item = items[i];
+    [_tabBar setLabel:item[@"label"] ?: @"" forSegment:i];
+  }
+  [self updateSelectedSegment];
+  [self setNeedsLayout:YES];
+}
+
+- (void)setSelectedItem:(NSString *)selectedItem {
+  _selectedItem = selectedItem;
+  [self updateSelectedSegment];
+}
+
+- (void)updateSelectedSegment {
+  if (!_items || !_selectedItem) return;
+  for (NSUInteger i = 0; i < _items.count; i++) {
+    if ([_items[i][@"id"] isEqualToString:_selectedItem]) {
+      _tabBar.selectedSegment = i;
+      break;
+    }
+  }
+}
+
+- (void)handleTabChange {
+  NSInteger idx = _tabBar.selectedSegment;
+  if (idx >= 0 && idx < (NSInteger)_items.count && _onSelectTab) {
+    _onSelectTab(@{@"tabId": _items[idx][@"id"] ?: @""});
+  }
+}
+
+- (void)layout {
+  [super layout];
+  CGFloat barHeight = 24.0;
+  _tabBar.frame = NSMakeRect(0, self.bounds.size.height - barHeight, self.bounds.size.width, barHeight);
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTTabViewManager : RCTViewManager @end
+@implementation RCTTabViewManager
+RCT_EXPORT_MODULE(MacOSTabView)
+- (NSView *)view { return [[RCTTabView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(items, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(selectedItem, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onSelectTab, RCTBubblingEventBlock)
+@end
+
+// ===========================================================================
+// MARK: - NSComboBox
+// ===========================================================================
+
+@interface RCTComboBoxView : NSView <NSComboBoxDelegate, NSComboBoxDataSource>
+@property (nonatomic, strong) NSComboBox *comboBox;
+@property (nonatomic, copy) NSArray<NSString *> *items;
+@property (nonatomic, copy) NSString *text;
+@property (nonatomic, copy) NSString *placeholder;
+@property (nonatomic, copy) RCTBubblingEventBlock onChangeText;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectItem;
+@end
+
+@implementation RCTComboBoxView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _comboBox = [[NSComboBox alloc] initWithFrame:self.bounds];
+    _comboBox.usesDataSource = YES;
+    _comboBox.dataSource = self;
+    _comboBox.delegate = self;
+    _comboBox.completes = YES;
+    _comboBox.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [self addSubview:_comboBox];
+  }
+  return self;
+}
+
+- (void)setItems:(NSArray<NSString *> *)items {
+  _items = items;
+  [_comboBox reloadData];
+}
+
+- (void)setText:(NSString *)text {
+  _text = text;
+  if (![_comboBox.stringValue isEqualToString:text]) {
+    _comboBox.stringValue = text ?: @"";
+  }
+}
+
+- (void)setPlaceholder:(NSString *)placeholder {
+  _placeholder = placeholder;
+  _comboBox.placeholderString = placeholder;
+}
+
+// NSComboBoxDataSource
+- (NSInteger)numberOfItemsInComboBox:(NSComboBox *)comboBox {
+  return _items.count;
+}
+
+- (id)comboBox:(NSComboBox *)comboBox objectValueForItemAtIndex:(NSInteger)index {
+  return index < (NSInteger)_items.count ? _items[index] : @"";
+}
+
+// NSComboBoxDelegate
+- (void)comboBoxSelectionDidChange:(NSNotification *)notification {
+  NSInteger idx = _comboBox.indexOfSelectedItem;
+  if (idx >= 0 && idx < (NSInteger)_items.count && _onSelectItem) {
+    _onSelectItem(@{@"selectedIndex": @(idx), @"text": _items[idx]});
+  }
+}
+
+- (void)controlTextDidChange:(NSNotification *)obj {
+  if (_onChangeText) {
+    _onChangeText(@{@"text": _comboBox.stringValue ?: @""});
+  }
+}
+
+- (void)layout {
+  [super layout];
+  _comboBox.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTComboBoxViewManager : RCTViewManager @end
+@implementation RCTComboBoxViewManager
+RCT_EXPORT_MODULE(MacOSComboBox)
+- (NSView *)view { return [[RCTComboBoxView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(items, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(text, NSString)
+RCT_EXPORT_VIEW_PROPERTY(placeholder, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
+@end
+
+// ===========================================================================
+// MARK: - NSStepper
+// ===========================================================================
+
+@interface RCTStepperView : NSView
+@property (nonatomic, strong) NSStepper *stepper;
+@property (nonatomic, strong) NSTextField *label;
+@property (nonatomic, assign) double value;
+@property (nonatomic, assign) double minValue;
+@property (nonatomic, assign) double maxValue;
+@property (nonatomic, assign) double increment;
+@property (nonatomic, copy) RCTBubblingEventBlock onChange;
+@end
+
+@implementation RCTStepperView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _stepper = [[NSStepper alloc] initWithFrame:CGRectZero];
+    _stepper.target = self;
+    _stepper.action = @selector(handleChange);
+    _stepper.minValue = 0;
+    _stepper.maxValue = 100;
+    _stepper.increment = 1;
+    _stepper.valueWraps = NO;
+
+    _label = [[NSTextField alloc] initWithFrame:CGRectZero];
+    _label.editable = NO;
+    _label.bordered = NO;
+    _label.drawsBackground = NO;
+    _label.alignment = NSTextAlignmentRight;
+    _label.font = [NSFont monospacedDigitSystemFontOfSize:13 weight:NSFontWeightRegular];
+    _label.stringValue = @"0";
+
+    [self addSubview:_label];
+    [self addSubview:_stepper];
+  }
+  return self;
+}
+
+- (void)handleChange {
+  _value = _stepper.doubleValue;
+  _label.stringValue = [NSString stringWithFormat:@"%g", _value];
+  if (_onChange) _onChange(@{@"value": @(_value)});
+}
+
+- (void)setValue:(double)value {
+  _value = value;
+  _stepper.doubleValue = value;
+  _label.stringValue = [NSString stringWithFormat:@"%g", value];
+}
+
+- (void)setMinValue:(double)minValue { _minValue = minValue; _stepper.minValue = minValue; }
+- (void)setMaxValue:(double)maxValue { _maxValue = maxValue; _stepper.maxValue = maxValue; }
+- (void)setIncrement:(double)increment { _increment = increment; _stepper.increment = increment; }
+
+- (void)layout {
+  [super layout];
+  CGFloat stepperW = 19;
+  CGFloat h = self.bounds.size.height;
+  CGFloat w = self.bounds.size.width;
+  _stepper.frame = NSMakeRect(w - stepperW, 0, stepperW, h);
+  _label.frame = NSMakeRect(0, 0, w - stepperW - 4, h);
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTStepperViewManager : RCTViewManager @end
+@implementation RCTStepperViewManager
+RCT_EXPORT_MODULE(MacOSStepper)
+- (NSView *)view { return [[RCTStepperView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(value, double)
+RCT_EXPORT_VIEW_PROPERTY(minValue, double)
+RCT_EXPORT_VIEW_PROPERTY(maxValue, double)
+RCT_EXPORT_VIEW_PROPERTY(increment, double)
+RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
+@end
+
+// ===========================================================================
+// MARK: - NSBox
+// ===========================================================================
+
+@interface RCTBoxView : NSBox
+@property (nonatomic, copy) NSString *boxTitle;
+@property (nonatomic, copy) NSString *fillColor;
+@property (nonatomic, copy) NSString *borderColorStr;
+@property (nonatomic, assign) CGFloat cornerRadiusValue;
+@end
+
+@implementation RCTBoxView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    self.titlePosition = NSNoTitle;
+    self.boxType = NSBoxCustom;
+    self.borderWidth = 1.0;
+    self.cornerRadius = 8.0;
+    self.contentViewMargins = NSMakeSize(8, 8);
+  }
+  return self;
+}
+
+- (void)setBoxTitle:(NSString *)boxTitle {
+  _boxTitle = boxTitle;
+  if (boxTitle.length > 0) {
+    self.title = boxTitle;
+    self.titlePosition = NSAtTop;
+  } else {
+    self.title = @"";
+    self.titlePosition = NSNoTitle;
+  }
+}
+
+- (void)setFillColor:(NSString *)fillColor {
+  _fillColor = fillColor;
+  self.fillColor = [RCTBoxView colorFromHex:fillColor];
+}
+
+- (void)setBorderColorStr:(NSString *)borderColorStr {
+  _borderColorStr = borderColorStr;
+  self.borderColor = [RCTBoxView colorFromHex:borderColorStr];
+}
+
+- (void)setCornerRadiusValue:(CGFloat)cornerRadiusValue {
+  _cornerRadiusValue = cornerRadiusValue;
+  self.cornerRadius = cornerRadiusValue;
+}
+
++ (NSColor *)colorFromHex:(NSString *)hex {
+  if (!hex || hex.length < 7) return NSColor.separatorColor;
+  unsigned int rgb = 0;
+  [[NSScanner scannerWithString:[hex substringFromIndex:1]] scanHexInt:&rgb];
+  return [NSColor colorWithRed:((rgb >> 16) & 0xFF) / 255.0
+                         green:((rgb >> 8) & 0xFF) / 255.0
+                          blue:(rgb & 0xFF) / 255.0
+                         alpha:1.0];
+}
+
+- (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
+  [self.contentView addSubview:subview];
+}
+
+- (void)removeReactSubview:(NSView *)subview {
+  [subview removeFromSuperview];
+}
+
+- (NSArray<NSView *> *)reactSubviews {
+  return self.contentView.subviews;
+}
+
+- (void)didUpdateReactSubviews {
+  [self performSelector:@selector(layoutContentSubviews) withObject:nil afterDelay:0];
+}
+
+- (void)layoutContentSubviews {
+  for (NSView *child in self.contentView.subviews) {
+    child.frame = self.contentView.bounds;
+  }
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTBoxViewManager : RCTViewManager @end
+@implementation RCTBoxViewManager
+RCT_EXPORT_MODULE(MacOSBox)
+- (NSView *)view { return [[RCTBoxView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(boxTitle, NSString)
+RCT_EXPORT_VIEW_PROPERTY(fillColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(borderColorStr, NSString)
+RCT_EXPORT_VIEW_PROPERTY(cornerRadiusValue, CGFloat)
+@end
+
+// ===========================================================================
+// MARK: - NSPopover
+// ===========================================================================
+
+@interface RCTPopoverView : NSView
+@property (nonatomic, strong) NSPopover *popover;
+@property (nonatomic, strong) NSViewController *popoverVC;
+@property (nonatomic, strong) NSView *contentContainer;
+@property (nonatomic, assign) BOOL visible;
+@property (nonatomic, copy) NSString *preferredEdge;
+@property (nonatomic, copy) NSString *behavior;
+@property (nonatomic, copy) RCTBubblingEventBlock onClose;
+@end
+
+@implementation RCTPopoverView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _contentContainer = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 200)];
+    _popoverVC = [[NSViewController alloc] init];
+    _popoverVC.view = _contentContainer;
+
+    _popover = [[NSPopover alloc] init];
+    _popover.contentViewController = _popoverVC;
+    _popover.behavior = NSPopoverBehaviorTransient;
+    _popover.delegate = (id)self;
+    _preferredEdge = @"bottom";
+  }
+  return self;
+}
+
+- (void)setVisible:(BOOL)visible {
+  _visible = visible;
+  if (visible) {
+    if (!_popover.isShown && self.window) {
+      NSRectEdge edge = [self edgeFromString:_preferredEdge];
+      [_popover showRelativeToRect:self.bounds ofView:self preferredEdge:edge];
+    }
+  } else {
+    if (_popover.isShown) [_popover close];
+  }
+}
+
+- (void)setBehavior:(NSString *)behavior {
+  _behavior = behavior;
+  if ([behavior isEqualToString:@"transient"]) _popover.behavior = NSPopoverBehaviorTransient;
+  else if ([behavior isEqualToString:@"semitransient"]) _popover.behavior = NSPopoverBehaviorSemitransient;
+  else _popover.behavior = NSPopoverBehaviorApplicationDefined;
+}
+
+- (NSRectEdge)edgeFromString:(NSString *)str {
+  if ([str isEqualToString:@"top"]) return NSRectEdgeMaxY;
+  if ([str isEqualToString:@"left"]) return NSRectEdgeMinX;
+  if ([str isEqualToString:@"right"]) return NSRectEdgeMaxX;
+  return NSRectEdgeMinY; // bottom
+}
+
+- (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
+  [_contentContainer addSubview:subview];
+}
+
+- (void)removeReactSubview:(NSView *)subview {
+  [subview removeFromSuperview];
+}
+
+- (NSArray<NSView *> *)reactSubviews {
+  return _contentContainer.subviews;
+}
+
+- (void)didUpdateReactSubviews {
+  [self performSelector:@selector(layoutPopoverContent) withObject:nil afterDelay:0];
+}
+
+- (void)layoutPopoverContent {
+  CGFloat maxW = 0, maxH = 0;
+  for (NSView *child in _contentContainer.subviews) {
+    CGFloat r = CGRectGetMaxX(child.frame);
+    CGFloat b = CGRectGetMaxY(child.frame);
+    if (r > maxW) maxW = r;
+    if (b > maxH) maxH = b;
+  }
+  if (maxW > 0 && maxH > 0) {
+    _popover.contentSize = NSMakeSize(maxW, maxH);
+    _contentContainer.frame = NSMakeRect(0, 0, maxW, maxH);
+  }
+}
+
+- (void)popoverDidClose:(NSNotification *)notification {
+  _visible = NO;
+  if (_onClose) _onClose(@{});
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTPopoverViewManager : RCTViewManager @end
+@implementation RCTPopoverViewManager
+RCT_EXPORT_MODULE(MacOSPopover)
+- (NSView *)view { return [[RCTPopoverView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(visible, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(preferredEdge, NSString)
+RCT_EXPORT_VIEW_PROPERTY(behavior, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onClose, RCTBubblingEventBlock)
+@end
+
+// ===========================================================================
+// MARK: - NSImageView (static)
+// ===========================================================================
+
+@interface RCTStaticImageView : NSView
+@property (nonatomic, strong) NSImageView *imageView;
+@property (nonatomic, copy) NSString *source;
+@property (nonatomic, copy) NSString *contentMode;
+@property (nonatomic, assign) CGFloat cornerRadius;
+@end
+
+@implementation RCTStaticImageView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _imageView = [[NSImageView alloc] initWithFrame:self.bounds];
+    _imageView.imageScaling = NSImageScaleProportionallyUpOrDown;
+    _imageView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    _imageView.wantsLayer = YES;
+    [self addSubview:_imageView];
+  }
+  return self;
+}
+
+- (void)setSource:(NSString *)source {
+  _source = source;
+  if ([source hasPrefix:@"http://"] || [source hasPrefix:@"https://"]) {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:source]];
+      if (data) {
+        NSImage *image = [[NSImage alloc] initWithData:data];
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if ([self->_source isEqualToString:source]) {
+            self->_imageView.image = image;
+          }
+        });
+      }
+    });
+  } else {
+    NSImage *image = [[NSImage alloc] initWithContentsOfFile:source];
+    if (image) _imageView.image = image;
+  }
+}
+
+- (void)setContentMode:(NSString *)contentMode {
+  _contentMode = contentMode;
+  if ([contentMode isEqualToString:@"scaleToFit"]) _imageView.imageScaling = NSImageScaleAxesIndependently;
+  else if ([contentMode isEqualToString:@"center"]) _imageView.imageScaling = NSImageScaleNone;
+  else _imageView.imageScaling = NSImageScaleProportionallyUpOrDown;
+}
+
+- (void)setCornerRadius:(CGFloat)cornerRadius {
+  _cornerRadius = cornerRadius;
+  _imageView.wantsLayer = YES;
+  _imageView.layer.cornerRadius = cornerRadius;
+  _imageView.layer.masksToBounds = YES;
+}
+
+- (void)layout {
+  [super layout];
+  _imageView.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTStaticImageViewManager : RCTViewManager @end
+@implementation RCTStaticImageViewManager
+RCT_EXPORT_MODULE(MacOSImage)
+- (NSView *)view { return [[RCTStaticImageView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(source, NSString)
+RCT_EXPORT_VIEW_PROPERTY(contentMode, NSString)
+RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
+@end
