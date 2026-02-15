@@ -2977,16 +2977,17 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectPath, RCTBubblingEventBlock)
   return self;
 }
 
-- (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
-  [_contentHolder addSubview:subview];
-}
-
-- (void)removeReactSubview:(NSView *)subview {
-  [subview removeFromSuperview];
-}
-
-- (void)didUpdateReactSubviews {
-  // Size content holder to fit children
+// Keep React children in self (so Fabric can track them).
+// Mirror them into the sheet's content holder when the sheet is shown.
+- (void)_mirrorChildrenToSheet {
+  // Remove old mirrors
+  for (NSView *v in [_contentHolder.subviews copy]) {
+    [v removeFromSuperview];
+  }
+  // Add subviews of self (the React children) to contentHolder
+  for (NSView *child in self.subviews) {
+    [_contentHolder addSubview:child];
+  }
   CGFloat maxW = 400, maxH = 300;
   for (NSView *child in _contentHolder.subviews) {
     CGRect f = child.frame;
@@ -2997,13 +2998,21 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectPath, RCTBubblingEventBlock)
   [_sheetWindow setContentSize:NSMakeSize(maxW, maxH)];
 }
 
+- (void)_returnChildrenFromSheet {
+  for (NSView *child in [_contentHolder.subviews copy]) {
+    [self addSubview:child];
+  }
+}
+
 - (void)setVisible:(BOOL)visible {
   _visible = visible;
   if (visible && !_sheetPresented) {
     NSWindow *parent = [NSApp keyWindow];
     if (parent) {
       _sheetPresented = YES;
+      [self _mirrorChildrenToSheet];
       [parent beginSheet:_sheetWindow completionHandler:^(NSModalResponse returnCode) {
+        [self _returnChildrenFromSheet];
         self->_sheetPresented = NO;
         if (self->_onDismiss) self->_onDismiss(@{});
       }];
@@ -3011,6 +3020,7 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectPath, RCTBubblingEventBlock)
   } else if (!visible && _sheetPresented) {
     [NSApp endSheet:_sheetWindow];
     [_sheetWindow orderOut:nil];
+    [self _returnChildrenFromSheet];
     _sheetPresented = NO;
   }
 }
