@@ -5,7 +5,9 @@ export const alertImpl = (style, title, message, buttons) => () => {
   // Try our native module first
   const mod = NativeModules.MacOSAlertModule;
   if (mod && mod.show) {
-    mod.show(style, title, message, buttons).catch(() => {});
+    mod
+      .show(style, title, message, buttons)
+      .catch((e) => console.error("[macosAlert]", e));
     return;
   }
   // Fallback: RN Alert (uses NativeAlertManager internally on macOS)

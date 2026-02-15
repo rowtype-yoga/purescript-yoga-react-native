@@ -49,6 +49,17 @@ import Yoga.React.Native.MacOS.Box (nativeBox)
 import Yoga.React.Native.MacOS.Popover (nativePopover)
 import Yoga.React.Native.MacOS.Image (nativeImage)
 import Yoga.React.Native.MacOS.Alert (macosAlert)
+import Yoga.React.Native.MacOS.Checkbox (nativeCheckbox)
+import Yoga.React.Native.MacOS.RadioButton (nativeRadioButton)
+import Yoga.React.Native.MacOS.SearchField (nativeSearchField)
+import Yoga.React.Native.MacOS.TokenField (nativeTokenField)
+import Yoga.React.Native.MacOS.Separator (nativeSeparator)
+import Yoga.React.Native.MacOS.HelpButton (nativeHelpButton)
+import Yoga.React.Native.MacOS.PathControl (nativePathControl)
+import Yoga.React.Native.MacOS.Sheet (nativeSheet)
+import Yoga.React.Native.MacOS.TableView (nativeTableView)
+import Yoga.React.Native.MacOS.Menu (macosShowMenu)
+import Yoga.React.Native.MacOS.Pasteboard (copyToClipboard)
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
@@ -153,6 +164,7 @@ foreign import getField :: String -> forall r. r -> Number
 foreign import getFieldInt :: String -> forall r. r -> Int
 foreign import getFieldStr :: String -> forall r. r -> String
 foreign import getFieldBool :: String -> forall r. r -> Boolean
+foreign import getFieldArray :: String -> forall r. r -> Array String
 
 -- Tab 0: Controls
 type ControlsProps =
@@ -472,6 +484,15 @@ systemTab = component "SystemTab" \p -> React.do
   comboResult /\ setComboResult <- useState' ""
   stepperValue /\ setStepperValue <- useState' 5.0
   popoverVisible /\ setPopoverVisible <- useState' false
+  checkboxA /\ setCheckboxA <- useState' true
+  checkboxB /\ setCheckboxB <- useState' false
+  radioChoice /\ setRadioChoice <- useState' "option1"
+  searchQuery /\ setSearchQuery <- useState' ""
+  searchResult /\ setSearchResult <- useState' ""
+  tagTokens /\ setTagTokens <- useState' ([ "PureScript", "React", "macOS" ] :: Array String)
+  sheetVisible /\ setSheetVisible <- useState' false
+  menuResult2 /\ setMenuResult2 <- useState' ""
+  selectedRow /\ setSelectedRow <- useState' ""
   let
     accentBorder = if isDragging then "#007AFF" else p.dimFg
   pure do
@@ -724,12 +745,186 @@ systemTab = component "SystemTab" \p -> React.do
               , style: Style.style { height: 200.0 } <> tw "mb-2"
               }
 
+          , sectionTitle p.fg "Checkbox"
+          , card p.cardBg
+              [ nativeCheckbox
+                  { checked: checkboxA
+                  , title: "Enable notifications"
+                  , enabled: true
+                  , onChange: extractBool "checked" setCheckboxA
+                  , style: Style.style { height: 24.0 } <> tw "mb-1"
+                  }
+              , nativeCheckbox
+                  { checked: checkboxB
+                  , title: "Dark mode"
+                  , enabled: true
+                  , onChange: extractBool "checked" setCheckboxB
+                  , style: Style.style { height: 24.0 }
+                  }
+              ]
+
+          , sectionTitle p.fg "Radio Button"
+          , card p.cardBg
+              [ nativeRadioButton
+                  { selected: radioChoice == "option1"
+                  , title: "Small"
+                  , enabled: true
+                  , onChange: handler_ (setRadioChoice "option1")
+                  , style: Style.style { height: 24.0 } <> tw "mb-1"
+                  }
+              , nativeRadioButton
+                  { selected: radioChoice == "option2"
+                  , title: "Medium"
+                  , enabled: true
+                  , onChange: handler_ (setRadioChoice "option2")
+                  , style: Style.style { height: 24.0 } <> tw "mb-1"
+                  }
+              , nativeRadioButton
+                  { selected: radioChoice == "option3"
+                  , title: "Large"
+                  , enabled: true
+                  , onChange: handler_ (setRadioChoice "option3")
+                  , style: Style.style { height: 24.0 }
+                  }
+              , label p.dimFg ("Selected: " <> radioChoice)
+              ]
+
+          , sectionTitle p.fg "Search Field"
+          , nativeSearchField
+              { text: searchQuery
+              , placeholder: "Search..."
+              , onChangeText: extractString "text" setSearchQuery
+              , onSearch: extractString "text" \t -> setSearchResult ("Searched: " <> t)
+              , style: Style.style { height: 28.0 } <> tw "mb-2"
+              }
+          , if searchResult == "" then mempty
+            else label p.dimFg searchResult
+
+          , sectionTitle p.fg "Token Field"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Type text and press Enter to add tokens"
+          , nativeTokenField
+              { tokens: tagTokens
+              , placeholder: "Add tags..."
+              , onChangeTokens: handler
+                  (nativeEvent >>> unsafeEventFn \e -> getFieldArray "tokens" e)
+                  setTagTokens
+              , style: Style.style { height: 28.0 } <> tw "mb-2"
+              }
+
+          , sectionTitle p.fg "Separator"
+          , nativeSeparator
+              { vertical: false
+              , style: Style.style { height: 2.0 } <> tw "my-2"
+              }
+
+          , sectionTitle p.fg "Help Button"
+          , view { style: tw "flex-row items-center mb-2" }
+              [ nativeHelpButton
+                  { onPress: handler_ (macosAlert T.informational "Help" "This is the help button. It opens contextual help." [ "OK" ])
+                  , style: Style.style { width: 24.0, height: 24.0 }
+                  }
+              , text { style: tw "text-xs ml-2" <> Style.style { color: p.dimFg } } "Click for help"
+              ]
+
+          , sectionTitle p.fg "Path Control"
+          , nativePathControl
+              { url: "/Users"
+              , pathStyle: T.standardPath
+              , onSelectPath: extractString "url" \_ -> pure unit
+              , style: Style.style { height: 24.0 } <> tw "mb-2"
+              }
+
+          , sectionTitle p.fg "Sheet"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Modal sheet attached to the window"
+          , nativeButton
+              { title: "Show Sheet"
+              , bezelStyle: T.push
+              , onPress: handler_ (setSheetVisible true)
+              , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
+              }
+          , nativeSheet
+              { visible: sheetVisible
+              , onDismiss: handler_ (setSheetVisible false)
+              }
+              [ view { style: tw "p-6" <> Style.style { width: 400.0, height: 200.0 } }
+                  [ text { style: tw "text-lg font-semibold mb-2" <> Style.style { color: p.fg } } "Sheet Content"
+                  , text { style: tw "text-sm mb-4" <> Style.style { color: p.dimFg } } "This is a native macOS sheet."
+                  , nativeButton
+                      { title: "Dismiss"
+                      , bezelStyle: T.push
+                      , onPress: handler_ (setSheetVisible false)
+                      , style: Style.style { height: 24.0, width: 100.0 }
+                      }
+                  ]
+              ]
+
+          , sectionTitle p.fg "Menu"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Imperative popup menu at mouse position"
+          , view { style: tw "flex-row items-center mb-2" }
+              [ nativeButton
+                  { title: "Show Menu"
+                  , bezelStyle: T.push
+                  , onPress: handler_
+                      ( macosShowMenu
+                          [ { title: "New File", id: "new" }
+                          , { title: "Open...", id: "open" }
+                          , { title: "-", id: "sep" }
+                          , { title: "Save", id: "save" }
+                          , { title: "Save As...", id: "saveAs" }
+                          ]
+                          \itemId -> setMenuResult2 ("Menu: " <> itemId)
+                      )
+                  , style: Style.style { height: 24.0, width: 120.0 }
+                  }
+              , if menuResult2 == "" then mempty
+                else text { style: tw "text-xs ml-3" <> Style.style { color: p.dimFg } } menuResult2
+              ]
+
+          , sectionTitle p.fg "Table View"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native NSTableView with columns and rows"
+          , nativeTableView
+              { columns:
+                  [ { id: "name", title: "Name", width: 150.0 }
+                  , { id: "type", title: "Type", width: 100.0 }
+                  , { id: "size", title: "Size", width: 80.0 }
+                  ]
+              , rows:
+                  [ [ "Main.purs", "PureScript", "12 KB" ]
+                  , [ "App.tsx", "TypeScript", "8 KB" ]
+                  , [ "style.css", "CSS", "3 KB" ]
+                  , [ "index.html", "HTML", "1 KB" ]
+                  , [ "package.json", "JSON", "2 KB" ]
+                  ]
+              , headerVisible: true
+              , alternatingRows: true
+              , onSelectRow: extractInt "rowIndex" \i -> setSelectedRow ("Row " <> show i)
+              , onDoubleClickRow: extractInt "rowIndex" \i -> setSelectedRow ("Double-clicked row " <> show i)
+              , style: Style.style { height: 180.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
+          , if selectedRow == "" then mempty
+            else label p.dimFg selectedRow
+
+          , sectionTitle p.fg "Clipboard"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Read and write the system clipboard"
+          , view { style: tw "flex-row items-center mb-2" }
+              [ nativeButton
+                  { title: "Copy 'Hello'"
+                  , bezelStyle: T.push
+                  , onPress: handler_ (copyToClipboard "Hello from PureScript!")
+                  , style: Style.style { height: 24.0, width: 120.0 }
+                  }
+              ]
+
           , sectionTitle p.fg "Alert"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
               "Native alert dialog"
           , nativeButton
               { title: "Show Alert"
-              , sfSymbol: "exclamationmark.triangle"
               , bezelStyle: T.push
               , onPress: handler_ (macosAlert T.warning "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
               , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"

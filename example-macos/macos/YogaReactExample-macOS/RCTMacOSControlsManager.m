@@ -1622,9 +1622,17 @@ RCT_EXPORT_METHOD(show:(NSString *)style
     }
     if (buttons.count == 0) [alert addButtonWithTitle:@"OK"];
 
-    NSModalResponse response = [alert runModal];
-    NSInteger idx = response - NSAlertFirstButtonReturn;
-    resolve(@(idx));
+    NSWindow *keyWindow = [NSApp keyWindow];
+    if (keyWindow) {
+      [alert beginSheetModalForWindow:keyWindow completionHandler:^(NSModalResponse response) {
+        NSInteger idx = response - NSAlertFirstButtonReturn;
+        resolve(@(idx));
+      }];
+    } else {
+      NSModalResponse response = [alert runModal];
+      NSInteger idx = response - NSAlertFirstButtonReturn;
+      resolve(@(idx));
+    }
   });
 }
 
@@ -2550,4 +2558,652 @@ RCT_EXPORT_MODULE(MacOSImage)
 RCT_EXPORT_VIEW_PROPERTY(source, NSString)
 RCT_EXPORT_VIEW_PROPERTY(contentMode, NSString)
 RCT_EXPORT_VIEW_PROPERTY(cornerRadius, CGFloat)
+@end
+
+// ============================================================
+// 30. NSButton (Checkbox) — MacOSCheckbox
+// ============================================================
+
+@interface RCTCheckboxView : NSView
+@property (nonatomic, strong) NSButton *button;
+@property (nonatomic, copy) RCTBubblingEventBlock onChange;
+@property (nonatomic, assign) BOOL checked;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, assign) BOOL enabled;
+@end
+
+@implementation RCTCheckboxView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _button = [NSButton checkboxWithTitle:@"" target:self action:@selector(toggled:)];
+    [self addSubview:_button];
+  }
+  return self;
+}
+
+- (void)toggled:(id)sender {
+  if (_onChange) _onChange(@{ @"checked": @(_button.state == NSControlStateValueOn) });
+}
+
+- (void)setChecked:(BOOL)checked {
+  _checked = checked;
+  _button.state = checked ? NSControlStateValueOn : NSControlStateValueOff;
+}
+
+- (void)setTitle:(NSString *)title {
+  _title = title;
+  _button.title = title ?: @"";
+}
+
+- (void)setEnabled:(BOOL)enabled {
+  _enabled = enabled;
+  _button.enabled = enabled;
+}
+
+- (void)layout {
+  [super layout];
+  _button.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTCheckboxViewManager : RCTViewManager @end
+@implementation RCTCheckboxViewManager
+RCT_EXPORT_MODULE(MacOSCheckbox)
+- (NSView *)view { return [[RCTCheckboxView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(checked, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(title, NSString)
+RCT_EXPORT_VIEW_PROPERTY(enabled, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 31. NSButton (RadioButton) — MacOSRadioButton
+// ============================================================
+
+@interface RCTRadioButtonView : NSView
+@property (nonatomic, strong) NSButton *button;
+@property (nonatomic, copy) RCTBubblingEventBlock onChange;
+@property (nonatomic, assign) BOOL selected;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, assign) BOOL enabled;
+@end
+
+@implementation RCTRadioButtonView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _button = [NSButton radioButtonWithTitle:@"" target:self action:@selector(toggled:)];
+    [self addSubview:_button];
+  }
+  return self;
+}
+
+- (void)toggled:(id)sender {
+  if (_onChange) _onChange(@{ @"selected": @(_button.state == NSControlStateValueOn) });
+}
+
+- (void)setSelected:(BOOL)selected {
+  _selected = selected;
+  _button.state = selected ? NSControlStateValueOn : NSControlStateValueOff;
+}
+
+- (void)setTitle:(NSString *)title {
+  _title = title;
+  _button.title = title ?: @"";
+}
+
+- (void)setEnabled:(BOOL)enabled {
+  _enabled = enabled;
+  _button.enabled = enabled;
+}
+
+- (void)layout {
+  [super layout];
+  _button.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTRadioButtonViewManager : RCTViewManager @end
+@implementation RCTRadioButtonViewManager
+RCT_EXPORT_MODULE(MacOSRadioButton)
+- (NSView *)view { return [[RCTRadioButtonView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(selected, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(title, NSString)
+RCT_EXPORT_VIEW_PROPERTY(enabled, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 32. NSSearchField — MacOSSearchField
+// ============================================================
+
+@interface RCTSearchFieldView : NSView <NSSearchFieldDelegate>
+@property (nonatomic, strong) NSSearchField *searchField;
+@property (nonatomic, copy) RCTBubblingEventBlock onChangeText;
+@property (nonatomic, copy) RCTBubblingEventBlock onSearch;
+@property (nonatomic, copy) NSString *text;
+@property (nonatomic, copy) NSString *placeholder;
+@end
+
+@implementation RCTSearchFieldView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _searchField = [[NSSearchField alloc] initWithFrame:CGRectZero];
+    _searchField.delegate = self;
+    _searchField.target = self;
+    _searchField.action = @selector(searchAction:);
+    [self addSubview:_searchField];
+  }
+  return self;
+}
+
+- (void)searchAction:(id)sender {
+  if (_onSearch) _onSearch(@{ @"text": _searchField.stringValue ?: @"" });
+}
+
+- (void)controlTextDidChange:(NSNotification *)notification {
+  if (_onChangeText) _onChangeText(@{ @"text": _searchField.stringValue ?: @"" });
+}
+
+- (void)setText:(NSString *)text {
+  _text = text;
+  _searchField.stringValue = text ?: @"";
+}
+
+- (void)setPlaceholder:(NSString *)placeholder {
+  _placeholder = placeholder;
+  _searchField.placeholderString = placeholder;
+}
+
+- (void)layout {
+  [super layout];
+  _searchField.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTSearchFieldViewManager : RCTViewManager @end
+@implementation RCTSearchFieldViewManager
+RCT_EXPORT_MODULE(MacOSSearchField)
+- (NSView *)view { return [[RCTSearchFieldView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(text, NSString)
+RCT_EXPORT_VIEW_PROPERTY(placeholder, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onChangeText, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onSearch, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 33. NSTokenField — MacOSTokenField
+// ============================================================
+
+@interface RCTTokenFieldView : NSView <NSTokenFieldDelegate>
+@property (nonatomic, strong) NSTokenField *tokenField;
+@property (nonatomic, copy) RCTBubblingEventBlock onChangeTokens;
+@property (nonatomic, strong) NSArray<NSString *> *tokens;
+@property (nonatomic, copy) NSString *placeholder;
+@end
+
+@implementation RCTTokenFieldView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _tokenField = [[NSTokenField alloc] initWithFrame:CGRectZero];
+    _tokenField.delegate = self;
+    [self addSubview:_tokenField];
+  }
+  return self;
+}
+
+- (void)controlTextDidChange:(NSNotification *)notification {
+  [self reportTokens];
+}
+
+- (NSArray *)tokenField:(NSTokenField *)tokenField shouldAddObjects:(NSArray *)tokens atIndex:(NSUInteger)index {
+  dispatch_async(dispatch_get_main_queue(), ^{ [self reportTokens]; });
+  return tokens;
+}
+
+- (void)reportTokens {
+  if (_onChangeTokens) {
+    NSArray *objs = _tokenField.objectValue;
+    NSMutableArray *strs = [NSMutableArray array];
+    for (id obj in objs) {
+      [strs addObject:[obj description]];
+    }
+    _onChangeTokens(@{ @"tokens": strs });
+  }
+}
+
+- (void)setTokens:(NSArray<NSString *> *)tokens {
+  _tokens = tokens;
+  _tokenField.objectValue = tokens ?: @[];
+}
+
+- (void)setPlaceholder:(NSString *)placeholder {
+  _placeholder = placeholder;
+  _tokenField.placeholderString = placeholder;
+}
+
+- (void)layout {
+  [super layout];
+  _tokenField.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTTokenFieldViewManager : RCTViewManager @end
+@implementation RCTTokenFieldViewManager
+RCT_EXPORT_MODULE(MacOSTokenField)
+- (NSView *)view { return [[RCTTokenFieldView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(tokens, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(placeholder, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onChangeTokens, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 34. NSBox (Separator) — MacOSSeparator
+// ============================================================
+
+@interface RCTSeparatorView : NSView
+@property (nonatomic, strong) NSBox *box;
+@property (nonatomic, assign) BOOL vertical;
+@end
+
+@implementation RCTSeparatorView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _box = [[NSBox alloc] initWithFrame:CGRectZero];
+    _box.boxType = NSBoxSeparator;
+    [self addSubview:_box];
+  }
+  return self;
+}
+
+- (void)layout {
+  [super layout];
+  _box.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTSeparatorViewManager : RCTViewManager @end
+@implementation RCTSeparatorViewManager
+RCT_EXPORT_MODULE(MacOSSeparator)
+- (NSView *)view { return [[RCTSeparatorView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(vertical, BOOL)
+@end
+
+// ============================================================
+// 35. NSButton (HelpButton) — MacOSHelpButton
+// ============================================================
+
+@interface RCTHelpButtonView : NSView
+@property (nonatomic, strong) NSButton *button;
+@property (nonatomic, copy) RCTBubblingEventBlock onPress;
+@end
+
+@implementation RCTHelpButtonView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _button = [[NSButton alloc] initWithFrame:CGRectZero];
+    _button.bezelStyle = NSBezelStyleHelpButton;
+    _button.title = @"";
+    _button.target = self;
+    _button.action = @selector(pressed:);
+    [self addSubview:_button];
+  }
+  return self;
+}
+
+- (void)pressed:(id)sender {
+  if (_onPress) _onPress(@{});
+}
+
+- (void)layout {
+  [super layout];
+  _button.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTHelpButtonViewManager : RCTViewManager @end
+@implementation RCTHelpButtonViewManager
+RCT_EXPORT_MODULE(MacOSHelpButton)
+- (NSView *)view { return [[RCTHelpButtonView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 36. NSPathControl — MacOSPathControl
+// ============================================================
+
+@interface RCTPathControlView : NSView
+@property (nonatomic, strong) NSPathControl *pathControl;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectPath;
+@property (nonatomic, copy) NSString *url;
+@property (nonatomic, copy) NSString *pathStyle;
+@end
+
+@implementation RCTPathControlView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _pathControl = [[NSPathControl alloc] initWithFrame:CGRectZero];
+    _pathControl.pathStyle = NSPathStyleStandard;
+    _pathControl.target = self;
+    _pathControl.action = @selector(pathClicked:);
+    _pathControl.backgroundColor = [NSColor clearColor];
+    [self addSubview:_pathControl];
+  }
+  return self;
+}
+
+- (void)pathClicked:(id)sender {
+  if (_onSelectPath) {
+    NSPathControlItem *item = _pathControl.clickedPathItem;
+    NSString *urlStr = item.URL.absoluteString ?: _pathControl.URL.absoluteString ?: @"";
+    _onSelectPath(@{ @"url": urlStr });
+  }
+}
+
+- (void)setUrl:(NSString *)url {
+  _url = url;
+  if (url) {
+    NSURL *u = [NSURL URLWithString:url];
+    if (!u) u = [NSURL fileURLWithPath:url];
+    _pathControl.URL = u;
+  }
+}
+
+- (void)setPathStyle:(NSString *)pathStyle {
+  _pathStyle = pathStyle;
+  if ([pathStyle isEqualToString:@"popup"]) _pathControl.pathStyle = NSPathStylePopUp;
+  else if ([pathStyle isEqualToString:@"none"]) _pathControl.pathStyle = NSPathStyleStandard;
+  else _pathControl.pathStyle = NSPathStyleStandard;
+}
+
+- (void)layout {
+  [super layout];
+  _pathControl.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTPathControlViewManager : RCTViewManager @end
+@implementation RCTPathControlViewManager
+RCT_EXPORT_MODULE(MacOSPathControl)
+- (NSView *)view { return [[RCTPathControlView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(url, NSString)
+RCT_EXPORT_VIEW_PROPERTY(pathStyle, NSString)
+RCT_EXPORT_VIEW_PROPERTY(onSelectPath, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 37. Sheet — MacOSSheet
+// ============================================================
+
+@interface RCTSheetView : NSView
+@property (nonatomic, assign) BOOL visible;
+@property (nonatomic, copy) RCTBubblingEventBlock onDismiss;
+@property (nonatomic, strong) NSWindow *sheetWindow;
+@property (nonatomic, strong) NSView *contentHolder;
+@property (nonatomic, assign) BOOL sheetPresented;
+@end
+
+@implementation RCTSheetView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _contentHolder = [[NSView alloc] initWithFrame:CGRectMake(0, 0, 400, 300)];
+    _sheetWindow = [[NSWindow alloc] initWithContentRect:CGRectMake(0, 0, 400, 300)
+                                               styleMask:NSWindowStyleMaskTitled
+                                                 backing:NSBackingStoreBuffered
+                                                   defer:YES];
+    _sheetWindow.contentView = _contentHolder;
+  }
+  return self;
+}
+
+- (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
+  [_contentHolder addSubview:subview];
+}
+
+- (void)removeReactSubview:(NSView *)subview {
+  [subview removeFromSuperview];
+}
+
+- (void)didUpdateReactSubviews {
+  // Size content holder to fit children
+  CGFloat maxW = 400, maxH = 300;
+  for (NSView *child in _contentHolder.subviews) {
+    CGRect f = child.frame;
+    if (CGRectGetMaxX(f) > maxW) maxW = CGRectGetMaxX(f);
+    if (CGRectGetMaxY(f) > maxH) maxH = CGRectGetMaxY(f);
+  }
+  _contentHolder.frame = CGRectMake(0, 0, maxW, maxH);
+  [_sheetWindow setContentSize:NSMakeSize(maxW, maxH)];
+}
+
+- (void)setVisible:(BOOL)visible {
+  _visible = visible;
+  if (visible && !_sheetPresented) {
+    NSWindow *parent = [NSApp keyWindow];
+    if (parent) {
+      _sheetPresented = YES;
+      [parent beginSheet:_sheetWindow completionHandler:^(NSModalResponse returnCode) {
+        self->_sheetPresented = NO;
+        if (self->_onDismiss) self->_onDismiss(@{});
+      }];
+    }
+  } else if (!visible && _sheetPresented) {
+    [NSApp endSheet:_sheetWindow];
+    [_sheetWindow orderOut:nil];
+    _sheetPresented = NO;
+  }
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTSheetViewManager : RCTViewManager @end
+@implementation RCTSheetViewManager
+RCT_EXPORT_MODULE(MacOSSheet)
+- (NSView *)view { return [[RCTSheetView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(visible, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(onDismiss, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 38. NSMenu — MacOSMenuModule (imperative)
+// ============================================================
+
+@interface MacOSMenuModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSMenuModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(show:(NSArray<NSDictionary *> *)items
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+    menu.autoenablesItems = NO;
+    for (NSUInteger i = 0; i < items.count; i++) {
+      NSDictionary *item = items[i];
+      NSString *title = item[@"title"] ?: @"";
+      NSString *itemId = item[@"id"] ?: @"";
+      if ([title isEqualToString:@"-"]) {
+        [menu addItem:[NSMenuItem separatorItem]];
+      } else {
+        NSMenuItem *mi = [[NSMenuItem alloc] initWithTitle:title action:@selector(menuItemSelected:) keyEquivalent:@""];
+        mi.representedObject = itemId;
+        mi.target = self;
+        mi.tag = (NSInteger)i;
+        mi.enabled = YES;
+        [menu addItem:mi];
+      }
+    }
+
+    __block NSString *selectedId = @"";
+    __block BOOL wasSelected = NO;
+
+    // Use a temporary target to capture selection
+    NSWindow *keyWin = [NSApp keyWindow];
+    NSView *targetView = keyWin.contentView;
+    NSPoint loc = targetView ? [targetView convertPoint:NSMakePoint(0, 0) toView:nil] : NSZeroPoint;
+
+    // popUpMenuPositioningItem is synchronous
+    [menu popUpMenuPositioningItem:nil atLocation:[NSEvent mouseLocation] inView:nil];
+
+    // After menu closes, check which item was highlighted/selected
+    for (NSMenuItem *mi in menu.itemArray) {
+      if (mi.state == NSControlStateValueOn || mi == menu.highlightedItem) {
+        selectedId = mi.representedObject ?: @"";
+        wasSelected = YES;
+        break;
+      }
+    }
+
+    resolve(selectedId);
+  });
+}
+
+- (void)menuItemSelected:(NSMenuItem *)sender {
+  // Action target — makes the item selectable
+}
+
+@end
+
+// ============================================================
+// 39. NSTableView — MacOSTableView
+// ============================================================
+
+@interface RCTTableViewWrapper : NSView <NSTableViewDataSource, NSTableViewDelegate>
+@property (nonatomic, strong) NSScrollView *scrollView;
+@property (nonatomic, strong) NSTableView *tableView;
+@property (nonatomic, strong) NSArray<NSDictionary *> *columns;
+@property (nonatomic, strong) NSArray<NSArray<NSString *> *> *rows;
+@property (nonatomic, assign) BOOL headerVisible;
+@property (nonatomic, assign) BOOL alternatingRows;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectRow;
+@property (nonatomic, copy) RCTBubblingEventBlock onDoubleClickRow;
+@end
+
+@implementation RCTTableViewWrapper
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _tableView = [[NSTableView alloc] initWithFrame:CGRectZero];
+    _tableView.dataSource = self;
+    _tableView.delegate = self;
+    _tableView.usesAlternatingRowBackgroundColors = YES;
+    _tableView.headerView = [[NSTableHeaderView alloc] init];
+    _tableView.target = self;
+    _tableView.doubleAction = @selector(doubleClicked:);
+
+    _scrollView = [[NSScrollView alloc] initWithFrame:CGRectZero];
+    _scrollView.documentView = _tableView;
+    _scrollView.hasVerticalScroller = YES;
+    _scrollView.hasHorizontalScroller = YES;
+    _scrollView.autohidesScrollers = YES;
+    [self addSubview:_scrollView];
+  }
+  return self;
+}
+
+- (void)doubleClicked:(id)sender {
+  NSInteger row = _tableView.clickedRow;
+  if (row >= 0 && _onDoubleClickRow) _onDoubleClickRow(@{ @"rowIndex": @(row) });
+}
+
+- (void)setColumns:(NSArray<NSDictionary *> *)columns {
+  _columns = columns;
+  // Remove old columns
+  while (_tableView.tableColumns.count > 0) {
+    [_tableView removeTableColumn:_tableView.tableColumns.lastObject];
+  }
+  for (NSDictionary *col in columns) {
+    NSString *colId = col[@"id"] ?: @"";
+    NSString *title = col[@"title"] ?: colId;
+    NSNumber *width = col[@"width"];
+    NSTableColumn *tc = [[NSTableColumn alloc] initWithIdentifier:colId];
+    tc.headerCell.stringValue = title;
+    if (width) tc.width = width.doubleValue;
+    [_tableView addTableColumn:tc];
+  }
+  [_tableView reloadData];
+}
+
+- (void)setRows:(NSArray<NSArray<NSString *> *> *)rows {
+  _rows = rows;
+  [_tableView reloadData];
+}
+
+- (void)setHeaderVisible:(BOOL)headerVisible {
+  _headerVisible = headerVisible;
+  _tableView.headerView = headerVisible ? [[NSTableHeaderView alloc] init] : nil;
+}
+
+- (void)setAlternatingRows:(BOOL)alternatingRows {
+  _alternatingRows = alternatingRows;
+  _tableView.usesAlternatingRowBackgroundColors = alternatingRows;
+}
+
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
+  return _rows.count;
+}
+
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+  NSTextField *cell = [tableView makeViewWithIdentifier:tableColumn.identifier owner:self];
+  if (!cell) {
+    cell = [NSTextField labelWithString:@""];
+    cell.identifier = tableColumn.identifier;
+  }
+  NSUInteger colIdx = [_tableView.tableColumns indexOfObject:tableColumn];
+  NSArray *rowData = (row < (NSInteger)_rows.count) ? _rows[row] : @[];
+  cell.stringValue = (colIdx < rowData.count) ? rowData[colIdx] : @"";
+  return cell;
+}
+
+- (void)tableViewSelectionDidChange:(NSNotification *)notification {
+  NSInteger row = _tableView.selectedRow;
+  if (row >= 0 && _onSelectRow) _onSelectRow(@{ @"rowIndex": @(row) });
+}
+
+- (void)layout {
+  [super layout];
+  _scrollView.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTTableViewManager : RCTViewManager @end
+@implementation RCTTableViewManager
+RCT_EXPORT_MODULE(MacOSTableView)
+- (NSView *)view { return [[RCTTableViewWrapper alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(columns, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(rows, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(headerVisible, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(alternatingRows, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(onSelectRow, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onDoubleClickRow, RCTBubblingEventBlock)
 @end

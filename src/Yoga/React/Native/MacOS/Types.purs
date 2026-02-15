@@ -176,3 +176,11 @@ critical = AlertStyle "critical"
 
 informational :: AlertStyle
 informational = AlertStyle "informational"
+
+newtype PathControlStyle = PathControlStyle String
+
+standardPath :: PathControlStyle
+standardPath = PathControlStyle "standard"
+
+popupPath :: PathControlStyle
+popupPath = PathControlStyle "popup"
