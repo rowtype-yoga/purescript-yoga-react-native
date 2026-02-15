@@ -1902,12 +1902,13 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 @end
 
 @implementation RCTSplitPaneWrapper
-- (void)resizeSubviewsWithOldSize:(NSSize)oldSize {
-  // When NSSplitView resizes us, resize the React child to fill and re-trigger Yoga layout
+- (void)layout {
+  [super layout];
   if (_reactChild) {
     _reactChild.frame = self.bounds;
-    if ([_reactChild respondsToSelector:@selector(reactSetFrame:)]) {
-      ((void (*)(id, SEL, CGRect))objc_msgSend)(_reactChild, @selector(reactSetFrame:), self.bounds);
+    // Also resize all immediate Yoga-managed children to match
+    for (NSView *sub in _reactChild.subviews) {
+      sub.frame = _reactChild.bounds;
     }
   }
 }
@@ -1915,8 +1916,8 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
   [super setFrameSize:newSize];
   if (_reactChild) {
     _reactChild.frame = self.bounds;
-    if ([_reactChild respondsToSelector:@selector(reactSetFrame:)]) {
-      ((void (*)(id, SEL, CGRect))objc_msgSend)(_reactChild, @selector(reactSetFrame:), self.bounds);
+    for (NSView *sub in _reactChild.subviews) {
+      sub.frame = _reactChild.bounds;
     }
   }
 }
