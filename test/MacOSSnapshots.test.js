@@ -73,6 +73,7 @@ import { tableViewImpl } from "../src/Yoga/React/Native/MacOS/TableView.js";
 import { outlineViewImpl } from "../src/Yoga/React/Native/MacOS/OutlineView.js";
 import { mapViewImpl } from "../src/Yoga/React/Native/MacOS/MapView.js";
 import { pdfViewImpl } from "../src/Yoga/React/Native/MacOS/PDFView.js";
+import { cameraViewImpl } from "../src/Yoga/React/Native/MacOS/CameraView.js";
 
 // Container components (with children)
 import { sheetImpl } from "../src/Yoga/React/Native/MacOS/Sheet.js";
@@ -468,6 +469,11 @@ describe("macOS component snapshots", () => {
         el("View", { key: "1" }),
       ]),
     );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it("CameraView", () => {
+    const { toJSON } = render(el(cameraViewImpl, { active: true }));
     expect(toJSON()).toMatchSnapshot();
   });
 });

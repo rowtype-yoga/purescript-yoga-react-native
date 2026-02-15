@@ -33,6 +33,15 @@ exports[`macOS component snapshots > Button 1`] = `
 }
 `;
 
+exports[`macOS component snapshots > CameraView 1`] = `
+{
+  "props": {
+    "active": true,
+  },
+  "type": "MacOSCameraView",
+}
+`;
+
 exports[`macOS component snapshots > Checkbox checked 1`] = `
 {
   "props": {

@@ -205,3 +205,12 @@ describe("macOS native component FFI exports (batch 4)", () => {
     expect(pdfViewImpl).toBe("MacOSPDFView");
   });
 });
+
+// Batch 5
+import { cameraViewImpl } from "../src/Yoga/React/Native/MacOS/CameraView.js";
+
+describe("macOS native component FFI exports (batch 5)", () => {
+  it("CameraView resolves to MacOSCameraView", () => {
+    expect(cameraViewImpl).toBe("MacOSCameraView");
+  });
+});
