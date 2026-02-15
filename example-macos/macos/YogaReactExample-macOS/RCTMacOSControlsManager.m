@@ -1973,7 +1973,8 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
   NSUInteger idx = [_reactChildren indexOfObject:subview];
   if (idx != NSNotFound) {
     RCTSplitPaneWrapper *wrapper = _wrappers[idx];
-    [wrapper removeFromSuperview];
+    [subview removeFromSuperview];  // Remove child from wrapper so superview == nil
+    [wrapper removeFromSuperview];  // Remove wrapper from splitView
     [_wrappers removeObjectAtIndex:idx];
     [_reactChildren removeObjectAtIndex:idx];
   }
