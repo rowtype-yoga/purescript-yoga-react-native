@@ -1840,7 +1840,8 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 // MARK: - NSSplitView
 // ===========================================================================
 
-@interface RCTSplitView : NSSplitView <NSSplitViewDelegate>
+@interface RCTSplitView : NSView <NSSplitViewDelegate>
+@property (nonatomic, strong) NSSplitView *splitView;
 @property (nonatomic, assign) BOOL isVertical;
 @property (nonatomic, assign) CGFloat dividerThicknessValue;
 @property (nonatomic, strong) NSMutableArray<NSView *> *panes;
@@ -1850,38 +1851,36 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    self.delegate = self;
-    self.dividerStyle = NSSplitViewDividerStyleThin;
+    _splitView = [[NSSplitView alloc] initWithFrame:self.bounds];
+    _splitView.delegate = self;
+    _splitView.dividerStyle = NSSplitViewDividerStyleThin;
+    _splitView.vertical = YES;
+    _splitView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     _panes = [NSMutableArray new];
     _isVertical = YES;
-    self.vertical = YES;
+    [self addSubview:_splitView];
   }
   return self;
 }
 
 - (void)setIsVertical:(BOOL)isVertical {
   _isVertical = isVertical;
-  self.vertical = isVertical;
+  _splitView.vertical = isVertical;
+  [_splitView adjustSubviews];
 }
 
 - (void)setDividerThicknessValue:(CGFloat)dividerThicknessValue {
   _dividerThicknessValue = dividerThicknessValue;
 }
 
-- (CGFloat)dividerThickness {
-  return _dividerThicknessValue > 0 ? _dividerThicknessValue : [super dividerThickness];
-}
-
 - (void)insertReactSubview:(NSView *)subview atIndex:(NSInteger)atIndex {
   [_panes insertObject:subview atIndex:MIN(atIndex, (NSInteger)_panes.count)];
-  [self addSubview:subview];
-  [self adjustSubviews];
+  [_splitView addSubview:subview];
 }
 
 - (void)removeReactSubview:(NSView *)subview {
   [_panes removeObject:subview];
   [subview removeFromSuperview];
-  [self adjustSubviews];
 }
 
 - (NSArray<NSView *> *)reactSubviews {
@@ -1889,7 +1888,17 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 }
 
 - (void)didUpdateReactSubviews {
-  [self performSelector:@selector(adjustSubviews) withObject:nil afterDelay:0];
+  [self performSelector:@selector(doLayout) withObject:nil afterDelay:0];
+}
+
+- (void)doLayout {
+  [_splitView adjustSubviews];
+}
+
+- (void)reactSetFrame:(CGRect)frame {
+  [super reactSetFrame:frame];
+  _splitView.frame = self.bounds;
+  [_splitView adjustSubviews];
 }
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMinimumPosition ofSubviewAt:(NSInteger)dividerIndex {
@@ -1898,6 +1907,11 @@ RCT_EXPORT_VIEW_PROPERTY(patternScale, CGFloat)
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMaxCoordinate:(CGFloat)proposedMaximumPosition ofSubviewAt:(NSInteger)dividerIndex {
   return proposedMaximumPosition - 50;
+}
+
+- (void)layout {
+  [super layout];
+  _splitView.frame = self.bounds;
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
@@ -1927,11 +1941,12 @@ RCT_EXPORT_VIEW_PROPERTY(dividerThicknessValue, CGFloat)
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    _tabBar = [NSSegmentedControl segmentedControlWithLabels:@[]
+    _tabBar = [NSSegmentedControl segmentedControlWithLabels:@[@"Tab"]
                                                 trackingMode:NSSegmentSwitchTrackingSelectOne
                                                       target:self
                                                       action:@selector(handleTabChange)];
     _tabBar.segmentStyle = NSSegmentStyleAutomatic;
+    _tabBar.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [self addSubview:_tabBar];
   }
   return self;
@@ -1945,7 +1960,6 @@ RCT_EXPORT_VIEW_PROPERTY(dividerThicknessValue, CGFloat)
     [_tabBar setLabel:item[@"label"] ?: @"" forSegment:i];
   }
   [self updateSelectedSegment];
-  [self setNeedsLayout:YES];
 }
 
 - (void)setSelectedItem:(NSString *)selectedItem {
@@ -1972,8 +1986,7 @@ RCT_EXPORT_VIEW_PROPERTY(dividerThicknessValue, CGFloat)
 
 - (void)layout {
   [super layout];
-  CGFloat barHeight = 24.0;
-  _tabBar.frame = NSMakeRect(0, self.bounds.size.height - barHeight, self.bounds.size.width, barHeight);
+  _tabBar.frame = self.bounds;
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
@@ -2093,7 +2106,7 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
 
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
-    _stepper = [[NSStepper alloc] initWithFrame:CGRectZero];
+    _stepper = [[NSStepper alloc] initWithFrame:NSMakeRect(0, 0, 19, 27)];
     _stepper.target = self;
     _stepper.action = @selector(handleChange);
     _stepper.minValue = 0;
@@ -2101,11 +2114,12 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
     _stepper.increment = 1;
     _stepper.valueWraps = NO;
 
-    _label = [[NSTextField alloc] initWithFrame:CGRectZero];
+    _label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 50, 22)];
     _label.editable = NO;
     _label.bordered = NO;
     _label.drawsBackground = NO;
     _label.alignment = NSTextAlignmentRight;
+    _label.textColor = NSColor.labelColor;
     _label.font = [NSFont monospacedDigitSystemFontOfSize:13 weight:NSFontWeightRegular];
     _label.stringValue = @"0";
 
@@ -2134,10 +2148,12 @@ RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
 - (void)layout {
   [super layout];
   CGFloat stepperW = 19;
+  CGFloat stepperH = MIN(self.bounds.size.height, 27);
   CGFloat h = self.bounds.size.height;
   CGFloat w = self.bounds.size.width;
-  _stepper.frame = NSMakeRect(w - stepperW, 0, stepperW, h);
-  _label.frame = NSMakeRect(0, 0, w - stepperW - 4, h);
+  CGFloat yOff = (h - stepperH) / 2;
+  _stepper.frame = NSMakeRect(w - stepperW, yOff, stepperW, stepperH);
+  _label.frame = NSMakeRect(0, (h - 22) / 2, w - stepperW - 4, 22);
 }
 
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
