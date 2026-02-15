@@ -48,7 +48,10 @@
   _sfSymbol = sfSymbol;
   if (sfSymbol.length > 0) {
     NSImage *img = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:sfSymbol];
-    if (img) _button.image = img;
+    if (img) {
+      _button.image = img;
+      _button.imagePosition = NSImageLeading;
+    }
   }
 }
 
