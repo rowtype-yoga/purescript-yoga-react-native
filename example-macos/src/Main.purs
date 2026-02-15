@@ -41,6 +41,14 @@ import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
 import Yoga.React.Native.MacOS.VideoPlayer (nativeVideoPlayer)
 import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
+import Yoga.React.Native.MacOS.SplitView (nativeSplitView)
+import Yoga.React.Native.MacOS.TabView (nativeTabView)
+import Yoga.React.Native.MacOS.ComboBox (nativeComboBox)
+import Yoga.React.Native.MacOS.Stepper (nativeStepper)
+import Yoga.React.Native.MacOS.Box (nativeBox)
+import Yoga.React.Native.MacOS.Popover (nativePopover)
+import Yoga.React.Native.MacOS.Image (nativeImage)
+import Yoga.React.Native.MacOS.Alert (macosAlert)
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
 
@@ -459,6 +467,10 @@ systemTab = component "SystemTab" \p -> React.do
   isDragging /\ setIsDragging <- useState' false
   pickedFiles /\ setPickedFiles <- useState' ""
   videoPlaying /\ setVideoPlaying <- useState' true
+  comboText /\ setComboText <- useState' ""
+  comboResult /\ setComboResult <- useState' ""
+  stepperValue /\ setStepperValue <- useState' 5.0
+  popoverVisible /\ setPopoverVisible <- useState' false
   let
     accentBorder = if isDragging then "#007AFF" else p.dimFg
   pure do
@@ -596,6 +608,127 @@ systemTab = component "SystemTab" \p -> React.do
               { source: "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif"
               , animating: true
               , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
+
+          -- New components
+          , sectionTitle p.fg "Split View"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native NSSplitView with resizable divider"
+          , nativeSplitView
+              { isVertical: true
+              , style: Style.style { height: 150.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
+              [ view { style: tw "flex-1 items-center justify-center" <> Style.style { backgroundColor: p.cardBg } }
+                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } "Left pane" ]
+              , view { style: tw "flex-1 items-center justify-center" <> Style.style { backgroundColor: p.cardBg } }
+                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } "Right pane" ]
+              ]
+
+          , sectionTitle p.fg "Tab View"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native segmented tab bar"
+          , nativeTabView
+              { items:
+                  [ { id: "general", label: "General" }
+                  , { id: "advanced", label: "Advanced" }
+                  , { id: "about", label: "About" }
+                  ]
+              , selectedItem: "general"
+              , onSelectTab: extractString "tabId" \_ -> pure unit
+              , style: Style.style { height: 32.0 } <> tw "mb-2"
+              }
+
+          , sectionTitle p.fg "Combo Box"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Editable dropdown with autocomplete"
+          , card p.cardBg
+              [ nativeComboBox
+                  { items: [ "Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape" ]
+                  , text: comboText
+                  , placeholder: "Type a fruit..."
+                  , onChangeText: extractString "text" setComboText
+                  , onSelectItem: extractString "text" \t -> do
+                      setComboText t
+                      setComboResult ("Selected: " <> t)
+                  , style: Style.style { height: 28.0 } <> tw "mb-2"
+                  }
+              , if comboResult == "" then mempty
+                else label p.dimFg comboResult
+              ]
+
+          , sectionTitle p.fg "Stepper"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Up/down increment control with label"
+          , card p.cardBg
+              [ view { style: tw "flex-row items-center" }
+                  [ text { style: tw "text-sm mr-3" <> Style.style { color: p.fg } } "Quantity:"
+                  , nativeStepper
+                      { value: stepperValue
+                      , minValue: 0.0
+                      , maxValue: 50.0
+                      , increment: 1.0
+                      , onChange: extractNumber "value" setStepperValue
+                      , style: Style.style { width: 100.0, height: 24.0 }
+                      }
+                  ]
+              ]
+
+          , sectionTitle p.fg "Box"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native NSBox with title and border"
+          , nativeBox
+              { boxTitle: "Settings"
+              , fillColor: p.cardBg
+              , borderColorStr: p.dimFg
+              , cornerRadiusValue: 8.0
+              , style: Style.style { height: 100.0 } <> tw "mb-2"
+              }
+              [ view { style: tw "flex-row items-center p-2" }
+                  [ text { style: tw "text-sm" <> Style.style { color: p.fg } } "Content inside a native box" ]
+              ]
+
+          , sectionTitle p.fg "Popover"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Click button to toggle a popover"
+          , nativePopover
+              { visible: popoverVisible
+              , preferredEdge: "bottom"
+              , behavior: "transient"
+              , onClose: handler_ (setPopoverVisible false)
+              , style: tw "mb-2"
+              }
+              [ view { style: tw "p-4" <> Style.style { width: 200.0, height: 80.0 } }
+                  [ text { style: tw "text-sm font-semibold" <> Style.style { color: p.fg } } "Popover Content"
+                  , text { style: tw "text-xs mt-1" <> Style.style { color: p.dimFg } } "Click outside to dismiss"
+                  ]
+              ]
+          , nativeButton
+              { title: if popoverVisible then "Hide Popover" else "Show Popover"
+              , sfSymbol: "bubble.middle.bottom"
+              , bezelStyle: "rounded"
+              , onPress: handler_ (setPopoverVisible (not popoverVisible))
+              , style: Style.style { height: 24.0, width: 140.0 } <> tw "mb-2"
+              }
+
+          , sectionTitle p.fg "Image"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native NSImageView with URL loading and corner radius"
+          , nativeImage
+              { source: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/An_up-close_picture_of_a_curious_male_Mallard.jpg/640px-An_up-close_picture_of_a_curious_male_Mallard.jpg"
+              , contentMode: "scaleProportionally"
+              , cornerRadius: 12.0
+              , style: Style.style { height: 200.0 } <> tw "mb-2"
+              }
+
+          , sectionTitle p.fg "Alert"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Native alert dialog"
+          , nativeButton
+              { title: "Show Alert"
+              , sfSymbol: "exclamationmark.triangle"
+              , bezelStyle: "rounded"
+              , onPress: handler_ (macosAlert "warning" "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
+              , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"
               }
           ]
       )
