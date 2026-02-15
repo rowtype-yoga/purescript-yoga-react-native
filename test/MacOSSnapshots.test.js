@@ -70,6 +70,7 @@ import { _imageImpl } from "../src/Yoga/React/Native/MacOS/Image.js";
 import { _animatedImageImpl } from "../src/Yoga/React/Native/MacOS/AnimatedImage.js";
 import { _videoPlayerImpl } from "../src/Yoga/React/Native/MacOS/VideoPlayer.js";
 import { _tableViewImpl } from "../src/Yoga/React/Native/MacOS/TableView.js";
+import { _outlineViewImpl } from "../src/Yoga/React/Native/MacOS/OutlineView.js";
 
 // Container components (with children)
 import { _sheetImpl } from "../src/Yoga/React/Native/MacOS/Sheet.js";
@@ -338,6 +339,26 @@ describe("macOS component snapshots", () => {
         ],
         headerVisible: true,
         alternatingRows: true,
+      }),
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it("OutlineView", () => {
+    const { toJSON } = render(
+      el(_outlineViewImpl, {
+        items: [
+          {
+            id: "1",
+            title: "Root",
+            children: [
+              { id: "1.1", title: "Child A", sfSymbol: "doc" },
+              { id: "1.2", title: "Child B" },
+            ],
+          },
+        ],
+        headerVisible: false,
+        onSelectItem: noop,
       }),
     );
     expect(toJSON()).toMatchSnapshot();

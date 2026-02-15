@@ -282,6 +282,20 @@ const NativeModules = {
   MacOSMenuModule: {
     show: (items) => Promise.resolve(""),
   },
+  MacOSShareModule: {
+    share: (items) => Promise.resolve(true),
+  },
+  MacOSNotificationModule: {
+    notify: (title, body) => Promise.resolve(true),
+  },
+  MacOSSoundModule: {
+    play: (name) => Promise.resolve(true),
+    beep: () => Promise.resolve(true),
+  },
+  MacOSStatusBarModule: {
+    set: (config) => Promise.resolve(true),
+    remove: () => Promise.resolve(true),
+  },
 };
 
 export {

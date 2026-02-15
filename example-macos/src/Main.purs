@@ -60,6 +60,12 @@ import Yoga.React.Native.MacOS.Sheet (nativeSheet)
 import Yoga.React.Native.MacOS.TableView (nativeTableView)
 import Yoga.React.Native.MacOS.Menu (macosShowMenu)
 import Yoga.React.Native.MacOS.Pasteboard (copyToClipboard)
+import Foreign (unsafeToForeign)
+import Yoga.React.Native.MacOS.OutlineView (nativeOutlineView)
+import Yoga.React.Native.MacOS.ShareService (macosShare)
+import Yoga.React.Native.MacOS.UserNotification (macosNotify)
+import Yoga.React.Native.MacOS.Sound (macosPlaySound, macosBeep)
+import Yoga.React.Native.MacOS.StatusBarItem (macosSetStatusBarItem, macosRemoveStatusBarItem)
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Matrix as Matrix
 import Yoga.React.Native.Style as Style
@@ -493,6 +499,8 @@ systemTab = component "SystemTab" \p -> React.do
   sheetVisible /\ setSheetVisible <- useState' false
   menuResult2 /\ setMenuResult2 <- useState' ""
   selectedRow /\ setSelectedRow <- useState' ""
+  outlineSelection /\ setOutlineSelection <- useState' ""
+  statusBarActive /\ setStatusBarActive <- useState' false
   let
     accentBorder = if isDragging then "#007AFF" else p.dimFg
   pure do
@@ -929,6 +937,118 @@ systemTab = component "SystemTab" \p -> React.do
               , onPress: handler_ (macosAlert T.warning "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
               , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"
               }
+
+          , sectionTitle p.fg "Outline View"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Hierarchical tree list (NSOutlineView)"
+          , nativeOutlineView
+              { items: unsafeToForeign
+                  [ { id: "src"
+                    , title: "src"
+                    , sfSymbol: "folder"
+                    , children:
+                        [ { id: "main", title: "Main.purs", sfSymbol: "doc", children: [] }
+                        , { id: "macos"
+                          , title: "MacOS"
+                          , sfSymbol: "folder"
+                          , children:
+                              [ { id: "btn", title: "Button.purs", sfSymbol: "doc", children: [] }
+                              , { id: "sl", title: "Slider.purs", sfSymbol: "doc", children: [] }
+                              , { id: "sw", title: "Switch.purs", sfSymbol: "doc", children: [] }
+                              ]
+                          }
+                        ]
+                    }
+                  , { id: "test"
+                    , title: "test"
+                    , sfSymbol: "folder"
+                    , children:
+                        [ { id: "t1", title: "MacOSComponents.test.js", sfSymbol: "doc", children: [] }
+                        , { id: "t2", title: "MacOSSnapshots.test.js", sfSymbol: "doc", children: [] }
+                        ]
+                    }
+                  , { id: "pkg", title: "package.json", sfSymbol: "doc.text", children: [] }
+                  ]
+              , headerVisible: false
+              , onSelectItem: extractString "id" setOutlineSelection
+              , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
+              }
+          , if outlineSelection == "" then mempty
+            else label p.dimFg ("Selected: " <> outlineSelection)
+
+          , sectionTitle p.fg "Share"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "System share picker"
+          , nativeButton
+              { title: "Share Text"
+              , sfSymbol: "square.and.arrow.up"
+              , bezelStyle: T.push
+              , onPress: handler_ (macosShare [ "Hello from PureScript React Native!" ])
+              , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
+              }
+
+          , sectionTitle p.fg "Notifications"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "System notifications (requires permission)"
+          , nativeButton
+              { title: "Send Notification"
+              , sfSymbol: "bell"
+              , bezelStyle: T.push
+              , onPress: handler_ (macosNotify "PureScript" "Hello from React Native macOS!")
+              , style: Style.style { height: 24.0, width: 160.0 } <> tw "mb-2"
+              }
+
+          , sectionTitle p.fg "Sound"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Play system sounds"
+          , view { style: tw "flex-row items-center mb-2" }
+              [ nativeButton
+                  { title: "Glass"
+                  , bezelStyle: T.push
+                  , onPress: handler_ (macosPlaySound "Glass")
+                  , style: Style.style { height: 24.0, width: 80.0 }
+                  }
+              , nativeButton
+                  { title: "Ping"
+                  , bezelStyle: T.push
+                  , onPress: handler_ (macosPlaySound "Ping")
+                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
+                  }
+              , nativeButton
+                  { title: "Beep"
+                  , bezelStyle: T.push
+                  , onPress: handler_ macosBeep
+                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
+                  }
+              ]
+
+          , sectionTitle p.fg "Status Bar"
+          , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
+              "Menu bar icon with dropdown"
+          , view { style: tw "flex-row items-center mb-4" }
+              [ nativeButton
+                  { title: if statusBarActive then "Remove" else "Add to Menu Bar"
+                  , sfSymbol: if statusBarActive then "minus.circle" else "plus.circle"
+                  , bezelStyle: T.push
+                  , onPress: handler_
+                      ( if statusBarActive then do
+                          macosRemoveStatusBarItem
+                          setStatusBarActive false
+                        else do
+                          macosSetStatusBarItem
+                            { title: ""
+                            , sfSymbol: "swift"
+                            , menuItems:
+                                [ { id: "about", title: "About PureScript RN" }
+                                , { id: "sep", title: "-" }
+                                , { id: "quit", title: "Quit" }
+                                ]
+                            }
+                          setStatusBarActive true
+                      )
+                  , style: Style.style { height: 24.0, width: 180.0 }
+                  }
+              ]
           ]
       )
 

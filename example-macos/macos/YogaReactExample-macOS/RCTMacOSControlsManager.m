@@ -7,6 +7,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <QuartzCore/QuartzCore.h>
+#import <UserNotifications/UserNotifications.h>
 #import <objc/message.h>
 @import RiveRuntime;
 
@@ -3217,4 +3218,341 @@ RCT_EXPORT_VIEW_PROPERTY(headerVisible, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(alternatingRows, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(onSelectRow, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onDoubleClickRow, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 40. NSOutlineView — MacOSOutlineView
+// ============================================================
+
+@interface RCTOutlineViewWrapper : NSView <NSOutlineViewDataSource, NSOutlineViewDelegate>
+@property (nonatomic, strong) NSScrollView *scrollView;
+@property (nonatomic, strong) NSOutlineView *outlineView;
+@property (nonatomic, strong) NSArray *items;
+@property (nonatomic, assign) BOOL headerVisible;
+@property (nonatomic, copy) RCTBubblingEventBlock onSelectItem;
+@end
+
+@implementation RCTOutlineViewWrapper
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _outlineView = [[NSOutlineView alloc] initWithFrame:CGRectZero];
+    _outlineView.dataSource = self;
+    _outlineView.delegate = self;
+    _outlineView.usesAlternatingRowBackgroundColors = YES;
+    _outlineView.headerView = nil;
+    _outlineView.floatsGroupRows = NO;
+    _outlineView.indentationPerLevel = 16;
+
+    NSTableColumn *col = [[NSTableColumn alloc] initWithIdentifier:@"title"];
+    col.headerCell.stringValue = @"Title";
+    [_outlineView addTableColumn:col];
+    _outlineView.outlineTableColumn = col;
+
+    _scrollView = [[NSScrollView alloc] initWithFrame:CGRectZero];
+    _scrollView.documentView = _outlineView;
+    _scrollView.hasVerticalScroller = YES;
+    _scrollView.autohidesScrollers = YES;
+    [self addSubview:_scrollView];
+  }
+  return self;
+}
+
+- (void)setItems:(NSArray *)items {
+  _items = items ?: @[];
+  [_outlineView reloadData];
+  [_outlineView expandItem:nil expandChildren:YES];
+}
+
+- (void)setHeaderVisible:(BOOL)headerVisible {
+  _headerVisible = headerVisible;
+  _outlineView.headerView = headerVisible ? [[NSTableHeaderView alloc] init] : nil;
+}
+
+// --- NSOutlineViewDataSource ---
+
+- (NSInteger)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item {
+  NSArray *children = item ? [item objectForKey:@"children"] : _items;
+  return children.count;
+}
+
+- (id)outlineView:(NSOutlineView *)outlineView child:(NSInteger)index ofItem:(id)item {
+  NSArray *children = item ? [item objectForKey:@"children"] : _items;
+  return (index < (NSInteger)children.count) ? children[index] : nil;
+}
+
+- (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item {
+  NSArray *children = [item objectForKey:@"children"];
+  return children && children.count > 0;
+}
+
+// --- NSOutlineViewDelegate ---
+
+- (NSView *)outlineView:(NSOutlineView *)outlineView viewForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+  NSTableCellView *cell = [outlineView makeViewWithIdentifier:@"cell" owner:self];
+  if (!cell) {
+    cell = [[NSTableCellView alloc] initWithFrame:CGRectZero];
+    cell.identifier = @"cell";
+    NSTextField *tf = [NSTextField labelWithString:@""];
+    tf.translatesAutoresizingMaskIntoConstraints = NO;
+    cell.textField = tf;
+    [cell addSubview:tf];
+
+    NSImageView *iv = [[NSImageView alloc] init];
+    iv.translatesAutoresizingMaskIntoConstraints = NO;
+    cell.imageView = iv;
+    [cell addSubview:iv];
+
+    [NSLayoutConstraint activateConstraints:@[
+      [iv.leadingAnchor constraintEqualToAnchor:cell.leadingAnchor constant:2],
+      [iv.centerYAnchor constraintEqualToAnchor:cell.centerYAnchor],
+      [iv.widthAnchor constraintEqualToConstant:16],
+      [iv.heightAnchor constraintEqualToConstant:16],
+      [tf.leadingAnchor constraintEqualToAnchor:iv.trailingAnchor constant:4],
+      [tf.trailingAnchor constraintEqualToAnchor:cell.trailingAnchor constant:-2],
+      [tf.centerYAnchor constraintEqualToAnchor:cell.centerYAnchor],
+    ]];
+  }
+
+  NSString *title = [item objectForKey:@"title"] ?: @"";
+  NSString *sfSymbol = [item objectForKey:@"sfSymbol"];
+  cell.textField.stringValue = title;
+
+  if (sfSymbol.length > 0) {
+    cell.imageView.image = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:title];
+    cell.imageView.hidden = NO;
+  } else {
+    cell.imageView.image = nil;
+    cell.imageView.hidden = YES;
+  }
+
+  return cell;
+}
+
+- (void)outlineViewSelectionDidChange:(NSNotification *)notification {
+  NSInteger row = _outlineView.selectedRow;
+  if (row >= 0 && _onSelectItem) {
+    id item = [_outlineView itemAtRow:row];
+    NSString *itemId = [item objectForKey:@"id"] ?: @"";
+    NSString *title = [item objectForKey:@"title"] ?: @"";
+    _onSelectItem(@{ @"id": itemId, @"title": title });
+  }
+}
+
+- (void)layout {
+  [super layout];
+  _scrollView.frame = self.bounds;
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTOutlineViewManager : RCTViewManager @end
+@implementation RCTOutlineViewManager
+RCT_EXPORT_MODULE(MacOSOutlineView)
+- (NSView *)view { return [[RCTOutlineViewWrapper alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(items, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(headerVisible, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(onSelectItem, RCTBubblingEventBlock)
+@end
+
+// ============================================================
+// 41. NSSharingService — MacOSShareModule (imperative)
+// ============================================================
+
+@interface MacOSShareModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSShareModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(share:(NSArray<NSString *> *)items
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSMutableArray *shareItems = [NSMutableArray array];
+    for (NSString *item in items) {
+      NSURL *url = [NSURL URLWithString:item];
+      if (url && url.scheme.length > 0) {
+        [shareItems addObject:url];
+      } else {
+        [shareItems addObject:item];
+      }
+    }
+    if (shareItems.count == 0) {
+      reject(@"EMPTY", @"No items to share", nil);
+      return;
+    }
+    NSSharingServicePicker *picker = [[NSSharingServicePicker alloc] initWithItems:shareItems];
+    NSWindow *win = [NSApp keyWindow];
+    NSView *anchor = win.contentView;
+    if (anchor) {
+      NSRect rect = NSMakeRect(NSMidX(anchor.bounds), NSMidY(anchor.bounds), 1, 1);
+      [picker showRelativeToRect:rect ofView:anchor preferredEdge:NSRectEdgeMinY];
+    }
+    resolve(@(YES));
+  });
+}
+
+@end
+
+// ============================================================
+// 42. UNUserNotificationCenter — MacOSNotificationModule (imperative)
+// ============================================================
+
+@interface MacOSNotificationModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSNotificationModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(notify:(NSString *)title
+                  body:(NSString *)body
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+  [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound)
+                        completionHandler:^(BOOL granted, NSError *error) {
+    if (!granted) {
+      reject(@"DENIED", @"Notification permission denied", error);
+      return;
+    }
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = title ?: @"";
+    content.body = body ?: @"";
+    content.sound = [UNNotificationSound defaultSound];
+
+    NSString *reqId = [[NSUUID UUID] UUIDString];
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:reqId
+                                                                          content:content
+                                                                          trigger:nil];
+    [center addNotificationRequest:request withCompletionHandler:^(NSError *err) {
+      if (err) reject(@"FAIL", err.localizedDescription, err);
+      else resolve(@(YES));
+    }];
+  }];
+}
+
+@end
+
+// ============================================================
+// 43. NSSound — MacOSSoundModule (imperative)
+// ============================================================
+
+@interface MacOSSoundModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation MacOSSoundModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(play:(NSString *)name
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSSound *sound = [NSSound soundNamed:name];
+    if (sound) {
+      [sound play];
+      resolve(@(YES));
+    } else {
+      reject(@"NOT_FOUND", [NSString stringWithFormat:@"Sound '%@' not found", name], nil);
+    }
+  });
+}
+
+RCT_EXPORT_METHOD(beep:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSBeep();
+    resolve(@(YES));
+  });
+}
+
+@end
+
+// ============================================================
+// 44. NSStatusBar — MacOSStatusBarModule (imperative)
+// ============================================================
+
+@interface MacOSStatusBarModule : NSObject <RCTBridgeModule>
+@property (nonatomic, strong) NSStatusItem *statusItem;
+@end
+
+@implementation MacOSStatusBarModule
+
+RCT_EXPORT_MODULE()
+
++ (BOOL)requiresMainQueueSetup { return NO; }
+
+RCT_EXPORT_METHOD(set:(NSDictionary *)config
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (!self.statusItem) {
+      self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
+    }
+    NSString *title = config[@"title"];
+    NSString *sfSymbol = config[@"sfSymbol"];
+    NSArray<NSDictionary *> *menuItems = config[@"menuItems"];
+
+    if (sfSymbol.length > 0) {
+      self.statusItem.button.image = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:title ?: @""];
+    }
+    if (title.length > 0) {
+      self.statusItem.button.title = title;
+    }
+
+    if (menuItems.count > 0) {
+      NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+      for (NSDictionary *mi in menuItems) {
+        NSString *miTitle = mi[@"title"] ?: @"";
+        NSString *miId = mi[@"id"] ?: @"";
+        if ([miTitle isEqualToString:@"-"]) {
+          [menu addItem:[NSMenuItem separatorItem]];
+        } else {
+          NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:miTitle action:@selector(statusMenuClicked:) keyEquivalent:@""];
+          item.representedObject = miId;
+          item.target = self;
+          [menu addItem:item];
+        }
+      }
+      self.statusItem.menu = menu;
+    }
+    resolve(@(YES));
+  });
+}
+
+- (void)statusMenuClicked:(NSMenuItem *)sender {
+  NSString *itemId = sender.representedObject ?: @"";
+  // Emit event via bridge notification
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"MacOSStatusBarItemClicked"
+                                                      object:nil
+                                                    userInfo:@{ @"id": itemId }];
+}
+
+RCT_EXPORT_METHOD(remove:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if (self.statusItem) {
+      [[NSStatusBar systemStatusBar] removeStatusItem:self.statusItem];
+      self.statusItem = nil;
+    }
+    resolve(@(YES));
+  });
+}
+
 @end

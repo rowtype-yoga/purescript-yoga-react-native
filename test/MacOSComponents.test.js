@@ -182,3 +182,12 @@ describe("macOS native component FFI exports (batch 2)", () => {
     expect(_tableViewImpl).toBe("MacOSTableView");
   });
 });
+
+// Batch 3
+import { _outlineViewImpl } from "../src/Yoga/React/Native/MacOS/OutlineView.js";
+
+describe("macOS native component FFI exports (batch 3)", () => {
+  it("OutlineView resolves to MacOSOutlineView", () => {
+    expect(_outlineViewImpl).toBe("MacOSOutlineView");
+  });
+});

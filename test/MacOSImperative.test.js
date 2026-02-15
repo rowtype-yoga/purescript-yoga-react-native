@@ -6,6 +6,16 @@ import {
   copyToClipboardImpl,
   readClipboardImpl,
 } from "../src/Yoga/React/Native/MacOS/Pasteboard.js";
+import { shareImpl } from "../src/Yoga/React/Native/MacOS/ShareService.js";
+import { notifyImpl } from "../src/Yoga/React/Native/MacOS/UserNotification.js";
+import {
+  playSoundImpl,
+  beepImpl,
+} from "../src/Yoga/React/Native/MacOS/Sound.js";
+import {
+  setStatusBarItemImpl,
+  removeStatusBarItemImpl,
+} from "../src/Yoga/React/Native/MacOS/StatusBarItem.js";
 
 describe("macOS Alert FFI", () => {
   it("alertImpl calls NativeModules.MacOSAlertModule.show", () => {
@@ -78,5 +88,64 @@ describe("macOS Pasteboard FFI", () => {
 
   it("readClipboardImpl does not throw", () => {
     expect(() => readClipboardImpl()).not.toThrow();
+  });
+});
+
+describe("macOS ShareService FFI", () => {
+  it("shareImpl calls NativeModules.MacOSShareModule.share", () => {
+    const spy = vi.spyOn(NativeModules.MacOSShareModule, "share");
+    shareImpl(["Hello", "https://example.com"]);
+    expect(spy).toHaveBeenCalledWith(["Hello", "https://example.com"]);
+    spy.mockRestore();
+  });
+
+  it("shareImpl does not throw with empty array", () => {
+    expect(() => shareImpl([])).not.toThrow();
+  });
+});
+
+describe("macOS UserNotification FFI", () => {
+  it("notifyImpl calls NativeModules.MacOSNotificationModule.notify", () => {
+    const spy = vi.spyOn(NativeModules.MacOSNotificationModule, "notify");
+    notifyImpl("Title", "Body");
+    expect(spy).toHaveBeenCalledWith("Title", "Body");
+    spy.mockRestore();
+  });
+});
+
+describe("macOS Sound FFI", () => {
+  it("playSoundImpl calls NativeModules.MacOSSoundModule.play", () => {
+    const spy = vi.spyOn(NativeModules.MacOSSoundModule, "play");
+    playSoundImpl("Glass");
+    expect(spy).toHaveBeenCalledWith("Glass");
+    spy.mockRestore();
+  });
+
+  it("beepImpl calls NativeModules.MacOSSoundModule.beep", () => {
+    const spy = vi.spyOn(NativeModules.MacOSSoundModule, "beep");
+    beepImpl();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});
+
+describe("macOS StatusBarItem FFI", () => {
+  it("setStatusBarItemImpl calls NativeModules.MacOSStatusBarModule.set", () => {
+    const spy = vi.spyOn(NativeModules.MacOSStatusBarModule, "set");
+    const config = {
+      title: "Test",
+      sfSymbol: "star",
+      menuItems: [{ id: "a", title: "Item A" }],
+    };
+    setStatusBarItemImpl(config);
+    expect(spy).toHaveBeenCalledWith(config);
+    spy.mockRestore();
+  });
+
+  it("removeStatusBarItemImpl calls NativeModules.MacOSStatusBarModule.remove", () => {
+    const spy = vi.spyOn(NativeModules.MacOSStatusBarModule, "remove");
+    removeStatusBarItemImpl();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

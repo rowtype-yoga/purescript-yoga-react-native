@@ -131,6 +131,32 @@ exports[`macOS component snapshots > LevelIndicator 1`] = `
 }
 `;
 
+exports[`macOS component snapshots > OutlineView 1`] = `
+{
+  "props": {
+    "headerVisible": false,
+    "items": [
+      {
+        "children": [
+          {
+            "id": "1.1",
+            "sfSymbol": "doc",
+            "title": "Child A",
+          },
+          {
+            "id": "1.2",
+            "title": "Child B",
+          },
+        ],
+        "id": "1",
+        "title": "Root",
+      },
+    ],
+  },
+  "type": "MacOSOutlineView",
+}
+`;
+
 exports[`macOS component snapshots > PathControl 1`] = `
 {
   "props": {
