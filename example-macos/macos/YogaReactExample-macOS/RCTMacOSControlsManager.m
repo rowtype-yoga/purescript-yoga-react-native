@@ -4053,7 +4053,9 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(start:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+  NSLog(@"[SpeechRecognition] Requesting authorization...");
   [SFSpeechRecognizer requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus status) {
+    NSLog(@"[SpeechRecognition] Authorization status: %ld", (long)status);
     if (status != SFSpeechRecognizerAuthorizationStatusAuthorized) {
       reject(@"DENIED", @"Speech recognition permission denied", nil);
       return;
@@ -4068,12 +4070,20 @@ RCT_EXPORT_METHOD(start:(RCTPromiseResolveBlock)resolve
 
       self.latestTranscript = @"";
       self.recognizer = [[SFSpeechRecognizer alloc] initWithLocale:[NSLocale currentLocale]];
+      NSLog(@"[SpeechRecognition] Recognizer available: %d, locale: %@", self.recognizer.isAvailable, self.recognizer.locale.localeIdentifier);
+
+      if (!self.recognizer.isAvailable) {
+        reject(@"UNAVAILABLE", @"Speech recognizer is not available for this locale", nil);
+        return;
+      }
+
       self.audioEngine = [[AVAudioEngine alloc] init];
       self.recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
       self.recognitionRequest.shouldReportPartialResults = YES;
 
       AVAudioInputNode *inputNode = self.audioEngine.inputNode;
       AVAudioFormat *format = [inputNode outputFormatForBus:0];
+      NSLog(@"[SpeechRecognition] Audio format: %@", format);
 
       [inputNode installTapOnBus:0 bufferSize:1024 format:format block:^(AVAudioPCMBuffer *buffer, AVAudioTime *when) {
         [self.recognitionRequest appendAudioPCMBuffer:buffer];
@@ -4081,21 +4091,30 @@ RCT_EXPORT_METHOD(start:(RCTPromiseResolveBlock)resolve
 
       self.recognitionTask = [self.recognizer recognitionTaskWithRequest:self.recognitionRequest
                                                           resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
+        if (error) {
+          NSLog(@"[SpeechRecognition] Error: %@", error.localizedDescription);
+        }
         if (result) {
           self.latestTranscript = result.bestTranscription.formattedString;
+          NSLog(@"[SpeechRecognition] Transcript: %@", self.latestTranscript);
         }
         if (error || result.isFinal) {
           [self.audioEngine stop];
           [inputNode removeTapOnBus:0];
+          self.recognitionRequest = nil;
+          self.recognitionTask = nil;
         }
       }];
 
+      [self.audioEngine prepare];
       NSError *err = nil;
       [self.audioEngine startAndReturnError:&err];
       if (err) {
+        NSLog(@"[SpeechRecognition] Engine start error: %@", err.localizedDescription);
         reject(@"ENGINE_FAIL", err.localizedDescription, err);
         return;
       }
+      NSLog(@"[SpeechRecognition] Engine started successfully");
       resolve(@"started");
     });
   }];

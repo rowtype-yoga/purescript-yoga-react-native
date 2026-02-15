@@ -1079,6 +1079,12 @@ aiTab = component "AITab" \p -> React.do
   transcript /\ setTranscript <- useState' ""
   nlText /\ setNlText <- useState' "I love this amazing app! C'est magnifique."
   nlResult /\ setNlResult <- useState' ""
+  useEffect listening do
+    if listening then do
+      timerId <- setInterval 500 do
+        macosGetTranscript \t -> setTranscript t
+      pure (clearInterval timerId)
+    else pure (pure unit)
   pure do
     nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
       ( view { style: tw "px-4 pb-4" }
@@ -1194,10 +1200,10 @@ aiTab = component "AITab" \p -> React.do
             else view {} []
           , sectionTitle p.fg "Speech Recognition"
           , text { style: tw "text-xs mb-2" <> Style.style { color: p.dimFg } }
-              "Live microphone transcription (SFSpeechRecognizer)"
+              "Live microphone-to-text (click Start, speak, click Stop)"
           , view { style: tw "flex-row items-center mb-2" }
               [ nativeButton
-                  { title: if listening then "Listening..." else "Start Listening"
+                  { title: if listening then "Listening..." else "Start"
                   , sfSymbol: if listening then "mic.fill" else "mic"
                   , bezelStyle: T.push
                   , onPress: handler_ do
@@ -1206,7 +1212,7 @@ aiTab = component "AITab" \p -> React.do
                         setListening true
                         setTranscript ""
                         macosStartListening
-                  , style: Style.style { height: 24.0, width: 160.0 }
+                  , style: Style.style { height: 24.0, width: 130.0 }
                   }
               , nativeButton
                   { title: "Stop"
@@ -1216,14 +1222,6 @@ aiTab = component "AITab" \p -> React.do
                       macosStopListening \finalText -> do
                         setTranscript finalText
                         setListening false
-                  , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
-                  }
-              , nativeButton
-                  { title: "Poll"
-                  , sfSymbol: "arrow.clockwise"
-                  , bezelStyle: T.push
-                  , onPress: handler_ do
-                      macosGetTranscript \t -> setTranscript t
                   , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
                   }
               ]
