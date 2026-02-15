@@ -1,8 +1,7 @@
 import { NativeModules, Platform } from "react-native";
 
-export const alertImpl = (style, title, message, buttons) => () => {
+export const alertImpl = (style, title, message, buttons) => {
   if (Platform.OS !== "macos") return;
-  // Try our native module first
   const mod = NativeModules.MacOSAlertModule;
   if (mod && mod.show) {
     mod
@@ -10,7 +9,6 @@ export const alertImpl = (style, title, message, buttons) => () => {
       .catch((e) => console.error("[macosAlert]", e));
     return;
   }
-  // Fallback: RN Alert (uses NativeAlertManager internally on macOS)
   try {
     const { Alert } = require("react-native");
     const mapped = buttons.map((b) => ({ text: b }));
