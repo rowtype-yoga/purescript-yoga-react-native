@@ -19,16 +19,17 @@ page =
 
 alert :: Nut
 alert = L.componentDoc "macosAlert" "Yoga.React.Native.MacOS.Alert (macosAlert)"
-  """-- Imperative function with 4 positional args
-macosAlert T.critical "Delete file?" "This cannot be undone." ["Delete", "Cancel"]
-  # liftEffect"""
-  [ D.p [ DA.klass_ "text-sm text-gray-400 mt-2" ]
-      [ D.text_ "Signature: AlertStyle -> String -> String -> Array String -> Effect Unit" ]
-  , propsTable
-      [ { name: "arg 1", type_: "AlertStyle", description: "informational | warning | critical" }
-      , { name: "arg 2", type_: "String", description: "Alert title" }
-      , { name: "arg 3", type_: "String", description: "Alert message body" }
-      , { name: "arg 4", type_: "Array String", description: "Button labels (first is default)" }
+  """macosAlert
+  { style: T.critical
+  , title: "Delete file?"
+  , message: "This cannot be undone."
+  , buttons: ["Delete", "Cancel"]
+  }"""
+  [ propsTable
+      [ { name: "style", type_: "AlertStyle", description: "informational | warning | critical" }
+      , { name: "title", type_: "String", description: "Alert title" }
+      , { name: "message", type_: "String", description: "Alert message body" }
+      , { name: "buttons", type_: "Array String", description: "Button labels (default: [\"OK\"])" }
       ]
   ]
 

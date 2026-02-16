@@ -1,14 +1,27 @@
 module Yoga.React.Native.MacOS.Alert
   ( macosAlert
+  , AlertProps
   ) where
 
 import Prelude
 
 import Effect (Effect)
-import Effect.Uncurried (EffectFn4, runEffectFn4)
+import Effect.Uncurried (EffectFn1, runEffectFn1)
+import Prim.Row (class Union)
 import Yoga.React.Native.MacOS.Types (AlertStyle)
 
-foreign import alertImpl :: EffectFn4 AlertStyle String String (Array String) Unit
+type AlertProps =
+  ( style :: AlertStyle
+  , title :: String
+  , message :: String
+  , buttons :: Array String
+  )
 
-macosAlert :: AlertStyle -> String -> String -> Array String -> Effect Unit
-macosAlert = runEffectFn4 alertImpl
+foreign import alertImpl :: EffectFn1 (Record AlertProps) Unit
+
+macosAlert
+  :: forall given missing
+   . Union given missing AlertProps
+  => { | given }
+  -> Effect Unit
+macosAlert = runEffectFn1 alertImpl

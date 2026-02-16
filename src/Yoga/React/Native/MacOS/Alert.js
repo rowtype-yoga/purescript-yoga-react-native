@@ -1,6 +1,11 @@
 import { NativeModules, Platform } from "react-native";
 
-export const alertImpl = (style, title, message, buttons) => {
+export const alertImpl = ({
+  style = "warning",
+  title = "",
+  message = "",
+  buttons = ["OK"],
+}) => {
   if (Platform.OS !== "macos") return;
   const mod = NativeModules.MacOSAlertModule;
   if (mod && mod.show) {

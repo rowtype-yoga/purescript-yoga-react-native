@@ -33,7 +33,7 @@ alertDemo = component "AlertDemo" \dp -> pure do
     , nativeButton
         { title: "Show Alert"
         , bezelStyle: T.push
-        , onPress: handler_ (macosAlert T.warning "Are you sure?" "This action cannot be undone." [ "Cancel", "OK" ])
+        , onPress: handler_ (macosAlert { style: T.warning, title: "Are you sure?", message: "This action cannot be undone.", buttons: [ "Cancel", "OK" ] })
         , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"
         }
     ]
