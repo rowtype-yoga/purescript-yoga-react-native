@@ -70,7 +70,7 @@ notificationsDemo = component "NotificationsDemo" \dp -> pure do
     , nativeButton
         { title: "Send Notification"
         , bezelStyle: T.push
-        , onPress: handler_ (macosNotify "PureScript" "Hello from React Native macOS!")
+        , onPress: handler_ (macosNotify { title: "PureScript", body: "Hello from React Native macOS!" })
         , style: Style.style { height: 24.0, width: 160.0 } <> tw "mb-2"
         }
     ]

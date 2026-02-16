@@ -137,13 +137,15 @@ menuDemo = component "MenuDemo" \dp -> React.do
               , bezelStyle: T.push
               , onPress: handler_
                   ( macosShowMenu
-                      [ { title: "New File", id: "new" }
-                      , { title: "Open...", id: "open" }
-                      , { title: "-", id: "sep" }
-                      , { title: "Save", id: "save" }
-                      , { title: "Save As...", id: "saveAs" }
-                      ]
-                      \itemId -> setResult ("Menu: " <> itemId)
+                      { items:
+                          [ { title: "New File", id: "new" }
+                          , { title: "Open...", id: "open" }
+                          , { title: "-", id: "sep" }
+                          , { title: "Save", id: "save" }
+                          , { title: "Save As...", id: "saveAs" }
+                          ]
+                      , onSelectItem: \itemId -> setResult ("Menu: " <> itemId)
+                      }
                   )
               , style: Style.style { height: 24.0, width: 120.0 }
               }

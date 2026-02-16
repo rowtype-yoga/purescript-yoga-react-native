@@ -1,19 +1,25 @@
 module Yoga.React.Native.MacOS.Menu
   ( macosShowMenu
   , MenuItem
+  , MenuProps
   ) where
 
 import Prelude
 
 import Effect (Effect)
-import Effect.Uncurried (EffectFn2, runEffectFn2)
+import Effect.Uncurried (EffectFn1, runEffectFn1)
 
 type MenuItem =
   { title :: String
   , id :: String
   }
 
-foreign import showMenuImpl :: EffectFn2 (Array MenuItem) (String -> Effect Unit) Unit
+type MenuProps =
+  { items :: Array MenuItem
+  , onSelectItem :: String -> Effect Unit
+  }
 
-macosShowMenu :: Array MenuItem -> (String -> Effect Unit) -> Effect Unit
-macosShowMenu = runEffectFn2 showMenuImpl
+foreign import showMenuImpl :: EffectFn1 MenuProps Unit
+
+macosShowMenu :: MenuProps -> Effect Unit
+macosShowMenu = runEffectFn1 showMenuImpl

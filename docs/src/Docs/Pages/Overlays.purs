@@ -90,17 +90,15 @@ nativeContextMenu
 
 menu :: Nut
 menu = L.componentDoc "macosShowMenu" "Yoga.React.Native.MacOS.Menu (macosShowMenu)"
-  """-- Imperative function with 2 positional args
-macosShowMenu
-  [ { title: "New", id: "new" }
-  , { title: "Open", id: "open" }
-  ]
-  (\selectedId -> log selectedId)
-  # liftEffect"""
-  [ D.p [ DA.klass_ "text-sm text-gray-400 mt-2" ]
-      [ D.text_ "Signature: Array MenuItem -> (String -> Effect Unit) -> Effect Unit" ]
-  , propsTable
-      [ { name: "arg 1", type_: "Array MenuItem", description: "Menu items ({ title :: String, id :: String })" }
-      , { name: "arg 2", type_: "String -> Effect Unit", description: "Callback receiving the selected item id" }
+  """macosShowMenu
+  { items:
+      [ { title: "New", id: "new" }
+      , { title: "Open", id: "open" }
+      ]
+  , onSelectItem: \selectedId -> log selectedId
+  }"""
+  [ propsTable
+      [ { name: "items", type_: "Array MenuItem", description: "Menu items ({ title, id })" }
+      , { name: "onSelectItem", type_: "String -> Effect Unit", description: "Callback receiving the selected item id" }
       ]
   ]

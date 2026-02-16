@@ -44,11 +44,14 @@ macosShare ["Check out this library!", "https://github.com/rowtype-yoga/purescri
 
 notification :: Nut
 notification = L.componentDoc "macosNotify" "Yoga.React.Native.MacOS.UserNotification (macosNotify)"
-  """-- Takes 2 positional String args: title and body
-macosNotify "Build Complete" "Your project compiled successfully."
-  # liftEffect"""
-  [ D.p [ DA.klass_ "text-sm text-gray-400 mt-2" ]
-      [ D.text_ "Signature: String -> String -> Effect Unit" ]
+  """macosNotify
+  { title: "Build Complete"
+  , body: "Your project compiled successfully."
+  }"""
+  [ propsTable
+      [ { name: "title", type_: "String", description: "Notification title" }
+      , { name: "body", type_: "String", description: "Notification body text" }
+      ]
   ]
 
 sound :: Nut

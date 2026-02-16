@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from "react-native";
 
-export const showMenuImpl = (items, callback) => {
+export const showMenuImpl = ({ items, onSelectItem: callback }) => {
   if (Platform.OS !== "macos") return;
   const mod = NativeModules.MacOSMenuModule;
   if (mod && mod.show) {

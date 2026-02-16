@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from "react-native";
 
-export const notifyImpl = (title, body) => {
+export const notifyImpl = ({ title = "", body = "" }) => {
   if (Platform.OS !== "macos") return;
   const mod = NativeModules.MacOSNotificationModule;
   if (mod && mod.notify) {
