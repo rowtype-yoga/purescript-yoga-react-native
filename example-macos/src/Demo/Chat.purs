@@ -189,7 +189,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , nativeButton
                 { title: ""
                 , bezelStyle: T.toolbar
-                , sfSymbol: ""
                 , onPress: handler_ (selectRoom r.roomId)
                 , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
                 }
@@ -368,7 +367,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
                         }
                     , nativeButton
                         { title: ""
-                        , sfSymbol: "paperplane.fill"
                         , bezelStyle: T.toolbar
                         , onPress: handler_ (sendMessage rid inputText)
                         , style: Style.style { height: 28.0, width: 36.0, marginLeft: 8.0 }

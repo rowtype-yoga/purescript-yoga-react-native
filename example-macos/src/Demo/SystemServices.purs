@@ -56,7 +56,6 @@ shareDemo = component "ShareDemo" \dp -> pure do
     , desc dp "System share picker"
     , nativeButton
         { title: "Share Text"
-        , sfSymbol: "square.and.arrow.up"
         , bezelStyle: T.push
         , onPress: handler_ (macosShare [ "Hello from PureScript React Native!" ])
         , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
@@ -70,7 +69,6 @@ notificationsDemo = component "NotificationsDemo" \dp -> pure do
     , desc dp "System notifications (requires permission)"
     , nativeButton
         { title: "Send Notification"
-        , sfSymbol: "bell"
         , bezelStyle: T.push
         , onPress: handler_ (macosNotify "PureScript" "Hello from React Native macOS!")
         , style: Style.style { height: 24.0, width: 160.0 } <> tw "mb-2"
@@ -114,7 +112,6 @@ statusBarDemo = component "StatusBarDemo" \dp -> React.do
       , view { style: tw "flex-row items-center mb-4" }
           [ nativeButton
               { title: if active then "Remove" else "Add to Menu Bar"
-              , sfSymbol: if active then "minus.circle" else "plus.circle"
               , bezelStyle: T.push
               , onPress: handler_
                   ( if active then do
@@ -145,7 +142,6 @@ quickLookDemo = component "QuickLookDemo" \dp -> pure do
     , view { style: tw "flex-row items-center mb-4" }
         [ nativeButton
             { title: "Preview /etc/hosts"
-            , sfSymbol: "eye"
             , bezelStyle: T.push
             , onPress: handler_ (macosQuickLook "/etc/hosts")
             , style: Style.style { height: 24.0, width: 180.0 }
@@ -161,7 +157,6 @@ colorPanelDemo = component "ColorPanelDemo" \dp -> pure do
     , view { style: tw "flex-row items-center mb-4" }
         [ nativeButton
             { title: "Show Color Panel"
-            , sfSymbol: "paintpalette"
             , bezelStyle: T.push
             , onPress: handler_ macosShowColorPanel
             , style: Style.style { height: 24.0, width: 180.0 }
@@ -177,7 +172,6 @@ fontPanelDemo = component "FontPanelDemo" \dp -> pure do
     , view { style: tw "flex-row items-center mb-4" }
         [ nativeButton
             { title: "Show Font Panel"
-            , sfSymbol: "textformat"
             , bezelStyle: T.push
             , onPress: handler_ macosShowFontPanel
             , style: Style.style { height: 24.0, width: 180.0 }
@@ -201,14 +195,12 @@ speechDemo = component "SpeechDemo" \dp -> React.do
       , view { style: tw "flex-row items-center mb-4" }
           [ nativeButton
               { title: "Speak"
-              , sfSymbol: "speaker.wave.2"
               , bezelStyle: T.push
               , onPress: handler_ (say txt)
               , style: Style.style { height: 24.0, width: 100.0 }
               }
           , nativeButton
               { title: "Stop"
-              , sfSymbol: "stop.circle"
               , bezelStyle: T.push
               , onPress: handler_ stopSpeaking
               , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }

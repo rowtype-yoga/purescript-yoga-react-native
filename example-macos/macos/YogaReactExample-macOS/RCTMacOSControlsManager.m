@@ -24,7 +24,6 @@
 @property (nonatomic, strong) NSButton *button;
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy) NSString *title;
-@property (nonatomic, copy) NSString *sfSymbol;
 @property (nonatomic, copy) NSString *bezelStyle;
 @property (nonatomic, assign) BOOL destructive;
 @property (nonatomic, assign) BOOL primary;
@@ -50,12 +49,6 @@
 - (void)setTitle:(NSString *)title {
   _title = title;
   _button.title = title ?: @"";
-}
-
-- (void)setSfSymbol:(NSString *)sfSymbol {
-  _sfSymbol = sfSymbol;
-  // SF symbols in push buttons aren't idiomatic macOS (HIG: title-only for push buttons).
-  // Kept as no-op for API compatibility; use toolbar-style buttons for icon-only.
 }
 
 - (void)setBezelStyle:(NSString *)bezelStyle {
@@ -94,7 +87,6 @@
 RCT_EXPORT_MODULE(NativeButton)
 - (NSView *)view { return [[RCTNativeButtonView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(title, NSString)
-RCT_EXPORT_VIEW_PROPERTY(sfSymbol, NSString)
 RCT_EXPORT_VIEW_PROPERTY(bezelStyle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(destructive, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(primary, BOOL)

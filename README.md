@@ -43,7 +43,6 @@ import Yoga.React.Native.MacOS.Types as T
 myButton = nativeButton
   { title: "Click me"
   , bezelStyle: T.push
-  , sfSymbol: "star"
   , onPress: handler_ doSomething
   , style: Style.style { height: 24.0 }
   }

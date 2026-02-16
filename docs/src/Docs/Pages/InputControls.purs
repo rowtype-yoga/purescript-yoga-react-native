@@ -30,12 +30,10 @@ button = L.componentDoc "nativeButton" "Yoga.React.Native.MacOS.Button (nativeBu
   """nativeButton
   { title: "Click me"
   , bezelStyle: T.push
-  , sfSymbol: "star.fill"
   , onPress: handler_ doSomething
   }"""
   [ propsTable
       [ { name: "title", type_: "String", description: "Button label text" }
-      , { name: "sfSymbol", type_: "String", description: "SF Symbol icon name" }
       , { name: "bezelStyle", type_: "BezelStyle", description: "push | toolbar | texturedSquare | inline" }
       , { name: "destructive", type_: "Boolean", description: "Red destructive styling" }
       , { name: "primary", type_: "Boolean", description: "Primary action button" }

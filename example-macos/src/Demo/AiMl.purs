@@ -67,14 +67,12 @@ speechRecognitionDemo = component "SpeechRecognitionDemo" \dp -> React.do
       , view { style: tw "flex-row items-center mb-2" }
           [ nativeButton
               { title: if speech.listening then "Listening..." else "Start"
-              , sfSymbol: if speech.listening then "mic.fill" else "mic"
               , bezelStyle: T.push
               , onPress: handler_ speech.start
               , style: Style.style { height: 24.0, width: 130.0 }
               }
           , nativeButton
               { title: "Stop"
-              , sfSymbol: "stop.circle"
               , bezelStyle: T.push
               , onPress: handler_ speech.stop
               , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
@@ -102,7 +100,6 @@ naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
       , view { style: tw "flex-row items-center mb-2" }
           [ nativeButton
               { title: "Language"
-              , sfSymbol: "globe"
               , bezelStyle: T.push
               , onPress: handler_ $ launchAff_ do
                   lang <- detectLanguage txt
@@ -111,7 +108,6 @@ naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
               }
           , nativeButton
               { title: "Sentiment"
-              , sfSymbol: "face.smiling"
               , bezelStyle: T.push
               , onPress: handler_ $ launchAff_ do
                   score <- analyzeSentiment txt
@@ -120,7 +116,6 @@ naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
               }
           , nativeButton
               { title: "Tokenize"
-              , sfSymbol: "text.word.spacing"
               , bezelStyle: T.push
               , onPress: handler_ $ launchAff_ do
                   tokens <- tokenize txt
@@ -142,7 +137,6 @@ cameraDemo = component "CameraDemo" \dp -> React.do
           [ text { style: tw "text-sm font-semibold mr-3" <> Style.style { color: dp.fg } } "Camera"
           , nativeButton
               { title: if on then "Stop" else "Start"
-              , sfSymbol: if on then "video.slash" else "video"
               , bezelStyle: T.push
               , onPress: handler_ (setOn (not on))
               , style: Style.style { height: 24.0, width: 100.0 }

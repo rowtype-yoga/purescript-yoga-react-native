@@ -50,7 +50,6 @@ buttonDemo = component "ButtonDemo" \dp -> React.do
           [ view { style: tw "flex-row items-center" }
               [ nativeButton
                   { title: "Say Hello"
-                  , sfSymbol: "hand.wave"
                   , bezelStyle: T.push
                   , primary: true
                   , onPress: handler_ (setStatus "Hello from PureScript!")
@@ -58,7 +57,6 @@ buttonDemo = component "ButtonDemo" \dp -> React.do
                   }
               , nativeButton
                   { title: "Reset"
-                  , sfSymbol: "arrow.counterclockwise"
                   , bezelStyle: T.push
                   , onPress: handler_ (setStatus "Ready")
                   , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
