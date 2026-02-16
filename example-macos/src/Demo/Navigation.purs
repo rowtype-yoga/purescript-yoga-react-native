@@ -6,6 +6,7 @@ import Data.Array (concatMap, null)
 import Data.String (toLower, contains, Pattern(..))
 import Demo.AiMl (cameraDemo, naturalLanguageDemo, ocrDemo, speechRecognitionDemo)
 import Demo.Animation (riveDemo)
+import Demo.SpringAnimation (springDemo)
 import Demo.Chat (chatDemo)
 import Demo.DataViews (outlineViewDemo, tableViewDemo)
 import Demo.Display (animatedImageDemo, imageDemo, levelIndicatorDemo, pathControlDemo, progressDemo, separatorDemo, videoPlayerDemo)
@@ -80,7 +81,8 @@ outlineTree = do
       , leaf "filepicker" "File Picker" "folder"
       ]
   , folder "animation" "Animation" "play.circle"
-      [ leaf "rive" "Rive" "play.circle"
+      [ leaf "springs" "Spring Physics" "sparkles"
+      , leaf "rive" "Rive" "play.circle"
       ]
   , folder "system" "System Services" "gearshape.2"
       [ leaf "clipboard" "Clipboard" "doc.on.clipboard"
@@ -180,6 +182,7 @@ demoContent dp = case _ of
   "outlineview" -> outlineViewDemo dp
   "dropzone" -> dropZoneDemo dp
   "filepicker" -> filePickerDemo dp
+  "springs" -> springDemo dp
   "rive" -> riveDemo dp
   "clipboard" -> clipboardDemo dp
   "share" -> shareDemo dp

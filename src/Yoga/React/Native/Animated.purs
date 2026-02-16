@@ -39,6 +39,8 @@ module Yoga.React.Native.Animated
   , animatedScrollView_
   , useAnimatedValue
   , UseAnimatedValue
+  , useSpring
+  , UseSpring
   , TimingConfig
   , SpringConfig
   , DecayConfig
@@ -272,3 +274,10 @@ foreign import data UseAnimatedValue :: Type -> Type
 
 useAnimatedValue :: Number -> Hook UseAnimatedValue AnimatedValue
 useAnimatedValue n = unsafeHook (useAnimatedValueImpl n)
+
+foreign import useSpringImpl :: forall r. Number -> { | r } -> Effect AnimatedValue
+
+foreign import data UseSpring :: Type -> Type
+
+useSpring :: forall r. Number -> { | r } -> Hook UseSpring AnimatedValue
+useSpring target config = unsafeHook (useSpringImpl target config)

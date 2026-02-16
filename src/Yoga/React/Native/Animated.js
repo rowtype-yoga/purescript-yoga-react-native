@@ -1,4 +1,5 @@
 import { Animated, useAnimatedValue } from "react-native";
+import { useRef, useEffect } from "react";
 
 export const newValueImpl = (n) => new Animated.Value(n);
 export const newValueXYImpl = (x, y) => new Animated.ValueXY({ x, y });
@@ -27,9 +28,31 @@ export const subtractImpl = (a) => (b) => Animated.subtract(a, b);
 export const multiplyImpl = (a) => (b) => Animated.multiply(a, b);
 export const divideImpl = (a) => (b) => Animated.divide(a, b);
 export const moduloImpl = (a) => (n) => Animated.modulo(a, n);
-export const diffClampImpl = (a) => (min) => (max) => Animated.diffClamp(a, min, max);
+export const diffClampImpl = (a) => (min) => (max) =>
+  Animated.diffClamp(a, min, max);
 export const _animatedViewImpl = Animated.View;
 export const _animatedTextImpl = Animated.Text;
 export const _animatedImageImpl = Animated.Image;
 export const _animatedScrollViewImpl = Animated.ScrollView;
 export const useAnimatedValueImpl = (n) => () => useAnimatedValue(n);
+
+export const useSpringImpl = (target) => (config) => () => {
+  const valueRef = useRef(null);
+  const prevTargetRef = useRef(target);
+  if (valueRef.current === null) {
+    valueRef.current = new Animated.Value(target);
+  }
+  useEffect(() => {
+    if (prevTargetRef.current !== target) {
+      prevTargetRef.current = target;
+      const anim = Animated.spring(valueRef.current, {
+        toValue: target,
+        useNativeDriver: false,
+        ...config,
+      });
+      anim.start();
+      return () => anim.stop();
+    }
+  });
+  return valueRef.current;
+};
