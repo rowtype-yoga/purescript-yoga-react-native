@@ -83,7 +83,7 @@ levelIndicatorDemo = component "LevelIndicatorDemo" \dp -> React.do
               , minValue: 0.0
               , maxValue: 100.0
               , numberOfTickMarks: 11
-              , onChange: E.onNumber "value" setValue
+              , onChange: setValue
               , style: Style.style { height: 24.0 }
               }
           , nativeLevelIndicator
@@ -109,7 +109,7 @@ progressDemo = component "ProgressDemo" \dp -> React.do
               , minValue: 0.0
               , maxValue: 100.0
               , numberOfTickMarks: 11
-              , onChange: E.onNumber "value" setValue
+              , onChange: setValue
               , style: Style.style { height: 24.0 }
               }
           , nativeProgress

@@ -1,7 +1,7 @@
 module Yoga.React.Native.MacOS.Slider (nativeSlider, NativeSliderAttributes) where
 
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -16,5 +16,5 @@ type NativeSliderAttributes = BaseAttributes
   , maxValue :: Number
   , numberOfTickMarks :: Int
   , allowsTickMarkValuesOnly :: Boolean
-  , onChange :: EventHandler
+  , onChange :: Number -> Effect Unit
   )

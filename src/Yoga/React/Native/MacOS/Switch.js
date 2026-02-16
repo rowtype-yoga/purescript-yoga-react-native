@@ -1,2 +1,12 @@
+import React from "react";
 import { requireNativeComponent } from "react-native";
-export const switchImpl = requireNativeComponent("NativeSwitch");
+
+const NativeSwitch = requireNativeComponent("NativeSwitch");
+
+export const switchImpl = React.forwardRef((props, ref) => {
+  const nativeProps = { ...props };
+  if (typeof props.onChange === "function") {
+    nativeProps.onChange = (e) => props.onChange(!!e.nativeEvent.on)();
+  }
+  return React.createElement(NativeSwitch, { ...nativeProps, ref });
+});

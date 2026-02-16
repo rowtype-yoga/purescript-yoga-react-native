@@ -76,7 +76,7 @@ switchDemo = component "SwitchDemo" \dp -> React.do
           [ view { style: tw "flex-row items-center" }
               [ nativeSwitch
                   { on
-                  , onChange: E.onBool "on" setOn
+                  , onChange: setOn
                   , style: Style.style { height: 24.0, width: 48.0 }
                   }
               , label dp.dimFg (if on then "On" else "Off")
@@ -96,7 +96,7 @@ sliderDemo = component "SliderDemo" \dp -> React.do
               , minValue: 0.0
               , maxValue: 100.0
               , numberOfTickMarks: 11
-              , onChange: E.onNumber "value" setValue
+              , onChange: setValue
               , style: Style.style { height: 24.0 }
               }
           , label dp.dimFg ("Value: " <> show (round value) <> " / 100")
