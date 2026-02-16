@@ -15,15 +15,24 @@ page =
 
 tableView :: Nut
 tableView = L.componentDoc "nativeTableView" "Yoga.React.Native.MacOS.TableView (nativeTableView)"
-  """nativeTableView
+  """selected /\ setSelected <- useState' ""
+
+nativeTableView
   { columns:
-      [ { id: "name", title: "Name", width: 200.0 }
-      , { id: "size", title: "Size", width: 100.0 }
+      [ { id: "name", title: "Name", width: 150.0 }
+      , { id: "type", title: "Type", width: 100.0 }
+      , { id: "size", title: "Size", width: 80.0 }
       ]
-  , rows: [ ["file.txt", "4 KB"], ["image.png", "1.2 MB"] ]
+  , rows:
+      [ [ "Main.purs", "PureScript", "12 KB" ]
+      , [ "App.tsx", "TypeScript", "8 KB" ]
+      , [ "style.css", "CSS", "3 KB" ]
+      , [ "index.html", "HTML", "1 KB" ]
+      ]
   , headerVisible: true
   , alternatingRows: true
-  , onSelectRow: setSelected
+  , onSelectRow: \i -> setSelected ("Row " <> show i)
+  , onDoubleClickRow: \i -> setSelected ("Double-clicked row " <> show i)
   }"""
   [ propsTable
       [ { name: "columns", type_: "Array TableColumn", description: "Column definitions ({ id, title, width })" }
@@ -37,20 +46,24 @@ tableView = L.componentDoc "nativeTableView" "Yoga.React.Native.MacOS.TableView 
 
 outlineView :: Nut
 outlineView = L.componentDoc "nativeOutlineView" "Yoga.React.Native.MacOS.OutlineView (nativeOutlineView)"
-  """nativeOutlineView
+  """selection /\ setSelection <- useState' ""
+let file id title = OutlineItem { id, title, sfSymbol: "doc", children: [] }
+let folder id title children = OutlineItem { id, title, sfSymbol: "folder", children }
+
+nativeOutlineView
   { items:
-      [ OutlineItem
-          { id: "docs"
-          , title: "Documents"
-          , sfSymbol: "folder"
-          , children:
-              [ OutlineItem { id: "report", title: "report.pdf", sfSymbol: "doc", children: [] }
-              , OutlineItem { id: "notes", title: "notes.txt", sfSymbol: "doc.text", children: [] }
+      [ folder "src" "src"
+          [ file "main" "Main.purs"
+          , folder "macos" "MacOS"
+              [ file "btn" "Button.purs"
+              , file "sl" "Slider.purs"
               ]
-          }
+          ]
+      , folder "test" "test"
+          [ file "t1" "MacOSComponents.test.js" ]
       ]
-  , headerVisible: true
-  , onSelectItem: setSelected
+  , headerVisible: false
+  , onSelectItem: setSelection
   }"""
   [ propsTable
       [ { name: "items", type_: "Array OutlineItem", description: "Hierarchical tree data (newtype with { id, title, sfSymbol, children })" }

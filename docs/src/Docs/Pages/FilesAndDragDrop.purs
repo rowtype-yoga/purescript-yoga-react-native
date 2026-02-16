@@ -16,16 +16,17 @@ page =
 
 filePicker :: Nut
 filePicker = L.componentDoc "nativeFilePicker" "Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)"
-  """nativeFilePicker
+  """picked /\ setPicked <- useState' ""
+
+nativeFilePicker
   { mode: T.openFile
-  , title: "Choose files"
+  , title: "Open Files"
   , sfSymbol: "doc.badge.plus"
-  , message: "Select one or more files"
-  , allowedTypes: ["pdf", "txt", "png"]
   , allowMultiple: true
-  , canChooseDirectories: false
-  , onPickFiles: \files -> setFiles (map _.path files)
-  , onCancel: pure unit
+  , allowedTypes: [ "public.image", "public.text" ]
+  , message: "Select files to open"
+  , onPickFiles: \files -> setPicked (joinWith ", " (map _.path files))
+  , onCancel: setPicked "Cancelled"
   }"""
   [ propsTable
       [ { name: "mode", type_: "FilePickerMode", description: "openFile or saveFile" }

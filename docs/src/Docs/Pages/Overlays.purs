@@ -35,12 +35,22 @@ alert = L.componentDoc "macosAlert" "Yoga.React.Native.MacOS.Alert (macosAlert)"
 
 sheet :: Nut
 sheet = L.componentDoc "nativeSheet" "Yoga.React.Native.MacOS.Sheet (nativeSheet)"
-  """-- FFINativeComponent: takes props then children
-nativeSheet
-  { visible: true
-  , onDismiss: hideSheet
+  """visible /\ setVisible <- useState' false
+
+nativeButton
+  { title: "Show Sheet"
+  , bezelStyle: T.push
+  , onPress: setVisible true
   }
-  [ sheetContent ]"""
+nativeSheet
+  { visible
+  , onDismiss: setVisible false
+  }
+  [ nativeButton
+      { title: "Dismiss"
+      , onPress: setVisible false
+      }
+  ]"""
   [ propsTable
       [ { name: "visible", type_: "Boolean", description: "Show/hide the sheet" }
       , { name: "onDismiss", type_: "Effect Unit", description: "Dismiss callback" }
@@ -51,14 +61,19 @@ nativeSheet
 
 popover :: Nut
 popover = L.componentDoc "nativePopover" "Yoga.React.Native.MacOS.Popover (nativePopover)"
-  """-- FFINativeComponent: takes props then children
+  """visible /\ setVisible <- useState' false
+
 nativePopover
-  { visible: true
-  , preferredEdge: T.maxY
+  { visible
+  , preferredEdge: T.bottom
   , behavior: T.transient
-  , onClose: hidePopover
+  , onClose: setVisible false
   }
-  [ popoverContent ]"""
+  [ nativeButton
+      { title: if visible then "Hide" else "Show Popover"
+      , onPress: setVisible (not visible)
+      }
+  ]"""
   [ propsTable
       [ { name: "visible", type_: "Boolean", description: "Show/hide" }
       , { name: "preferredEdge", type_: "PopoverEdge", description: "Preferred edge for popover placement" }
@@ -71,15 +86,19 @@ nativePopover
 
 contextMenu :: Nut
 contextMenu = L.componentDoc "nativeContextMenu" "Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu)"
-  """-- FFINativeComponent: takes props then children
+  """result /\ setResult <- useState' ""
+
 nativeContextMenu
   { items:
-      [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
+      [ { id: "cut", title: "Cut", sfSymbol: "scissors" }
+      , { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
       , { id: "paste", title: "Paste", sfSymbol: "doc.on.clipboard" }
+      , { id: "sep", title: "-", sfSymbol: "" }
+      , { id: "delete", title: "Delete", sfSymbol: "trash" }
       ]
-  , onSelectItem: setSelected
+  , onSelectItem: setResult
   }
-  [ rightClickTarget ]"""
+  [ text_ "Right-click me!" ]"""
   [ propsTable
       [ { name: "items", type_: "Array ContextMenuItem", description: "Menu items ({ id, title, sfSymbol })" }
       , { name: "onSelectItem", type_: "String -> Effect Unit", description: "Item selection callback" }

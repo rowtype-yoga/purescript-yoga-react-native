@@ -19,21 +19,27 @@ page =
 
 mapView :: Nut
 mapView = L.componentDoc "nativeMapView" "Yoga.React.Native.MacOS.MapView (nativeMapView)"
-  """nativeMapView
+  """mapType /\ setMapType <- useState' 0
+let mt = case mapType of
+      1 -> T.satelliteMap
+      2 -> T.hybridMap
+      _ -> T.standardMap
+
+nativeMapView
   { latitude: 37.7749
   , longitude: -122.4194
   , latitudeDelta: 0.05
   , longitudeDelta: 0.05
-  , mapType: T.standard
-  , showsUserLocation: true
+  , mapType: mt
+  , showsUserLocation: false
   , annotations:
-      [ { latitude: 37.7749
-        , longitude: -122.4194
-        , title: "San Francisco"
-        , subtitle: "CA"
+      [ { latitude: 37.7749, longitude: -122.4194
+        , title: "San Francisco", subtitle: "California"
+        }
+      , { latitude: 37.8199, longitude: -122.4783
+        , title: "Golden Gate Bridge", subtitle: ""
         }
       ]
-  , onRegionChange: \region -> setLat region.latitude
   }"""
   [ propsTable
       [ { name: "latitude", type_: "Number", description: "Center latitude" }
@@ -51,9 +57,9 @@ mapView = L.componentDoc "nativeMapView" "Yoga.React.Native.MacOS.MapView (nativ
 pdfView :: Nut
 pdfView = L.componentDoc "nativePDFView" "Yoga.React.Native.MacOS.PDFView (nativePDFView)"
   """nativePDFView
-  { source: "/path/to/document.pdf"
+  { source: "https://example.com/document.pdf"
   , autoScales: true
-  , displayMode: T.singlePage
+  , displayMode: T.singlePageContinuous
   , onPageChange: setPage
   }"""
   [ propsTable
@@ -66,10 +72,17 @@ pdfView = L.componentDoc "nativePDFView" "Yoga.React.Native.MacOS.PDFView (nativ
 
 webView :: Nut
 webView = L.componentDoc "nativeWebView" "Yoga.React.Native.MacOS.WebView (nativeWebView)"
-  """nativeWebView
-  { url: "https://purescript.org"
-  , onNavigate: setUrl
-  , onFinishLoad: \url -> log ("Loaded: " <> url)
+  """url /\ setUrl <- useState' "https://pursuit.purescript.org"
+urlBar /\ setUrlBar <- useState' "https://pursuit.purescript.org"
+
+nativeTextField
+  { text: urlBar
+  , onChangeText: setUrlBar
+  , onSubmit: setUrl
+  }
+nativeWebView
+  { url
+  , onFinishLoad: setUrlBar
   }"""
   [ propsTable
       [ { name: "url", type_: "String", description: "URL to load" }

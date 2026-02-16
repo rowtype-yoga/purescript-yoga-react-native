@@ -15,12 +15,13 @@ page =
 
 textField :: Nut
 textField = L.componentDoc "nativeTextField" "Yoga.React.Native.MacOS.TextField (nativeTextField)"
-  """nativeTextField
-  { text: "Hello"
-  , placeholder: "Enter text..."
-  , secure: false
-  , onChangeText: setText
-  , onSubmit: doSubmit
+  """txt /\ setTxt <- useState' ""
+
+nativeTextField
+  { placeholder: "Type something..."
+  , search: true
+  , text: txt
+  , onChangeText: setTxt
   }"""
   [ propsTable
       [ { name: "text", type_: "String", description: "Current text value" }
@@ -36,10 +37,9 @@ textField = L.componentDoc "nativeTextField" "Yoga.React.Native.MacOS.TextField 
 textEditor :: Nut
 textEditor = L.componentDoc "nativeTextEditor" "Yoga.React.Native.MacOS.TextEditor (nativeTextEditor)"
   """nativeTextEditor
-  { text: "Rich text content..."
+  { text: "Welcome to the PureScript-driven native text editor."
   , richText: true
-  , showsRuler: false
-  , onChangeText: setText
+  , showsRuler: true
   }"""
   [ propsTable
       [ { name: "text", type_: "String", description: "Current text content" }

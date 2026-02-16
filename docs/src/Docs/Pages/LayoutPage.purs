@@ -57,13 +57,16 @@ nativeSplitView
 
 tabView :: Nut
 tabView = L.componentDoc "nativeTabView" "Yoga.React.Native.MacOS.TabView (nativeTabView)"
-  """nativeTabView
+  """selected /\ setSelected <- useState' "general"
+
+nativeTabView
   { items:
       [ { id: "general", label: "General" }
       , { id: "advanced", label: "Advanced" }
+      , { id: "about", label: "About" }
       ]
-  , selectedItem: "general"
-  , onSelectTab: setTab
+  , selectedItem: selected
+  , onSelectTab: setSelected
   }"""
   [ propsTable
       [ { name: "items", type_: "Array TabItem", description: "Tab items ({ id :: String, label :: String })" }
@@ -109,14 +112,11 @@ sidebarLayout
 toolbar :: Nut
 toolbar = L.componentDoc "nativeToolbar" "Yoga.React.Native.MacOS.Toolbar (nativeToolbar)"
   """nativeToolbar
-  { items:
-      [ { id: "add", label: "Add", sfSymbol: "plus" }
-      , { id: "delete", label: "Delete", sfSymbol: "trash" }
-      ]
-  , selectedItem: "add"
+  { items: []
+  , selectedItem: ""
   , toolbarStyle: T.unified
-  , windowTitle: "My App"
-  , onSelectItem: setItem
+  , windowTitle: "PureScript React Native"
+  , onSelectItem: \_ -> pure unit
   }"""
   [ propsTable
       [ { name: "items", type_: "Array ToolbarItem", description: "Toolbar items ({ id, label, sfSymbol })" }
