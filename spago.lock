@@ -17,6 +17,8 @@
             {
               "functions": ">=6.0.0 <7.0.0"
             },
+            "maybe",
+            "newtype",
             {
               "nullable": ">=6.0.0 <7.0.0"
             },
@@ -29,6 +31,7 @@
             {
               "react-basic-hooks": ">=8.2.0 <10.0.0"
             },
+            "tuples",
             {
               "type-equality": ">=4.0.1 <5.0.0"
             },
