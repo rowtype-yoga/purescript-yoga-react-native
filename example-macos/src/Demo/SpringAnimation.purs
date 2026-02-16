@@ -28,9 +28,9 @@ springDemo = component "SpringDemo" \dp -> React.do
   let fadeTarget = if fadeIn then 1.0 else 0.0
   opacity <- useSpring fadeTarget { stiffness: 120.0, damping: 20.0 }
   item0 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 200.0, damping: 18.0 }
-  item1 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 180.0, damping: 18.0, delay: 50 }
-  item2 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 160.0, damping: 18.0, delay: 100 }
-  item3 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 140.0, damping: 18.0, delay: 150 }
+  item1 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 180.0, damping: 18.0 }
+  item2 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 160.0, damping: 18.0 }
+  item3 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 140.0, damping: 18.0 }
   pure do
     scrollWrap dp
       [ sectionTitle dp.fg "Spring Animations"
@@ -98,13 +98,13 @@ springDemo = component "SpringDemo" \dp -> React.do
           , onPress: setShowItems (not showItems)
           , style: Style.style { height: 24.0, width: 120.0, marginBottom: 8.0 }
           }
-      , staggeredItem dp "PureScript" "#007AFF" item0
-      , staggeredItem dp "React Native" "#34C759" item1
-      , staggeredItem dp "macOS" "#FF9500" item2
-      , staggeredItem dp "Spring Physics" "#AF52DE" item3
+      , staggeredItem "PureScript" "#007AFF" item0
+      , staggeredItem "React Native" "#34C759" item1
+      , staggeredItem "macOS" "#FF9500" item2
+      , staggeredItem "Spring Physics" "#AF52DE" item3
       ]
   where
-  staggeredItem _ title color anim =
+  staggeredItem title color anim =
     animatedView
       { style: Style.style
           { opacity: anim
