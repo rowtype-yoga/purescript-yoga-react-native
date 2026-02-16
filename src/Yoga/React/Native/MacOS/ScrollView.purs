@@ -11,4 +11,6 @@ nativeScrollView = createNativeElement nativeScrollViewImpl
 
 type NativeScrollViewAttributes = BaseAttributes
   ( scrollToBottom :: Int
+  , scrollToY :: Number
+  , scrollToYTrigger :: Int
   )

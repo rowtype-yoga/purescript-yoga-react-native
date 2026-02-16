@@ -815,6 +815,8 @@ RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
 @interface RCTNativeScrollView : NSScrollView
 @property (nonatomic, strong) RCTFlippedDocumentView *docView;
 @property (nonatomic, assign) NSInteger scrollToBottom;
+@property (nonatomic, assign) CGFloat scrollToY;
+@property (nonatomic, assign) NSInteger scrollToYTrigger;
 @end
 
 @implementation RCTNativeScrollView
@@ -883,6 +885,29 @@ RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
   }
 }
 
+- (void)setScrollToYTrigger:(NSInteger)scrollToYTrigger {
+  if (scrollToYTrigger == _scrollToYTrigger) return;
+  _scrollToYTrigger = scrollToYTrigger;
+  [self performSelector:@selector(doScrollToY) withObject:nil afterDelay:0.1];
+}
+
+- (void)setScrollToY:(CGFloat)scrollToY {
+  _scrollToY = scrollToY;
+}
+
+- (void)doScrollToY {
+  [self updateDocumentSize];
+  CGFloat maxScroll = _docView.frame.size.height - self.bounds.size.height;
+  CGFloat y = MIN(MAX(_scrollToY, 0), maxScroll);
+  [NSAnimationContext runAnimationGroup:^(NSAnimationContext *ctx) {
+    ctx.duration = 0.3;
+    ctx.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    [self.contentView.animator setBoundsOrigin:NSMakePoint(0, y)];
+  } completionHandler:^{
+    [self reflectScrolledClipView:self.contentView];
+  }];
+}
+
 - (void)layout {
   [super layout];
   [self updateDocumentSize];
@@ -896,6 +921,8 @@ RCT_EXPORT_VIEW_PROPERTY(criticalValue, double)
 RCT_EXPORT_MODULE(MacOSScrollView)
 - (NSView *)view { return [[RCTNativeScrollView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(scrollToBottom, NSInteger)
+RCT_EXPORT_VIEW_PROPERTY(scrollToY, double)
+RCT_EXPORT_VIEW_PROPERTY(scrollToYTrigger, NSInteger)
 @end
 
 // ============================================================
