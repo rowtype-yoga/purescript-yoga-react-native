@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.HelpButton
   , NativeHelpButtonAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -14,5 +15,5 @@ nativeHelpButton :: FFINativeComponent_ NativeHelpButtonAttributes
 nativeHelpButton = createNativeElement_ helpButtonImpl
 
 type NativeHelpButtonAttributes = BaseAttributes
-  ( onPress :: EventHandler
+  ( onPress :: Effect Unit
   )

@@ -8,7 +8,6 @@ import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (tw, view)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.TextEditor (nativeTextEditor)
 import Yoga.React.Native.Style as Style

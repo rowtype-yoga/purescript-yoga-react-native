@@ -14,14 +14,13 @@ import Prelude
 
 import Demo.Shared (DemoProps, desc, scrollWrap, sectionTitle)
 import React.Basic (JSX)
-import React.Basic.Events (handler_)
+
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (tw, view)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.ColorPanel (macosShowColorPanel)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.FontPanel (macosShowFontPanel)
 import Yoga.React.Native.MacOS.Pasteboard (copyToClipboard)
 import Yoga.React.Native.MacOS.QuickLook (macosQuickLook)
@@ -43,7 +42,7 @@ clipboardDemo = component "ClipboardDemo" \dp -> pure do
         [ nativeButton
             { title: "Copy 'Hello'"
             , bezelStyle: T.push
-            , onPress: handler_ (copyToClipboard "Hello from PureScript!")
+            , onPress: copyToClipboard "Hello from PureScript!"
             , style: Style.style { height: 24.0, width: 120.0 }
             }
         ]
@@ -57,7 +56,7 @@ shareDemo = component "ShareDemo" \dp -> pure do
     , nativeButton
         { title: "Share Text"
         , bezelStyle: T.push
-        , onPress: handler_ (macosShare [ "Hello from PureScript React Native!" ])
+        , onPress: macosShare [ "Hello from PureScript React Native!" ]
         , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
         }
     ]
@@ -70,7 +69,7 @@ notificationsDemo = component "NotificationsDemo" \dp -> pure do
     , nativeButton
         { title: "Send Notification"
         , bezelStyle: T.push
-        , onPress: handler_ (macosNotify { title: "PureScript", body: "Hello from React Native macOS!" })
+        , onPress: macosNotify { title: "PureScript", body: "Hello from React Native macOS!" }
         , style: Style.style { height: 24.0, width: 160.0 } <> tw "mb-2"
         }
     ]
@@ -84,19 +83,19 @@ soundDemo = component "SoundDemo" \dp -> pure do
         [ nativeButton
             { title: "Glass"
             , bezelStyle: T.push
-            , onPress: handler_ (macosPlaySound "Glass")
+            , onPress: macosPlaySound "Glass"
             , style: Style.style { height: 24.0, width: 80.0 }
             }
         , nativeButton
             { title: "Ping"
             , bezelStyle: T.push
-            , onPress: handler_ (macosPlaySound "Ping")
+            , onPress: macosPlaySound "Ping"
             , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
             }
         , nativeButton
             { title: "Beep"
             , bezelStyle: T.push
-            , onPress: handler_ macosBeep
+            , onPress: macosBeep
             , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
             }
         ]
@@ -113,22 +112,21 @@ statusBarDemo = component "StatusBarDemo" \dp -> React.do
           [ nativeButton
               { title: if active then "Remove" else "Add to Menu Bar"
               , bezelStyle: T.push
-              , onPress: handler_
-                  ( if active then do
-                      macosRemoveStatusBarItem
-                      setActive false
-                    else do
-                      macosSetStatusBarItem
-                        { title: ""
-                        , sfSymbol: "swift"
-                        , menuItems:
-                            [ { id: "about", title: "About PureScript RN" }
-                            , { id: "sep", title: "-" }
-                            , { id: "quit", title: "Quit" }
-                            ]
-                        }
-                      setActive true
-                  )
+              , onPress:
+                  if active then do
+                    macosRemoveStatusBarItem
+                    setActive false
+                  else do
+                    macosSetStatusBarItem
+                      { title: ""
+                      , sfSymbol: "swift"
+                      , menuItems:
+                          [ { id: "about", title: "About PureScript RN" }
+                          , { id: "sep", title: "-" }
+                          , { id: "quit", title: "Quit" }
+                          ]
+                      }
+                    setActive true
               , style: Style.style { height: 24.0, width: 180.0 }
               }
           ]
@@ -143,7 +141,7 @@ quickLookDemo = component "QuickLookDemo" \dp -> pure do
         [ nativeButton
             { title: "Preview /etc/hosts"
             , bezelStyle: T.push
-            , onPress: handler_ (macosQuickLook "/etc/hosts")
+            , onPress: macosQuickLook "/etc/hosts"
             , style: Style.style { height: 24.0, width: 180.0 }
             }
         ]
@@ -158,7 +156,7 @@ colorPanelDemo = component "ColorPanelDemo" \dp -> pure do
         [ nativeButton
             { title: "Show Color Panel"
             , bezelStyle: T.push
-            , onPress: handler_ macosShowColorPanel
+            , onPress: macosShowColorPanel
             , style: Style.style { height: 24.0, width: 180.0 }
             }
         ]
@@ -173,7 +171,7 @@ fontPanelDemo = component "FontPanelDemo" \dp -> pure do
         [ nativeButton
             { title: "Show Font Panel"
             , bezelStyle: T.push
-            , onPress: handler_ macosShowFontPanel
+            , onPress: macosShowFontPanel
             , style: Style.style { height: 24.0, width: 180.0 }
             }
         ]
@@ -196,13 +194,13 @@ speechDemo = component "SpeechDemo" \dp -> React.do
           [ nativeButton
               { title: "Speak"
               , bezelStyle: T.push
-              , onPress: handler_ (say txt)
+              , onPress: say txt
               , style: Style.style { height: 24.0, width: 100.0 }
               }
           , nativeButton
               { title: "Stop"
               , bezelStyle: T.push
-              , onPress: handler_ stopSpeaking
+              , onPress: stopSpeaking
               , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
               }
           ]

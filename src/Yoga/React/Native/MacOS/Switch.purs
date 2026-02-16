@@ -1,5 +1,6 @@
 module Yoga.React.Native.MacOS.Switch (nativeSwitch, NativeSwitchAttributes) where
 
+import Prelude
 import Effect (Effect)
 import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)

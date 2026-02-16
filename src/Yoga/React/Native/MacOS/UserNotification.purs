@@ -8,6 +8,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Prim.Row (class Union)
+import Unsafe.Coerce (unsafeCoerce)
 
 type NotifyProps =
   ( title :: String
@@ -21,4 +22,4 @@ macosNotify
    . Union given missing NotifyProps
   => { | given }
   -> Effect Unit
-macosNotify = runEffectFn1 notifyImpl
+macosNotify r = runEffectFn1 notifyImpl (unsafeCoerce r)

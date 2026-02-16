@@ -1,5 +1,6 @@
 module Yoga.React.Native.MacOS.TextField (nativeTextField, NativeTextFieldAttributes) where
 
+import Prelude
 import Effect (Effect)
 import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)

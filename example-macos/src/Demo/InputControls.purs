@@ -52,13 +52,13 @@ buttonDemo = component "ButtonDemo" \dp -> React.do
                   { title: "Say Hello"
                   , bezelStyle: T.push
                   , primary: true
-                  , onPress: handler_ (setStatus "Hello from PureScript!")
+                  , onPress: setStatus "Hello from PureScript!"
                   , style: Style.style { height: 24.0, width: 140.0 }
                   }
               , nativeButton
                   { title: "Reset"
                   , bezelStyle: T.push
-                  , onPress: handler_ (setStatus "Ready")
+                  , onPress: setStatus "Ready"
                   , style: Style.style { height: 24.0, width: 100.0, marginLeft: 8.0 }
                   }
               , label dp.dimFg status

@@ -1,7 +1,8 @@
 module Yoga.React.Native.MacOS.Button (nativeButton, NativeButtonAttributes) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (BezelStyle)
@@ -18,5 +19,5 @@ type NativeButtonAttributes = BaseAttributes
   , destructive :: Boolean
   , primary :: Boolean
   , buttonEnabled :: Boolean
-  , onPress :: EventHandler
+  , onPress :: Effect Unit
   )

@@ -68,13 +68,13 @@ speechRecognitionDemo = component "SpeechRecognitionDemo" \dp -> React.do
           [ nativeButton
               { title: if speech.listening then "Listening..." else "Start"
               , bezelStyle: T.push
-              , onPress: handler_ speech.start
+              , onPress: speech.start
               , style: Style.style { height: 24.0, width: 130.0 }
               }
           , nativeButton
               { title: "Stop"
               , bezelStyle: T.push
-              , onPress: handler_ speech.stop
+              , onPress: speech.stop
               , style: Style.style { height: 24.0, width: 80.0, marginLeft: 8.0 }
               }
           ]
@@ -101,7 +101,7 @@ naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
           [ nativeButton
               { title: "Language"
               , bezelStyle: T.push
-              , onPress: handler_ $ launchAff_ do
+              , onPress: launchAff_ do
                   lang <- detectLanguage txt
                   liftEffect (setResult ("Language: " <> lang))
               , style: Style.style { height: 24.0, width: 110.0 }
@@ -109,7 +109,7 @@ naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
           , nativeButton
               { title: "Sentiment"
               , bezelStyle: T.push
-              , onPress: handler_ $ launchAff_ do
+              , onPress: launchAff_ do
                   score <- analyzeSentiment txt
                   liftEffect (setResult ("Sentiment: " <> show score))
               , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
@@ -117,7 +117,7 @@ naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
           , nativeButton
               { title: "Tokenize"
               , bezelStyle: T.push
-              , onPress: handler_ $ launchAff_ do
+              , onPress: launchAff_ do
                   tokens <- tokenize txt
                   liftEffect (setResult ("Tokens: " <> joinWith ", " tokens))
               , style: Style.style { height: 24.0, width: 110.0, marginLeft: 8.0 }
@@ -138,7 +138,7 @@ cameraDemo = component "CameraDemo" \dp -> React.do
           , nativeButton
               { title: if on then "Stop" else "Start"
               , bezelStyle: T.push
-              , onPress: handler_ (setOn (not on))
+              , onPress: setOn (not on)
               , style: Style.style { height: 24.0, width: 100.0 }
               }
           ]

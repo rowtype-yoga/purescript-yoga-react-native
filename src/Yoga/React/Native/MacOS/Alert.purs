@@ -8,6 +8,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Prim.Row (class Union)
+import Unsafe.Coerce (unsafeCoerce)
 import Yoga.React.Native.MacOS.Types (AlertStyle)
 
 type AlertProps =
@@ -24,4 +25,4 @@ macosAlert
    . Union given missing AlertProps
   => { | given }
   -> Effect Unit
-macosAlert = runEffectFn1 alertImpl
+macosAlert r = runEffectFn1 alertImpl (unsafeCoerce r)

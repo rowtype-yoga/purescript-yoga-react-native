@@ -30,7 +30,7 @@ button = L.componentDoc "nativeButton" "Yoga.React.Native.MacOS.Button (nativeBu
   """nativeButton
   { title: "Click me"
   , bezelStyle: T.push
-  , onPress: handler_ doSomething
+  , onPress: doSomething
   }"""
   [ propsTable
       [ { name: "title", type_: "String", description: "Button label text (mutually exclusive with sfSymbol)" }
@@ -39,7 +39,7 @@ button = L.componentDoc "nativeButton" "Yoga.React.Native.MacOS.Button (nativeBu
       , { name: "destructive", type_: "Boolean", description: "Red destructive styling" }
       , { name: "primary", type_: "Boolean", description: "Primary action button" }
       , { name: "buttonEnabled", type_: "Boolean", description: "Enable/disable the button" }
-      , { name: "onPress", type_: "EventHandler", description: "Press callback" }
+      , { name: "onPress", type_: "Effect Unit", description: "Press callback" }
       ]
   ]
 
@@ -228,8 +228,8 @@ colorWell = L.componentDoc "nativeColorWell" "Yoga.React.Native.MacOS.ColorWell 
 helpButton :: Nut
 helpButton = L.componentDoc "nativeHelpButton" "Yoga.React.Native.MacOS.HelpButton (nativeHelpButton)"
   """nativeHelpButton
-  { onPress: handler_ showHelp }"""
+  { onPress: showHelp }"""
   [ propsTable
-      [ { name: "onPress", type_: "EventHandler", description: "Press callback" }
+      [ { name: "onPress", type_: "Effect Unit", description: "Press callback" }
       ]
   ]

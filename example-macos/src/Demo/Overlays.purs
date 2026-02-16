@@ -33,7 +33,7 @@ alertDemo = component "AlertDemo" \dp -> pure do
     , nativeButton
         { title: "Show Alert"
         , bezelStyle: T.push
-        , onPress: handler_ (macosAlert { style: T.warning, title: "Are you sure?", message: "This action cannot be undone.", buttons: [ "Cancel", "OK" ] })
+        , onPress: macosAlert { style: T.warning, title: "Are you sure?", message: "This action cannot be undone.", buttons: [ "Cancel", "OK" ] }
         , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-4"
         }
     ]
@@ -48,7 +48,7 @@ sheetDemo = component "SheetDemo" \dp -> React.do
       , nativeButton
           { title: "Show Sheet"
           , bezelStyle: T.push
-          , onPress: handler_ (setVisible true)
+          , onPress: setVisible true
           , style: Style.style { height: 24.0, width: 120.0 } <> tw "mb-2"
           }
       , nativeSheet
@@ -61,7 +61,7 @@ sheetDemo = component "SheetDemo" \dp -> React.do
               , nativeButton
                   { title: "Dismiss"
                   , bezelStyle: T.push
-                  , onPress: handler_ (setVisible false)
+                  , onPress: setVisible false
                   , style: Style.style { height: 24.0, width: 100.0 }
                   }
               ]
@@ -85,7 +85,7 @@ popoverDemo = component "PopoverDemo" \dp -> React.do
           [ nativeButton
               { title: if visible then "Hide Popover" else "Show Popover"
               , bezelStyle: T.push
-              , onPress: handler_ (setVisible (not visible))
+              , onPress: setVisible (not visible)
               , style: Style.style { height: 24.0, width: 140.0 }
               }
           , view { style: tw "p-4" <> Style.style { width: 200.0, height: 80.0 } }
@@ -135,18 +135,16 @@ menuDemo = component "MenuDemo" \dp -> React.do
           [ nativeButton
               { title: "Show Menu"
               , bezelStyle: T.push
-              , onPress: handler_
-                  ( macosShowMenu
-                      { items:
-                          [ { title: "New File", id: "new" }
-                          , { title: "Open...", id: "open" }
-                          , { title: "-", id: "sep" }
-                          , { title: "Save", id: "save" }
-                          , { title: "Save As...", id: "saveAs" }
-                          ]
-                      , onSelectItem: \itemId -> setResult ("Menu: " <> itemId)
-                      }
-                  )
+              , onPress: macosShowMenu
+                  { items:
+                      [ { title: "New File", id: "new" }
+                      , { title: "Open...", id: "open" }
+                      , { title: "-", id: "sep" }
+                      , { title: "Save", id: "save" }
+                      , { title: "Save As...", id: "saveAs" }
+                      ]
+                  , onSelectItem: \itemId -> setResult ("Menu: " <> itemId)
+                  }
               , style: Style.style { height: 24.0, width: 120.0 }
               }
           , if result == "" then mempty

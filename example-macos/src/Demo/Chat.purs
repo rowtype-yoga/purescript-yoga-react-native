@@ -189,7 +189,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , nativeButton
                 { title: ""
                 , bezelStyle: T.toolbar
-                , onPress: handler_ (selectRoom r.roomId)
+                , onPress: selectRoom r.roomId
                 , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
                 }
             ]
@@ -219,10 +219,9 @@ chatDemo = component "ChatDemo" \dp -> React.do
         [ nativeButton
             { title: "☺"
             , bezelStyle: T.toolbar
-            , onPress: handler_
-                ( if reactPopover == Just idx then setReactPopover Nothing
-                  else setReactPopover (Just idx)
-                )
+            , onPress:
+                if reactPopover == Just idx then setReactPopover Nothing
+                else setReactPopover (Just idx)
             , style: Style.style { height: 20.0, width: 24.0 }
             }
         , view { style: tw "flex-row items-center p-2" <> Style.style { height: 40.0 } }
@@ -230,7 +229,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 nativeButton
                   { title: emoji
                   , bezelStyle: T.toolbar
-                  , onPress: handler_ (reactToMessage idx emoji)
+                  , onPress: reactToMessage idx emoji
                   , style: Style.style { height: 32.0, width: 32.0 }
                   }
             )
@@ -253,7 +252,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , nativeButton
                 { title: ""
                 , bezelStyle: T.toolbar
-                , onPress: handler_ (scrollToMessage origIdx)
+                , onPress: scrollToMessage origIdx
                 , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
                 }
             ]
@@ -311,7 +310,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , nativeButton
                 { title: "✕"
                 , bezelStyle: T.toolbar
-                , onPress: handler_ (setReplyingTo Nothing)
+                , onPress: setReplyingTo Nothing
                 , style: Style.style { height: 20.0, width: 24.0 }
                 }
             ]
@@ -368,7 +367,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                     , nativeButton
                         { sfSymbol: "paperplane.fill"
                         , bezelStyle: T.toolbar
-                        , onPress: handler_ (sendMessage rid inputText)
+                        , onPress: sendMessage rid inputText
                         , style: Style.style { height: 28.0, width: 36.0, marginLeft: 8.0 }
                         }
                     ]
