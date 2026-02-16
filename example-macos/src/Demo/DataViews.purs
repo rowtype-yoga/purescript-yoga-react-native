@@ -8,7 +8,6 @@ import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (tw)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.OutlineView (OutlineItem(..), nativeOutlineView)
 import Yoga.React.Native.MacOS.TableView (nativeTableView)
 import Yoga.React.Native.Style as Style
@@ -35,8 +34,8 @@ tableViewDemo = component "TableViewDemo" \dp -> React.do
               ]
           , headerVisible: true
           , alternatingRows: true
-          , onSelectRow: E.onInt "rowIndex" \i -> setSelected ("Row " <> show i)
-          , onDoubleClickRow: E.onInt "rowIndex" \i -> setSelected ("Double-clicked row " <> show i)
+          , onSelectRow: \i -> setSelected ("Row " <> show i)
+          , onDoubleClickRow: \i -> setSelected ("Double-clicked row " <> show i)
           , style: Style.style { height: 180.0 } <> tw "rounded-lg overflow-hidden mb-2"
           }
       , if selected == "" then mempty

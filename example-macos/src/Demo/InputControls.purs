@@ -17,7 +17,7 @@ import Prelude
 
 import Demo.Shared (DemoProps, card, desc, label, round, scrollWrap, sectionTitle)
 import React.Basic (JSX)
-import React.Basic.Events (handler, handler_, unsafeEventFn)
+import React.Basic.Events (handler, unsafeEventFn)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
@@ -180,7 +180,7 @@ stepperDemo = component "StepperDemo" \dp -> React.do
                   , minValue: 0.0
                   , maxValue: 50.0
                   , increment: 1.0
-                  , onChange: E.onNumber "value" setValue
+                  , onChange: setValue
                   , style: Style.style { width: 100.0, height: 24.0 }
                   }
               ]
@@ -240,14 +240,14 @@ checkboxDemo = component "CheckboxDemo" \dp -> React.do
               { checked: a
               , title: "Enable notifications"
               , enabled: true
-              , onChange: E.onBool "checked" setA
+              , onChange: setA
               , style: Style.style { height: 24.0 } <> tw "mb-1"
               }
           , nativeCheckbox
               { checked: b
               , title: "Dark mode"
               , enabled: true
-              , onChange: E.onBool "checked" setB
+              , onChange: setB
               , style: Style.style { height: 24.0 }
               }
           ]
@@ -264,21 +264,21 @@ radioButtonDemo = component "RadioButtonDemo" \dp -> React.do
               { selected: choice == "option1"
               , title: "Small"
               , enabled: true
-              , onChange: handler_ (setChoice "option1")
+              , onChange: \_ -> setChoice "option1"
               , style: Style.style { height: 24.0 } <> tw "mb-1"
               }
           , nativeRadioButton
               { selected: choice == "option2"
               , title: "Medium"
               , enabled: true
-              , onChange: handler_ (setChoice "option2")
+              , onChange: \_ -> setChoice "option2"
               , style: Style.style { height: 24.0 } <> tw "mb-1"
               }
           , nativeRadioButton
               { selected: choice == "option3"
               , title: "Large"
               , enabled: true
-              , onChange: handler_ (setChoice "option3")
+              , onChange: \_ -> setChoice "option3"
               , style: Style.style { height: 24.0 }
               }
           , label dp.dimFg ("Selected: " <> choice)

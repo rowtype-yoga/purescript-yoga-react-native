@@ -8,7 +8,6 @@ import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.MapView (nativeMapView)
 import Yoga.React.Native.MacOS.PDFView (nativePDFView)
 import Yoga.React.Native.MacOS.Segmented (nativeSegmented)
@@ -30,7 +29,7 @@ mapViewDemo = component "MapViewDemo" \dp -> React.do
           , nativeSegmented
               { labels: [ "Standard", "Satellite", "Hybrid" ]
               , selectedIndex: mapType
-              , onChange: E.onInt "selectedIndex" setMapType
+              , onChange: setMapType
               , style: Style.style { width: 240.0, height: 24.0 }
               }
           ]

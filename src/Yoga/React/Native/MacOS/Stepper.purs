@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.Stepper
   , NativeStepperAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -18,5 +19,5 @@ type NativeStepperAttributes = BaseAttributes
   , minValue :: Number
   , maxValue :: Number
   , increment :: Number
-  , onChange :: EventHandler
+  , onChange :: Number -> Effect Unit
   )

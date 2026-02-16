@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.RadioButton
   , NativeRadioButtonAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -17,5 +18,5 @@ type NativeRadioButtonAttributes = BaseAttributes
   ( selected :: Boolean
   , title :: String
   , enabled :: Boolean
-  , onChange :: EventHandler
+  , onChange :: Boolean -> Effect Unit
   )

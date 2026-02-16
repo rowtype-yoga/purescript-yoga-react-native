@@ -4,8 +4,9 @@ module Yoga.React.Native.MacOS.TableView
   , TableColumn
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -25,6 +26,6 @@ type NativeTableViewAttributes = BaseAttributes
   , rows :: Array (Array String)
   , headerVisible :: Boolean
   , alternatingRows :: Boolean
-  , onSelectRow :: EventHandler
-  , onDoubleClickRow :: EventHandler
+  , onSelectRow :: Int -> Effect Unit
+  , onDoubleClickRow :: Int -> Effect Unit
   )

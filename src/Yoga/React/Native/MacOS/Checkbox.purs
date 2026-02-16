@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.Checkbox
   , NativeCheckboxAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -17,5 +18,5 @@ type NativeCheckboxAttributes = BaseAttributes
   ( checked :: Boolean
   , title :: String
   , enabled :: Boolean
-  , onChange :: EventHandler
+  , onChange :: Boolean -> Effect Unit
   )
