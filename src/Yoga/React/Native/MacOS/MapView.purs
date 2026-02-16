@@ -2,10 +2,12 @@ module Yoga.React.Native.MacOS.MapView
   ( nativeMapView
   , NativeMapViewAttributes
   , MapAnnotation
+  , MapRegion
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.MacOS.Types (MapType)
@@ -22,6 +24,13 @@ type MapAnnotation =
   , subtitle :: String
   }
 
+type MapRegion =
+  { latitude :: Number
+  , longitude :: Number
+  , latitudeDelta :: Number
+  , longitudeDelta :: Number
+  }
+
 type NativeMapViewAttributes = BaseAttributes
   ( latitude :: Number
   , longitude :: Number
@@ -30,6 +39,6 @@ type NativeMapViewAttributes = BaseAttributes
   , mapType :: MapType
   , showsUserLocation :: Boolean
   , annotations :: Array MapAnnotation
-  , onRegionChange :: EventHandler
-  , onSelectAnnotation :: EventHandler
+  , onRegionChange :: MapRegion -> Effect Unit
+  , onSelectAnnotation :: String -> Effect Unit
   )

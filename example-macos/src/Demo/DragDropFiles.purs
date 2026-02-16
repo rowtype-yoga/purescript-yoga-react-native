@@ -2,6 +2,7 @@ module Demo.DragDropFiles (dropZoneDemo, filePickerDemo) where
 
 import Prelude
 
+import Data.String (joinWith)
 import Demo.Shared (DemoProps, card, desc, getFieldJSON, label, scrollWrap, sectionTitle)
 import React.Basic (JSX)
 import React.Basic.Events (handler, handler_, unsafeEventFn)
@@ -68,10 +69,8 @@ filePickerDemo = component "FilePickerDemo" \dp -> React.do
                   , allowMultiple: true
                   , allowedTypes: [ "public.image", "public.text" ]
                   , message: "Select files to open"
-                  , onPickFiles: handler
-                      (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
-                      setPicked
-                  , onCancel: handler_ (setPicked "Cancelled")
+                  , onPickFiles: \files -> setPicked (joinWith ", " (map _.path files))
+                  , onCancel: setPicked "Cancelled"
                   , style: Style.style { height: 24.0, width: 120.0 }
                   }
               , nativeFilePicker
@@ -80,10 +79,8 @@ filePickerDemo = component "FilePickerDemo" \dp -> React.do
                   , sfSymbol: "folder"
                   , canChooseDirectories: true
                   , message: "Select a folder"
-                  , onPickFiles: handler
-                      (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
-                      setPicked
-                  , onCancel: handler_ (setPicked "Cancelled")
+                  , onPickFiles: \files -> setPicked (joinWith ", " (map _.path files))
+                  , onCancel: setPicked "Cancelled"
                   , style: Style.style { height: 24.0, width: 140.0, marginLeft: 8.0 }
                   }
               , nativeFilePicker
@@ -93,10 +90,8 @@ filePickerDemo = component "FilePickerDemo" \dp -> React.do
                   , defaultName: "Untitled.txt"
                   , allowedTypes: [ "public.plain-text" ]
                   , message: "Choose save location"
-                  , onPickFiles: handler
-                      (nativeEvent >>> unsafeEventFn \e -> getFieldJSON "files" e)
-                      setPicked
-                  , onCancel: handler_ (setPicked "Cancelled")
+                  , onPickFiles: \files -> setPicked (joinWith ", " (map _.path files))
+                  , onCancel: setPicked "Cancelled"
                   , style: Style.style { height: 24.0, width: 120.0, marginLeft: 8.0 }
                   }
               ]

@@ -15,19 +15,22 @@ module Demo.InputControls
 
 import Prelude
 
+import Data.Array
+  ( (!!)
+  )
+import Data.Maybe (fromMaybe)
 import Demo.Shared (DemoProps, card, desc, label, round, scrollWrap, sectionTitle)
 import React.Basic (JSX)
-import React.Basic.Events (handler, unsafeEventFn)
+
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
-import Yoga.React.Native (nativeEvent, text, tw, view)
+import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.Checkbox (nativeCheckbox)
 import Yoga.React.Native.MacOS.ColorWell (nativeColorWell)
 import Yoga.React.Native.MacOS.ComboBox (nativeComboBox)
 import Yoga.React.Native.MacOS.DatePicker (nativeDatePicker)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.LevelIndicator (nativeLevelIndicator)
 import Yoga.React.Native.MacOS.PopUp (nativePopUp)
 import Yoga.React.Native.MacOS.Progress (nativeProgress)
@@ -119,21 +122,18 @@ popUpDemo :: DemoProps -> JSX
 popUpDemo = component "PopUpDemo" \dp -> React.do
   idx /\ setIdx <- useState' 0
   title /\ setTitle <- useState' "Small"
+  let items = [ "Small", "Medium", "Large", "Extra Large" ]
   pure do
     scrollWrap dp
       [ sectionTitle dp.fg "Pop Up Button"
       , card dp.cardBg
           [ view { style: tw "flex-row items-center" }
               [ nativePopUp
-                  { items: [ "Small", "Medium", "Large", "Extra Large" ]
+                  { items
                   , selectedIndex: idx
-                  , onChange: handler
-                      ( nativeEvent >>> unsafeEventFn \e ->
-                          { idx: E.getFieldInt "selectedIndex" e, title: E.getFieldStr "title" e }
-                      )
-                      \r -> do
-                        setIdx r.idx
-                        setTitle r.title
+                  , onChange: \i -> do
+                      setIdx i
+                      setTitle (fromMaybe "" (items !! i))
                   , style: Style.style { height: 24.0, width: 160.0 }
                   }
               , label dp.dimFg ("Selected: " <> title)

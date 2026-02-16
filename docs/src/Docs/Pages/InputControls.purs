@@ -47,11 +47,11 @@ switch :: Nut
 switch = L.componentDoc "nativeSwitch" "Yoga.React.Native.MacOS.Switch (nativeSwitch)"
   """nativeSwitch
   { on: true
-  , onChange: E.onBool "on" setOn
+  , onChange: setOn
   }"""
   [ propsTable
       [ { name: "on", type_: "Boolean", description: "Current on/off state" }
-      , { name: "onChange", type_: "EventHandler", description: "Toggle callback" }
+      , { name: "onChange", type_: "Boolean -> Effect Unit", description: "Toggle callback" }
       ]
   ]
 
@@ -61,7 +61,7 @@ slider = L.componentDoc "nativeSlider" "Yoga.React.Native.MacOS.Slider (nativeSl
   { value: 50.0
   , minValue: 0.0
   , maxValue: 100.0
-  , onChange: E.onNumber "value" setValue
+  , onChange: setValue
   }"""
   [ propsTable
       [ { name: "value", type_: "Number", description: "Current value" }
@@ -69,7 +69,7 @@ slider = L.componentDoc "nativeSlider" "Yoga.React.Native.MacOS.Slider (nativeSl
       , { name: "maxValue", type_: "Number", description: "Range maximum" }
       , { name: "numberOfTickMarks", type_: "Int", description: "Number of tick marks" }
       , { name: "allowsTickMarkValuesOnly", type_: "Boolean", description: "Snap to tick marks only" }
-      , { name: "onChange", type_: "EventHandler", description: "Value change callback" }
+      , { name: "onChange", type_: "Number -> Effect Unit", description: "Value change callback" }
       ]
   ]
 
@@ -80,14 +80,14 @@ stepper = L.componentDoc "nativeStepper" "Yoga.React.Native.MacOS.Stepper (nativ
   , minValue: 0.0
   , maxValue: 10.0
   , increment: 1.0
-  , onChange: E.onNumber "value" setValue
+  , onChange: setValue
   }"""
   [ propsTable
       [ { name: "value", type_: "Number", description: "Current value" }
       , { name: "minValue", type_: "Number", description: "Range minimum" }
       , { name: "maxValue", type_: "Number", description: "Range maximum" }
       , { name: "increment", type_: "Number", description: "Step increment" }
-      , { name: "onChange", type_: "EventHandler", description: "Value change callback" }
+      , { name: "onChange", type_: "Number -> Effect Unit", description: "Value change callback" }
       ]
   ]
 
@@ -96,13 +96,13 @@ checkbox = L.componentDoc "nativeCheckbox" "Yoga.React.Native.MacOS.Checkbox (na
   """nativeCheckbox
   { title: "Enable notifications"
   , checked: true
-  , onChange: E.onBool "checked" setChecked
+  , onChange: setChecked
   }"""
   [ propsTable
       [ { name: "title", type_: "String", description: "Label text" }
       , { name: "checked", type_: "Boolean", description: "Checked state" }
       , { name: "enabled", type_: "Boolean", description: "Enable/disable" }
-      , { name: "onChange", type_: "EventHandler", description: "Toggle callback" }
+      , { name: "onChange", type_: "Boolean -> Effect Unit", description: "Toggle callback" }
       ]
   ]
 
@@ -111,13 +111,13 @@ radioButton = L.componentDoc "nativeRadioButton" "Yoga.React.Native.MacOS.RadioB
   """nativeRadioButton
   { title: "Option A"
   , selected: true
-  , onChange: E.onBool "selected" setSelected
+  , onChange: \_ -> setChoice "optionA"
   }"""
   [ propsTable
       [ { name: "title", type_: "String", description: "Label text" }
       , { name: "selected", type_: "Boolean", description: "Selection state" }
       , { name: "enabled", type_: "Boolean", description: "Enable/disable" }
-      , { name: "onChange", type_: "EventHandler", description: "Selection callback" }
+      , { name: "onChange", type_: "Boolean -> Effect Unit", description: "Selection callback" }
       ]
   ]
 
@@ -127,13 +127,13 @@ segmented = L.componentDoc "nativeSegmented" "Yoga.React.Native.MacOS.Segmented 
   { labels: ["One", "Two", "Three"]
   , sfSymbols: ["1.circle", "2.circle", "3.circle"]
   , selectedIndex: 0
-  , onChange: E.onInt "selectedIndex" setIndex
+  , onChange: setIndex
   }"""
   [ propsTable
       [ { name: "labels", type_: "Array String", description: "Segment labels" }
       , { name: "sfSymbols", type_: "Array String", description: "SF Symbol icons per segment" }
       , { name: "selectedIndex", type_: "Int", description: "Currently selected index" }
-      , { name: "onChange", type_: "EventHandler", description: "Selection callback" }
+      , { name: "onChange", type_: "Int -> Effect Unit", description: "Selection callback" }
       ]
   ]
 
@@ -142,12 +142,12 @@ popUp = L.componentDoc "nativePopUp" "Yoga.React.Native.MacOS.PopUp (nativePopUp
   """nativePopUp
   { items: ["Small", "Medium", "Large"]
   , selectedIndex: 1
-  , onChange: E.onInt "selectedIndex" setIndex
+  , onChange: setIndex
   }"""
   [ propsTable
       [ { name: "items", type_: "Array String", description: "Menu items" }
       , { name: "selectedIndex", type_: "Int", description: "Selected item index" }
-      , { name: "onChange", type_: "EventHandler", description: "Selection callback" }
+      , { name: "onChange", type_: "Int -> Effect Unit", description: "Selection callback" }
       ]
   ]
 
@@ -157,15 +157,15 @@ comboBox = L.componentDoc "nativeComboBox" "Yoga.React.Native.MacOS.ComboBox (na
   { items: ["Apple", "Banana", "Cherry"]
   , text: "Apple"
   , placeholder: "Choose a fruit..."
-  , onChangeText: E.onString "text" setText
-  , onSelectItem: E.onString "text" setText
+  , onChangeText: setText
+  , onSelectItem: setText
   }"""
   [ propsTable
       [ { name: "items", type_: "Array String", description: "Autocomplete suggestions" }
       , { name: "text", type_: "String", description: "Current text value" }
       , { name: "placeholder", type_: "String", description: "Placeholder text" }
-      , { name: "onChangeText", type_: "EventHandler", description: "Text change callback" }
-      , { name: "onSelectItem", type_: "EventHandler", description: "Item selection callback" }
+      , { name: "onChangeText", type_: "String -> Effect Unit", description: "Text change callback" }
+      , { name: "onSelectItem", type_: "String -> Effect Unit", description: "Item selection callback" }
       ]
   ]
 
@@ -174,14 +174,14 @@ searchField = L.componentDoc "nativeSearchField" "Yoga.React.Native.MacOS.Search
   """nativeSearchField
   { placeholder: "Search..."
   , text: ""
-  , onChangeText: E.onString "text" setText
-  , onSearch: E.onString "text" \q -> search q
+  , onChangeText: setText
+  , onSearch: \q -> search q
   }"""
   [ propsTable
       [ { name: "text", type_: "String", description: "Current search text" }
       , { name: "placeholder", type_: "String", description: "Placeholder text" }
-      , { name: "onChangeText", type_: "EventHandler", description: "Text change callback" }
-      , { name: "onSearch", type_: "EventHandler", description: "Search submit callback" }
+      , { name: "onChangeText", type_: "String -> Effect Unit", description: "Text change callback" }
+      , { name: "onSearch", type_: "String -> Effect Unit", description: "Search submit callback" }
       ]
   ]
 
@@ -190,12 +190,12 @@ tokenField = L.componentDoc "nativeTokenField" "Yoga.React.Native.MacOS.TokenFie
   """nativeTokenField
   { tokens: ["tag1", "tag2"]
   , placeholder: "Add tags..."
-  , onChangeTokens: E.onStrings "tokens" setTokens
+  , onChangeTokens: setTokens
   }"""
   [ propsTable
       [ { name: "tokens", type_: "Array String", description: "Current tokens" }
       , { name: "placeholder", type_: "String", description: "Placeholder text" }
-      , { name: "onChangeTokens", type_: "EventHandler", description: "Tokens change callback" }
+      , { name: "onChangeTokens", type_: "Array String -> Effect Unit", description: "Tokens change callback" }
       ]
   ]
 
@@ -203,11 +203,11 @@ datePicker :: Nut
 datePicker = L.componentDoc "nativeDatePicker" "Yoga.React.Native.MacOS.DatePicker (nativeDatePicker)"
   """nativeDatePicker
   { graphical: true
-  , onChange: E.onString "date" setDate
+  , onChange: setDate
   }"""
   [ propsTable
       [ { name: "graphical", type_: "Boolean", description: "Show graphical calendar picker" }
-      , { name: "onChange", type_: "EventHandler", description: "Date change callback" }
+      , { name: "onChange", type_: "String -> Effect Unit", description: "Date change callback" }
       ]
   ]
 
@@ -216,12 +216,12 @@ colorWell = L.componentDoc "nativeColorWell" "Yoga.React.Native.MacOS.ColorWell 
   """nativeColorWell
   { color: "#ff0000"
   , minimal: true
-  , onChange: E.onString "color" setColor
+  , onChange: setColor
   }"""
   [ propsTable
       [ { name: "color", type_: "String", description: "Current color hex value" }
       , { name: "minimal", type_: "Boolean", description: "Minimal inline style" }
-      , { name: "onChange", type_: "EventHandler", description: "Color change callback" }
+      , { name: "onChange", type_: "String -> Effect Unit", description: "Color change callback" }
       ]
   ]
 

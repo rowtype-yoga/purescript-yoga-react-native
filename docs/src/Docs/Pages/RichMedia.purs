@@ -33,7 +33,7 @@ mapView = L.componentDoc "nativeMapView" "Yoga.React.Native.MacOS.MapView (nativ
         , subtitle: "CA"
         }
       ]
-  , onRegionChange: E.onNumber "latitude" setLat
+  , onRegionChange: \region -> setLat region.latitude
   }"""
   [ propsTable
       [ { name: "latitude", type_: "Number", description: "Center latitude" }
@@ -43,8 +43,8 @@ mapView = L.componentDoc "nativeMapView" "Yoga.React.Native.MacOS.MapView (nativ
       , { name: "mapType", type_: "MapType", description: "Map display type" }
       , { name: "showsUserLocation", type_: "Boolean", description: "Show user location dot" }
       , { name: "annotations", type_: "Array MapAnnotation", description: "Map pins ({ latitude, longitude, title, subtitle })" }
-      , { name: "onRegionChange", type_: "EventHandler", description: "Region change callback" }
-      , { name: "onSelectAnnotation", type_: "EventHandler", description: "Annotation tap callback" }
+      , { name: "onRegionChange", type_: "MapRegion -> Effect Unit", description: "Region change callback ({ latitude, longitude, latitudeDelta, longitudeDelta })" }
+      , { name: "onSelectAnnotation", type_: "String -> Effect Unit", description: "Annotation tap callback" }
       ]
   ]
 
@@ -54,13 +54,13 @@ pdfView = L.componentDoc "nativePDFView" "Yoga.React.Native.MacOS.PDFView (nativ
   { source: "/path/to/document.pdf"
   , autoScales: true
   , displayMode: T.singlePage
-  , onPageChange: E.onInt "page" setPage
+  , onPageChange: setPage
   }"""
   [ propsTable
       [ { name: "source", type_: "String", description: "PDF file path or URL" }
       , { name: "autoScales", type_: "Boolean", description: "Auto-fit to view" }
       , { name: "displayMode", type_: "PDFDisplayMode", description: "PDF display mode" }
-      , { name: "onPageChange", type_: "EventHandler", description: "Page change callback" }
+      , { name: "onPageChange", type_: "Int -> Effect Unit", description: "Page change callback" }
       ]
   ]
 
@@ -68,13 +68,13 @@ webView :: Nut
 webView = L.componentDoc "nativeWebView" "Yoga.React.Native.MacOS.WebView (nativeWebView)"
   """nativeWebView
   { url: "https://purescript.org"
-  , onNavigate: E.onString "url" setUrl
-  , onFinishLoad: handler_ onPageLoaded
+  , onNavigate: setUrl
+  , onFinishLoad: \url -> log ("Loaded: " <> url)
   }"""
   [ propsTable
       [ { name: "url", type_: "String", description: "URL to load" }
-      , { name: "onNavigate", type_: "EventHandler", description: "Navigation callback" }
-      , { name: "onFinishLoad", type_: "EventHandler", description: "Page load complete callback" }
+      , { name: "onNavigate", type_: "String -> Effect Unit", description: "Navigation callback" }
+      , { name: "onFinishLoad", type_: "String -> Effect Unit", description: "Page load complete callback" }
       ]
   ]
 

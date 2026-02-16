@@ -77,12 +77,12 @@ nativeContextMenu
       [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
       , { id: "paste", title: "Paste", sfSymbol: "doc.on.clipboard" }
       ]
-  , onSelectItem: E.onString "itemId" setSelected
+  , onSelectItem: setSelected
   }
   [ rightClickTarget ]"""
   [ propsTable
       [ { name: "items", type_: "Array ContextMenuItem", description: "Menu items ({ id, title, sfSymbol })" }
-      , { name: "onSelectItem", type_: "EventHandler", description: "Item selection callback" }
+      , { name: "onSelectItem", type_: "String -> Effect Unit", description: "Item selection callback" }
       ]
   , D.p [ DA.klass_ "text-sm text-gray-400 mt-2" ]
       [ D.text_ "The right-click target element is passed as the second argument (IsJSX)." ]

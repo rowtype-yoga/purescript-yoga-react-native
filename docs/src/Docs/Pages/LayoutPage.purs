@@ -63,12 +63,12 @@ tabView = L.componentDoc "nativeTabView" "Yoga.React.Native.MacOS.TabView (nativ
       , { id: "advanced", label: "Advanced" }
       ]
   , selectedItem: "general"
-  , onSelectTab: E.onString "tabId" setTab
+  , onSelectTab: setTab
   }"""
   [ propsTable
       [ { name: "items", type_: "Array TabItem", description: "Tab items ({ id :: String, label :: String })" }
       , { name: "selectedItem", type_: "String", description: "Selected tab id" }
-      , { name: "onSelectTab", type_: "EventHandler", description: "Tab selection callback" }
+      , { name: "onSelectTab", type_: "String -> Effect Unit", description: "Tab selection callback" }
       ]
   ]
 
@@ -116,14 +116,14 @@ toolbar = L.componentDoc "nativeToolbar" "Yoga.React.Native.MacOS.Toolbar (nativ
   , selectedItem: "add"
   , toolbarStyle: T.unified
   , windowTitle: "My App"
-  , onSelectItem: E.onString "itemId" setItem
+  , onSelectItem: setItem
   }"""
   [ propsTable
       [ { name: "items", type_: "Array ToolbarItem", description: "Toolbar items ({ id, label, sfSymbol })" }
       , { name: "selectedItem", type_: "String", description: "Selected item id" }
       , { name: "toolbarStyle", type_: "ToolbarStyle", description: "Toolbar visual style" }
       , { name: "windowTitle", type_: "String", description: "Window title" }
-      , { name: "onSelectItem", type_: "EventHandler", description: "Item selection callback" }
+      , { name: "onSelectItem", type_: "String -> Effect Unit", description: "Item selection callback" }
       ]
   ]
 

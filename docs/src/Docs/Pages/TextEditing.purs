@@ -19,8 +19,8 @@ textField = L.componentDoc "nativeTextField" "Yoga.React.Native.MacOS.TextField 
   { text: "Hello"
   , placeholder: "Enter text..."
   , secure: false
-  , onChangeText: E.onString "text" setText
-  , onSubmit: handler_ doSubmit
+  , onChangeText: setText
+  , onSubmit: doSubmit
   }"""
   [ propsTable
       [ { name: "text", type_: "String", description: "Current text value" }
@@ -28,8 +28,8 @@ textField = L.componentDoc "nativeTextField" "Yoga.React.Native.MacOS.TextField 
       , { name: "secure", type_: "Boolean", description: "Password field (hides input)" }
       , { name: "search", type_: "Boolean", description: "Search field style" }
       , { name: "rounded", type_: "Boolean", description: "Rounded bezel style" }
-      , { name: "onChangeText", type_: "EventHandler", description: "Text change callback" }
-      , { name: "onSubmit", type_: "EventHandler", description: "Submit callback (Enter key)" }
+      , { name: "onChangeText", type_: "String -> Effect Unit", description: "Text change callback" }
+      , { name: "onSubmit", type_: "String -> Effect Unit", description: "Submit callback (Enter key)" }
       ]
   ]
 
@@ -39,12 +39,12 @@ textEditor = L.componentDoc "nativeTextEditor" "Yoga.React.Native.MacOS.TextEdit
   { text: "Rich text content..."
   , richText: true
   , showsRuler: false
-  , onChangeText: E.onString "text" setText
+  , onChangeText: setText
   }"""
   [ propsTable
       [ { name: "text", type_: "String", description: "Current text content" }
       , { name: "richText", type_: "Boolean", description: "Enable rich text formatting" }
       , { name: "showsRuler", type_: "Boolean", description: "Show the formatting ruler" }
-      , { name: "onChangeText", type_: "EventHandler", description: "Text change callback" }
+      , { name: "onChangeText", type_: "String -> Effect Unit", description: "Text change callback" }
       ]
   ]

@@ -13,14 +13,12 @@ import Demo.Shared (DemoProps, desc, scrollWrap, sectionTitle)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import React.Basic (JSX)
-import React.Basic.Events (handler, handler_, unsafeEventFn)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
-import Yoga.React.Native (nativeEvent, text, tw, view)
+import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.CameraView (nativeCameraView)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.FilePicker (nativeFilePicker)
 import Yoga.React.Native.MacOS.NaturalLanguage (analyzeSentiment, detectLanguage, tokenize)
 import Yoga.React.Native.MacOS.OCR (recognizeText)
@@ -42,13 +40,11 @@ ocrDemo = component "OCRDemo" \dp -> React.do
               , allowedTypes: [ "public.image" ]
               , title: "Pick Image"
               , sfSymbol: "photo"
-              , onPickFiles: handler
-                  (nativeEvent >>> unsafeEventFn \e -> E.getFieldArray "files" e)
-                  \paths -> for_ paths \path -> do
-                    setResult "Recognizing..."
-                    launchAff_ do
-                      r <- recognizeText path
-                      liftEffect (setResult r)
+              , onPickFiles: \files -> for_ files \file -> do
+                  setResult "Recognizing..."
+                  launchAff_ do
+                    r <- recognizeText file.path
+                    liftEffect (setResult r)
               , style: Style.style { height: 24.0, width: 140.0 }
               }
           ]

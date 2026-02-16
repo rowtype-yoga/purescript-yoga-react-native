@@ -23,15 +23,15 @@ tableView = L.componentDoc "nativeTableView" "Yoga.React.Native.MacOS.TableView 
   , rows: [ ["file.txt", "4 KB"], ["image.png", "1.2 MB"] ]
   , headerVisible: true
   , alternatingRows: true
-  , onSelectRow: E.onInt "rowIndex" setSelected
+  , onSelectRow: setSelected
   }"""
   [ propsTable
       [ { name: "columns", type_: "Array TableColumn", description: "Column definitions ({ id, title, width })" }
       , { name: "rows", type_: "Array (Array String)", description: "Row data as arrays of strings" }
       , { name: "headerVisible", type_: "Boolean", description: "Show column headers" }
       , { name: "alternatingRows", type_: "Boolean", description: "Alternating row backgrounds" }
-      , { name: "onSelectRow", type_: "EventHandler", description: "Row selection callback" }
-      , { name: "onDoubleClickRow", type_: "EventHandler", description: "Row double-click callback" }
+      , { name: "onSelectRow", type_: "Int -> Effect Unit", description: "Row selection callback" }
+      , { name: "onDoubleClickRow", type_: "Int -> Effect Unit", description: "Row double-click callback" }
       ]
   ]
 
@@ -50,11 +50,11 @@ outlineView = L.componentDoc "nativeOutlineView" "Yoga.React.Native.MacOS.Outlin
           }
       ]
   , headerVisible: true
-  , onSelectItem: E.onString "id" setSelected
+  , onSelectItem: setSelected
   }"""
   [ propsTable
       [ { name: "items", type_: "Array OutlineItem", description: "Hierarchical tree data (newtype with { id, title, sfSymbol, children })" }
       , { name: "headerVisible", type_: "Boolean", description: "Show header" }
-      , { name: "onSelectItem", type_: "EventHandler", description: "Item selection callback" }
+      , { name: "onSelectItem", type_: "String -> Effect Unit", description: "Item selection callback" }
       ]
   ]
