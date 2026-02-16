@@ -1,0 +1,57 @@
+name: CI
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: purescript-contrib/setup-purescript@main
+        with:
+          purescript: "0.15.x"
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .spago
+            output
+          key: spago-${{ hashFiles('spago.yaml', 'spago.lock') }}
+      - run: bunx spago build
+      - run: bun test
+
+  docs:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: purescript-contrib/setup-purescript@main
+        with:
+          purescript: "0.15.x"
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .spago
+            output
+          key: spago-${{ hashFiles('spago.yaml', 'spago.lock') }}
+      - run: bunx spago bundle -p yoga-react-native-docs --bundle-type app --platform browser --outfile dist/app.js --minify --module Docs.Main
+      - run: cp docs/index.html docs/dist/
+      - run: |
+          sed -i 's|<script type="module" src="./index.js">|<script src="./app.js">|' docs/dist/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

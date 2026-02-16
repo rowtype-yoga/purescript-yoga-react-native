@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>purescript-yoga-react-native</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              brand: "#7c6ef6",
+              "brand-dim": "#5a4fd4",
+            },
+            fontFamily: {
+              mono: [
+                '"SF Mono"',
+                '"Fira Code"',
+                '"JetBrains Mono"',
+                "monospace",
+              ],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-950 text-gray-200 font-sans antialiased">
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>

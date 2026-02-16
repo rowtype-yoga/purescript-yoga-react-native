@@ -1,21 +1,46 @@
 package:
-  dependencies:
-    - aff
-    - effect
-    - foreign
-    - functions
-    - nullable
-    - prelude
-    - react-basic
-    - react-basic-hooks
-    - type-equality
-    - typelevel-prelude
-    - unsafe-coerce
   name: yoga-react-native
+  publish:
+    version: 0.1.0
+    license: MIT
+    location:
+      githubOwner: rowtype-yoga
+      githubRepo: purescript-yoga-react-native
+  dependencies:
+    - aff: ">=7.1.0 <8.0.0"
+    - effect: ">=4.0.0 <5.0.0"
+    - foreign: ">=7.0.0 <8.0.0"
+    - functions: ">=6.0.0 <7.0.0"
+    - nullable: ">=6.0.0 <7.0.0"
+    - prelude: ">=6.0.1 <7.0.0"
+    - react-basic: ">=17.0.0 <18.0.0"
+    - react-basic-hooks: ">=8.2.0 <10.0.0"
+    - type-equality: ">=4.0.1 <5.0.0"
+    - typelevel-prelude: ">=7.0.0 <8.0.0"
+    - unsafe-coerce: ">=6.0.0 <7.0.0"
 workspace:
   packageSet:
-    registry: 51.2.0
+    registry: 58.0.0
   extraPackages:
     yoga-react:
       git: https://github.com/rowtype-yoga/purescript-yoga-react.git
+      ref: main
+    deku-core:
+      git: https://github.com/mikesol/purescript-deku.git
+      ref: main
+      subdir: deku-core
+    deku-dom:
+      git: https://github.com/mikesol/purescript-deku.git
+      ref: main
+      subdir: deku-dom
+    deku-css:
+      git: https://github.com/mikesol/purescript-deku.git
+      ref: main
+      subdir: deku-css
+    deku-spa:
+      git: https://github.com/mikesol/purescript-deku.git
+      ref: main
+      subdir: deku-spa
+    hyrule:
+      git: https://github.com/mikesol/purescript-hyrule.git
       ref: main

@@ -4,3 +4,4 @@ node_modules
 .psc-ide-port
 .DS_Store
 test/visual/diff/
+docs/dist/

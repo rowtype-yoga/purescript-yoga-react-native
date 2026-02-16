@@ -1,0 +1,10 @@
+package:
+  name: yoga-react-native-docs
+  dependencies:
+    - deku-core
+    - deku-dom
+    - deku-spa
+    - effect
+    - hyrule
+    - prelude
+    - tuples

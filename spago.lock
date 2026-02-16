@@ -5,17 +5,56 @@
         "path": "./",
         "core": {
           "dependencies": [
-            "aff",
+            {
+              "aff": ">=7.1.0 <8.0.0"
+            },
+            {
+              "effect": ">=4.0.0 <5.0.0"
+            },
+            {
+              "foreign": ">=7.0.0 <8.0.0"
+            },
+            {
+              "functions": ">=6.0.0 <7.0.0"
+            },
+            {
+              "nullable": ">=6.0.0 <7.0.0"
+            },
+            {
+              "prelude": ">=6.0.1 <7.0.0"
+            },
+            {
+              "react-basic": ">=17.0.0 <18.0.0"
+            },
+            {
+              "react-basic-hooks": ">=8.2.0 <10.0.0"
+            },
+            {
+              "type-equality": ">=4.0.1 <5.0.0"
+            },
+            {
+              "typelevel-prelude": ">=7.0.0 <8.0.0"
+            },
+            {
+              "unsafe-coerce": ">=6.0.0 <7.0.0"
+            }
+          ]
+        },
+        "test": {
+          "dependencies": []
+        }
+      },
+      "yoga-react-native-docs": {
+        "path": "docs",
+        "core": {
+          "dependencies": [
+            "deku-core",
+            "deku-dom",
+            "deku-spa",
             "effect",
-            "foreign",
-            "functions",
-            "nullable",
+            "hyrule",
             "prelude",
-            "react-basic",
-            "react-basic-hooks",
-            "type-equality",
-            "typelevel-prelude",
-            "unsafe-coerce"
+            "tuples"
           ]
         },
         "test": {
@@ -51,7 +90,7 @@
     },
     "package_set": {
       "address": {
-        "registry": "51.2.0"
+        "registry": "58.0.0"
       },
       "compiler": ">=0.15.15 <0.16.0",
       "content": {
@@ -77,7 +116,7 @@
         "argonaut-traversals": "10.0.0",
         "argparse-basic": "2.0.0",
         "array-builder": "0.1.2",
-        "array-search": "0.5.6",
+        "array-search": "0.6.0",
         "arraybuffer": "13.2.0",
         "arraybuffer-builder": "3.1.0",
         "arraybuffer-types": "3.0.2",
@@ -86,7 +125,7 @@
         "arrays-zipper": "2.0.1",
         "ask": "1.0.0",
         "assert": "6.0.0",
-        "assert-multiple": "0.3.4",
+        "assert-multiple": "0.4.0",
         "avar": "5.0.0",
         "b64": "0.0.8",
         "barbies": "1.0.1",
@@ -101,7 +140,7 @@
         "canvas-action": "9.0.0",
         "cartesian": "1.0.6",
         "catenable-lists": "7.0.0",
-        "cbor-stream": "1.0.4",
+        "cbor-stream": "1.3.0",
         "chameleon": "1.0.0",
         "chameleon-halogen": "1.0.3",
         "chameleon-react-basic": "1.1.0",
@@ -130,7 +169,7 @@
         "coroutines": "7.0.0",
         "css": "6.0.0",
         "css-frameworks": "1.0.1",
-        "csv-stream": "2.0.2",
+        "csv-stream": "2.3.0",
         "data-mvc": "0.0.2",
         "datetime": "6.1.0",
         "datetime-parsing": "0.2.0",
@@ -148,23 +187,23 @@
         "dotenv": "4.0.3",
         "droplet": "0.6.0",
         "dts": "1.0.0",
-        "dual-numbers": "1.0.2",
+        "dual-numbers": "1.0.3",
         "dynamic-buffer": "3.0.1",
         "echarts-simple": "0.0.1",
         "effect": "4.0.0",
         "either": "6.1.0",
-        "elmish": "0.11.3",
+        "elmish": "0.13.0",
         "elmish-enzyme": "0.1.1",
-        "elmish-hooks": "0.10.0",
-        "elmish-html": "0.8.2",
+        "elmish-hooks": "0.10.3",
+        "elmish-html": "0.9.0",
         "elmish-testing-library": "0.3.2",
         "email-validate": "7.0.0",
         "encoding": "0.0.9",
         "enums": "6.0.1",
-        "env-names": "0.3.4",
+        "env-names": "0.4.0",
         "error": "2.0.0",
         "eta-conversion": "0.3.2",
-        "exceptions": "6.0.0",
+        "exceptions": "6.1.0",
         "exists": "6.0.0",
         "exitcodes": "4.0.0",
         "expect-inferred": "3.0.0",
@@ -207,7 +246,7 @@
         "generate-values": "1.0.1",
         "generic-router": "0.0.1",
         "geojson": "0.0.5",
-        "geometry-plane": "1.0.3",
+        "geometria": "2.2.0",
         "gojs": "0.1.1",
         "grain": "3.0.0",
         "grain-router": "3.0.0",
@@ -237,6 +276,7 @@
         "homogeneous": "0.4.0",
         "http-methods": "6.0.0",
         "httpurple": "4.0.0",
+        "huffman": "0.4.0",
         "humdrum": "0.0.1",
         "hyrule": "2.3.8",
         "identity": "6.0.0",
@@ -284,7 +324,7 @@
         "logging-journald": "0.4.0",
         "lumi-components": "18.0.0",
         "machines": "7.0.0",
-        "maps-eager": "0.4.1",
+        "maps-eager": "0.5.0",
         "marionette": "1.0.0",
         "marionette-react-basic-hooks": "0.1.1",
         "marked": "0.1.0",
@@ -320,7 +360,7 @@
         "node-child-process": "11.1.0",
         "node-event-emitter": "3.0.0",
         "node-execa": "5.0.0",
-        "node-fs": "9.1.0",
+        "node-fs": "9.2.0",
         "node-glob-basic": "1.3.0",
         "node-http": "9.1.0",
         "node-http2": "1.1.1",
@@ -329,9 +369,9 @@
         "node-os": "5.1.0",
         "node-path": "5.0.0",
         "node-process": "11.2.0",
-        "node-readline": "8.1.0",
+        "node-readline": "8.1.1",
         "node-sqlite3": "8.0.0",
-        "node-stream-pipes": "1.4.1",
+        "node-stream-pipes": "2.1.6",
         "node-streams": "9.0.0",
         "node-tls": "0.3.1",
         "node-url": "7.0.1",
@@ -340,15 +380,17 @@
         "now": "6.0.0",
         "npm-package-json": "2.0.0",
         "nullable": "6.0.0",
-        "numberfield": "0.1.0",
+        "numberfield": "0.2.2",
         "numbers": "9.0.1",
         "oak": "3.1.1",
         "oak-debug": "1.2.2",
         "object-maps": "0.3.0",
         "ocarina": "1.5.4",
-        "open-folds": "6.3.0",
-        "open-memoize": "6.1.0",
-        "open-pairing": "6.1.0",
+        "oooooooooorrrrrrrmm-lib": "0.0.1",
+        "open-folds": "6.4.0",
+        "open-memoize": "6.2.0",
+        "open-mkdirp-aff": "1.2.0",
+        "open-pairing": "6.2.0",
         "options": "7.0.0",
         "optparse": "5.0.1",
         "ordered-collections": "3.2.0",
@@ -371,11 +413,12 @@
         "pointed-list": "0.5.1",
         "polymorphic-vectors": "4.0.0",
         "posix-types": "6.0.0",
-        "postgresql": "1.6.3",
+        "postgresql": "2.0.19",
         "precise": "6.0.0",
         "precise-datetime": "7.0.0",
         "prelude": "6.0.1",
         "prettier-printer": "3.0.0",
+        "priority-queue": "0.1.2",
         "profunctor": "6.0.1",
         "profunctor-lenses": "8.0.0",
         "protobuf": "4.3.0",
@@ -415,6 +458,7 @@
         "record-studio": "1.0.4",
         "refs": "6.0.0",
         "remotedata": "5.0.1",
+        "repr": "0.5.0",
         "resize-observer": "1.0.0",
         "resource": "2.0.1",
         "resourcet": "1.0.0",
@@ -422,6 +466,7 @@
         "return": "0.2.0",
         "ring-modules": "5.0.1",
         "rito": "0.3.4",
+        "roman": "0.4.0",
         "rough-notation": "1.0.2",
         "routing": "11.0.0",
         "routing-duplex": "0.7.0",
@@ -440,14 +485,17 @@
         "simple-ulid": "3.0.0",
         "sized-matrices": "1.0.0",
         "sized-vectors": "5.0.2",
-        "slug": "3.0.8",
+        "slug": "3.1.0",
         "small-ffi": "4.0.1",
         "soundfonts": "4.1.0",
-        "sparse-matrices": "1.3.0",
-        "sparse-polynomials": "2.0.5",
-        "spec": "7.6.0",
-        "spec-mocha": "5.1.0",
-        "spec-quickcheck": "5.0.0",
+        "sparse-matrices": "2.0.1",
+        "sparse-polynomials": "3.0.1",
+        "spec": "8.0.0",
+        "spec-discovery": "8.3.0",
+        "spec-mocha": "5.1.1",
+        "spec-node": "0.0.1",
+        "spec-quickcheck": "5.0.2",
+        "spec-reporter-xunit": "0.7.1",
         "splitmix": "2.1.0",
         "ssrs": "1.0.0",
         "st": "6.2.0",
@@ -469,9 +517,11 @@
         "thermite": "6.3.1",
         "thermite-dom": "0.3.1",
         "these": "6.0.0",
+        "threading": "0.0.3",
+        "tldr": "0.0.0",
         "toestand": "0.9.0",
         "transformation-matrix": "1.0.1",
-        "transformers": "6.0.0",
+        "transformers": "6.1.0",
         "tree-rose": "4.0.2",
         "ts-bridge": "4.0.0",
         "tuples": "7.0.0",
@@ -510,7 +560,7 @@
         "vectors": "2.1.0",
         "versions": "7.0.0",
         "visx": "0.0.2",
-        "web-clipboard": "5.0.0",
+        "web-clipboard": "6.0.0",
         "web-cssom": "2.0.0",
         "web-cssom-view": "0.1.0",
         "web-dom": "6.0.0",
@@ -549,6 +599,30 @@
       }
     },
     "extra_packages": {
+      "deku-core": {
+        "git": "https://github.com/mikesol/purescript-deku.git",
+        "ref": "main",
+        "subdir": "deku-core"
+      },
+      "deku-css": {
+        "git": "https://github.com/mikesol/purescript-deku.git",
+        "ref": "main",
+        "subdir": "deku-css"
+      },
+      "deku-dom": {
+        "git": "https://github.com/mikesol/purescript-deku.git",
+        "ref": "main",
+        "subdir": "deku-dom"
+      },
+      "deku-spa": {
+        "git": "https://github.com/mikesol/purescript-deku.git",
+        "ref": "main",
+        "subdir": "deku-spa"
+      },
+      "hyrule": {
+        "git": "https://github.com/mikesol/purescript-hyrule.git",
+        "ref": "main"
+      },
       "yoga-react": {
         "git": "https://github.com/rowtype-yoga/purescript-yoga-react.git",
         "ref": "main"
@@ -613,6 +687,20 @@
         "unsafe-coerce"
       ]
     },
+    "avar": {
+      "type": "registry",
+      "version": "5.0.0",
+      "integrity": "sha256-9tAeYrHAFSPkbJ7UCtpyLq7QawSrwf/nwLT9BcmfUx8=",
+      "dependencies": [
+        "aff",
+        "effect",
+        "either",
+        "exceptions",
+        "functions",
+        "maybe",
+        "prelude"
+      ]
+    },
     "bifunctors": {
       "type": "registry",
       "version": "6.0.0",
@@ -623,6 +711,20 @@
         "newtype",
         "prelude",
         "tuples"
+      ]
+    },
+    "catenable-lists": {
+      "type": "registry",
+      "version": "7.0.0",
+      "integrity": "sha256-7+i/MHBLIRh604iCNT4ENWRWE/wuHIotER4kpdX9Ve0=",
+      "dependencies": [
+        "control",
+        "foldable-traversable",
+        "lists",
+        "maybe",
+        "prelude",
+        "tuples",
+        "unfoldable"
       ]
     },
     "console": {
@@ -688,6 +790,85 @@
         "tuples"
       ]
     },
+    "debug": {
+      "type": "registry",
+      "version": "6.0.2",
+      "integrity": "sha256-d/EzRm/J2JyzvlIeo2Ex78Y7HRB0IXBitnVJywL4gHk=",
+      "dependencies": [
+        "functions",
+        "prelude"
+      ]
+    },
+    "deku-core": {
+      "type": "git",
+      "url": "https://github.com/mikesol/purescript-deku.git",
+      "rev": "4d18f6ccebb4a59cdd2a6d2d9e2466349bf8df20",
+      "subdir": "deku-core",
+      "dependencies": [
+        "aff",
+        "arrays",
+        "catenable-lists",
+        "control",
+        "debug",
+        "effect",
+        "either",
+        "fast-vect",
+        "filterable",
+        "foldable-traversable",
+        "foreign-object",
+        "free",
+        "heterogeneous",
+        "hyrule",
+        "maybe",
+        "newtype",
+        "nullable",
+        "ordered-collections",
+        "prelude",
+        "profunctor",
+        "quickcheck",
+        "record",
+        "safe-coerce",
+        "st",
+        "strings",
+        "stringutils",
+        "tldr",
+        "transformers",
+        "tuples",
+        "typelevel-prelude",
+        "unsafe-coerce",
+        "unsafe-reference",
+        "untagged-union",
+        "web-dom",
+        "web-dom-parser",
+        "web-events",
+        "web-html",
+        "web-uievents",
+        "yoga-json"
+      ]
+    },
+    "deku-dom": {
+      "type": "git",
+      "url": "https://github.com/mikesol/purescript-deku.git",
+      "rev": "4d18f6ccebb4a59cdd2a6d2d9e2466349bf8df20",
+      "subdir": "deku-dom",
+      "dependencies": [
+        "deku-core",
+        "hyrule",
+        "web-html",
+        "web-pointerevents",
+        "web-touchevents",
+        "web-uievents"
+      ]
+    },
+    "deku-spa": {
+      "type": "git",
+      "url": "https://github.com/mikesol/purescript-deku.git",
+      "rev": "4d18f6ccebb4a59cdd2a6d2d9e2466349bf8df20",
+      "subdir": "deku-spa",
+      "dependencies": [
+        "deku-core"
+      ]
+    },
     "distributive": {
       "type": "registry",
       "version": "6.0.0",
@@ -738,8 +919,8 @@
     },
     "exceptions": {
       "type": "registry",
-      "version": "6.0.0",
-      "integrity": "sha256-z65UIKhOyVXzV8QUxtky4OiYVESNPegtuBFUdAddbTM=",
+      "version": "6.1.0",
+      "integrity": "sha256-nRrr+N0wk0TUFOWLR7e1n1oxcXo/X345bQUtoY9lW6A=",
       "dependencies": [
         "effect",
         "either",
@@ -753,6 +934,44 @@
       "integrity": "sha256-vtLbrWNaI+pzx/2fw2AQnCovoLtcosClIhjO26QKkh8=",
       "dependencies": [
         "unsafe-coerce"
+      ]
+    },
+    "fast-vect": {
+      "type": "registry",
+      "version": "1.2.0",
+      "integrity": "sha256-nGfcPN8IPIH6EmmCLTLNnAui0KcEt9RsH7O0vZ8HuvU=",
+      "dependencies": [
+        "arrays",
+        "distributive",
+        "filterable",
+        "foldable-traversable",
+        "lists",
+        "maybe",
+        "ordered-collections",
+        "prelude",
+        "profunctor",
+        "tuples",
+        "unfoldable",
+        "unsafe-coerce"
+      ]
+    },
+    "filterable": {
+      "type": "registry",
+      "version": "5.0.0",
+      "integrity": "sha256-be7ci1Bzwud2waqoCtNGsTBZbt7fi+gCLvGddQQRJ3A=",
+      "dependencies": [
+        "arrays",
+        "control",
+        "either",
+        "foldable-traversable",
+        "identity",
+        "lists",
+        "maybe",
+        "newtype",
+        "ordered-collections",
+        "prelude",
+        "st",
+        "tuples"
       ]
     },
     "foldable-traversable": {
@@ -786,6 +1005,47 @@
         "prelude",
         "strings",
         "transformers",
+        "unsafe-coerce"
+      ]
+    },
+    "foreign-object": {
+      "type": "registry",
+      "version": "4.1.0",
+      "integrity": "sha256-x/Q7r80z/vmHRKvPwhYmHP/DnJciPtsyGfRTMzayKIU=",
+      "dependencies": [
+        "arrays",
+        "foldable-traversable",
+        "functions",
+        "gen",
+        "lists",
+        "maybe",
+        "prelude",
+        "st",
+        "tailrec",
+        "tuples",
+        "typelevel-prelude",
+        "unfoldable",
+        "unsafe-coerce"
+      ]
+    },
+    "free": {
+      "type": "registry",
+      "version": "7.1.0",
+      "integrity": "sha256-tUBInfUpRQEw4u94GWcYW7EYdmSdDHSRn88a+C0eltU=",
+      "dependencies": [
+        "catenable-lists",
+        "control",
+        "distributive",
+        "either",
+        "exists",
+        "foldable-traversable",
+        "invariant",
+        "lazy",
+        "maybe",
+        "prelude",
+        "tailrec",
+        "transformers",
+        "tuples",
         "unsafe-coerce"
       ]
     },
@@ -834,6 +1094,58 @@
         "unfoldable"
       ]
     },
+    "heterogeneous": {
+      "type": "registry",
+      "version": "0.6.0",
+      "integrity": "sha256-nQgk2iHYe5LIi6ZzREgWaCU3y8oCwdhDSukT6xVMWdk=",
+      "dependencies": [
+        "either",
+        "foldable-traversable",
+        "functors",
+        "prelude",
+        "record",
+        "tuples",
+        "variant"
+      ]
+    },
+    "hyrule": {
+      "type": "git",
+      "url": "https://github.com/mikesol/purescript-hyrule.git",
+      "rev": "f508363b9ad7e2389ea8b3433f7e2ee1b1f8fa25",
+      "dependencies": [
+        "aff",
+        "arrays",
+        "avar",
+        "contravariant",
+        "control",
+        "datetime",
+        "effect",
+        "either",
+        "filterable",
+        "foldable-traversable",
+        "foreign-object",
+        "free",
+        "functors",
+        "js-timers",
+        "maybe",
+        "newtype",
+        "now",
+        "ordered-collections",
+        "partial",
+        "prelude",
+        "profunctor",
+        "random",
+        "refs",
+        "safe-coerce",
+        "st",
+        "tailrec",
+        "tuples",
+        "unsafe-coerce",
+        "web-events",
+        "web-html",
+        "web-uievents"
+      ]
+    },
     "identity": {
       "type": "registry",
       "version": "6.0.0",
@@ -873,6 +1185,16 @@
         "prelude"
       ]
     },
+    "js-bigints": {
+      "type": "registry",
+      "version": "2.2.1",
+      "integrity": "sha256-r1rE6Olv5b3JrP32lY2uKJ+eBRTsrVnC983K8VWwqe4=",
+      "dependencies": [
+        "integers",
+        "maybe",
+        "prelude"
+      ]
+    },
     "js-date": {
       "type": "registry",
       "version": "8.0.0",
@@ -888,6 +1210,15 @@
         "prelude"
       ]
     },
+    "js-timers": {
+      "type": "registry",
+      "version": "6.1.0",
+      "integrity": "sha256-mYEL4zjFOzrDeVCnR9Hg3pcZaBZilB6zPGaZ4fzRmzg=",
+      "dependencies": [
+        "effect",
+        "prelude"
+      ]
+    },
     "lazy": {
       "type": "registry",
       "version": "6.0.0",
@@ -897,6 +1228,20 @@
         "foldable-traversable",
         "invariant",
         "prelude"
+      ]
+    },
+    "lcg": {
+      "type": "registry",
+      "version": "4.0.0",
+      "integrity": "sha256-bUYyfXYmjTn7zSpj2hTiePywzsuD80fCjkonsrpdGOw=",
+      "dependencies": [
+        "effect",
+        "integers",
+        "maybe",
+        "numbers",
+        "partial",
+        "prelude",
+        "random"
       ]
     },
     "lists": {
@@ -916,6 +1261,20 @@
         "tailrec",
         "tuples",
         "unfoldable"
+      ]
+    },
+    "literals": {
+      "type": "registry",
+      "version": "1.0.2",
+      "integrity": "sha256-ZkGRFD6gb8etYvyMYpX1Z7lx1Tql7R1VGnD1Dzinup8=",
+      "dependencies": [
+        "integers",
+        "maybe",
+        "numbers",
+        "partial",
+        "prelude",
+        "typelevel-prelude",
+        "unsafe-coerce"
       ]
     },
     "maybe": {
@@ -1065,6 +1424,49 @@
         "tuples"
       ]
     },
+    "quickcheck": {
+      "type": "registry",
+      "version": "8.0.1",
+      "integrity": "sha256-SfW+maesCt0jnnFhfrgJZGPcWLj8oFcGbcDIVklmdzc=",
+      "dependencies": [
+        "arrays",
+        "console",
+        "control",
+        "effect",
+        "either",
+        "enums",
+        "exceptions",
+        "foldable-traversable",
+        "gen",
+        "identity",
+        "integers",
+        "lazy",
+        "lcg",
+        "lists",
+        "maybe",
+        "newtype",
+        "nonempty",
+        "numbers",
+        "partial",
+        "prelude",
+        "record",
+        "st",
+        "strings",
+        "tailrec",
+        "transformers",
+        "tuples"
+      ]
+    },
+    "random": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-7sZRo6P9UIiXDZ9s2QL9T8h3wlIwLdQrR4+oZKOijQw=",
+      "dependencies": [
+        "effect",
+        "integers",
+        "prelude"
+      ]
+    },
     "react-basic": {
       "type": "registry",
       "version": "17.0.0",
@@ -1170,6 +1572,20 @@
         "unsafe-coerce"
       ]
     },
+    "stringutils": {
+      "type": "registry",
+      "version": "0.0.12",
+      "integrity": "sha256-byI+JsFtMjrxwfNJJTOGPIE6e+LuFG/ztjUr+YhUGlQ=",
+      "dependencies": [
+        "arrays",
+        "functions",
+        "integers",
+        "maybe",
+        "prelude",
+        "strings",
+        "unsafe-coerce"
+      ]
+    },
     "tailrec": {
       "type": "registry",
       "version": "6.1.0",
@@ -1185,10 +1601,18 @@
         "refs"
       ]
     },
+    "tldr": {
+      "type": "registry",
+      "version": "0.0.0",
+      "integrity": "sha256-cgG3625BnwVtM+CbuDtBt++AX4vu8e1QFarmDiAKtE8=",
+      "dependencies": [
+        "prelude"
+      ]
+    },
     "transformers": {
       "type": "registry",
-      "version": "6.0.0",
-      "integrity": "sha256-Nl3yXAIeeTzP6MyrkazkK7pbgeVqUm+ynLv7U5cpJYQ=",
+      "version": "6.1.0",
+      "integrity": "sha256-QJmgNT/y7ljPHSsXaW4zxF/982BFiQ90KNL1g/NtEOQ=",
       "dependencies": [
         "control",
         "distributive",
@@ -1201,6 +1625,7 @@
         "maybe",
         "newtype",
         "prelude",
+        "st",
         "tailrec",
         "tuples",
         "unfoldable"
@@ -1257,6 +1682,38 @@
         "prelude"
       ]
     },
+    "untagged-union": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-MQvpb13TZEBoi9n/AoQ7ugniSQqbN6XQmAjii9pqJRk=",
+      "dependencies": [
+        "either",
+        "foreign",
+        "foreign-object",
+        "literals",
+        "maybe",
+        "newtype",
+        "prelude",
+        "tuples",
+        "unsafe-coerce"
+      ]
+    },
+    "variant": {
+      "type": "registry",
+      "version": "8.0.0",
+      "integrity": "sha256-Ydrgl8liWEwYQOWW76PdZtg3vxKpoKgsnmFyTLgZkoU=",
+      "dependencies": [
+        "control",
+        "enums",
+        "foldable-traversable",
+        "lists",
+        "maybe",
+        "partial",
+        "prelude",
+        "type-equality",
+        "unsafe-coerce"
+      ]
+    },
     "web-dom": {
       "type": "registry",
       "version": "6.0.0",
@@ -1270,6 +1727,19 @@
         "prelude",
         "unsafe-coerce",
         "web-events"
+      ]
+    },
+    "web-dom-parser": {
+      "type": "registry",
+      "version": "8.0.0",
+      "integrity": "sha256-g8utHk8RtXOyM6B+O0ko247v4K5fdbaj0wjztHEc53U=",
+      "dependencies": [
+        "arrays",
+        "effect",
+        "either",
+        "maybe",
+        "prelude",
+        "web-dom"
       ]
     },
     "web-events": {
@@ -1333,6 +1803,21 @@
         "web-storage"
       ]
     },
+    "web-pointerevents": {
+      "type": "registry",
+      "version": "2.0.0",
+      "integrity": "sha256-mQbm1V36u3It2WdYMAXtzLBJl3uRAhN4BjeZTw3LWN8=",
+      "dependencies": [
+        "effect",
+        "maybe",
+        "prelude",
+        "unsafe-coerce",
+        "web-dom",
+        "web-events",
+        "web-html",
+        "web-uievents"
+      ]
+    },
     "web-storage": {
       "type": "registry",
       "version": "5.0.0",
@@ -1346,6 +1831,73 @@
         "web-events"
       ]
     },
+    "web-touchevents": {
+      "type": "registry",
+      "version": "4.0.0",
+      "integrity": "sha256-H02c53BJlHDlAgogj/x8bM7PagJjhMMrMPYy9I7Rf0s=",
+      "dependencies": [
+        "functions",
+        "maybe",
+        "nullable",
+        "prelude",
+        "unsafe-coerce",
+        "web-events",
+        "web-uievents"
+      ]
+    },
+    "web-uievents": {
+      "type": "registry",
+      "version": "5.0.0",
+      "integrity": "sha256-yh9uVLIGu8wE1+jwLehtfsRfR1eyiShhIMMhBPqKybE=",
+      "dependencies": [
+        "effect",
+        "enums",
+        "maybe",
+        "nullable",
+        "prelude",
+        "unsafe-coerce",
+        "web-events",
+        "web-html"
+      ]
+    },
+    "yoga-json": {
+      "type": "registry",
+      "version": "5.1.0",
+      "integrity": "sha256-DK+KyaQ7YyWo8p3SuZPPEMoVKy6HF1iV4rGFPXgBygw=",
+      "dependencies": [
+        "arrays",
+        "bifunctors",
+        "control",
+        "datetime",
+        "effect",
+        "either",
+        "exceptions",
+        "foldable-traversable",
+        "foreign",
+        "foreign-object",
+        "free",
+        "identity",
+        "integers",
+        "js-bigints",
+        "js-date",
+        "lists",
+        "maybe",
+        "newtype",
+        "nullable",
+        "numbers",
+        "ordered-collections",
+        "partial",
+        "prelude",
+        "record",
+        "strings",
+        "transformers",
+        "tuples",
+        "typelevel-prelude",
+        "unsafe-coerce",
+        "variant",
+        "yoga-tree"
+      ]
+    },
     "yoga-react": {
       "type": "git",
       "url": "https://github.com/rowtype-yoga/purescript-yoga-react.git",
@@ -1355,6 +1907,20 @@
         "prelude",
         "react-basic",
         "react-basic-hooks"
+      ]
+    },
+    "yoga-tree": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-s8rIVEQkRi1VrMc92T9ceXcY0X6r5A4QqT6f7GgmDQI=",
+      "dependencies": [
+        "arrays",
+        "control",
+        "foldable-traversable",
+        "free",
+        "maybe",
+        "prelude",
+        "tailrec"
       ]
     }
   }
