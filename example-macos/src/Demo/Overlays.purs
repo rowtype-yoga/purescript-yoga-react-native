@@ -17,7 +17,6 @@ import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.Alert (macosAlert)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.Menu (macosShowMenu)
 import Yoga.React.Native.MacOS.Popover (nativePopover)
 import Yoga.React.Native.MacOS.Sheet (nativeSheet)
@@ -110,7 +109,7 @@ contextMenuDemo = component "ContextMenuDemo" \dp -> React.do
               , { id: "delete", title: "Delete", sfSymbol: "trash" }
               , { id: "selectAll", title: "Select All", sfSymbol: "selection.pin.in.out" }
               ]
-          , onSelectItem: E.onString "itemId" setResult
+          , onSelectItem: setResult
           , style: Style.style {}
           }
           ( card dp.cardBg

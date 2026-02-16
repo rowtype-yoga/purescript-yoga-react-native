@@ -1,7 +1,8 @@
 module Yoga.React.Native.MacOS.ContextMenu (nativeContextMenu, NativeContextMenuAttributes, ContextMenuItem) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 
@@ -18,5 +19,5 @@ type ContextMenuItem =
 
 type NativeContextMenuAttributes = BaseAttributes
   ( items :: Array ContextMenuItem
-  , onSelectItem :: EventHandler
+  , onSelectItem :: String -> Effect Unit
   )

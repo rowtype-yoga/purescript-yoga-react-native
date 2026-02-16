@@ -24,7 +24,6 @@ import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.OutlineView (OutlineItem(..), nativeOutlineView)
 import Yoga.React.Native.MacOS.SearchField (nativeSearchField)
 import Yoga.React.Native.Style as Style
@@ -135,13 +134,13 @@ outlineSidebar _ setSelectedItem = sidebarComponent { setSelectedItem }
         [ nativeSearchField
             { text: search
             , placeholder: "Filter..."
-            , onChangeText: E.onString "text" setSearch
+            , onChangeText: setSearch
             , style: Style.style { height: 24.0, marginLeft: 8.0, marginRight: 8.0, marginBottom: 4.0 }
             }
         , nativeOutlineView
             { items
             , headerVisible: false
-            , onSelectItem: E.onString "id" props.setSelectedItem
+            , onSelectItem: props.setSelectedItem
             , style: tw "flex-1"
             }
         ]

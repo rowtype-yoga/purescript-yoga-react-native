@@ -8,7 +8,6 @@ import Demo.Navigation (demoContent, outlineSidebar)
 import Demo.Shared (DemoProps)
 import Effect (Effect)
 import React.Basic (JSX)
-import React.Basic.Events (handler_)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
@@ -45,7 +44,7 @@ app = component "App" \_ -> React.do
                   , selectedItem: ""
                   , toolbarStyle: T.unified
                   , windowTitle: "PureScript React Native"
-                  , onSelectItem: handler_ (pure unit)
+                  , onSelectItem: \_ -> pure unit
                   , style: Style.style { height: 0.0, width: 0.0 }
                   }
               , sidebarLayout

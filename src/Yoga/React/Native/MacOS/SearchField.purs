@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.SearchField
   , NativeSearchFieldAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -16,6 +17,6 @@ nativeSearchField = createNativeElement_ searchFieldImpl
 type NativeSearchFieldAttributes = BaseAttributes
   ( text :: String
   , placeholder :: String
-  , onChangeText :: EventHandler
-  , onSearch :: EventHandler
+  , onChangeText :: String -> Effect Unit
+  , onSearch :: String -> Effect Unit
   )

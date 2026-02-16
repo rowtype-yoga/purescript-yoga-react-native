@@ -9,7 +9,6 @@ import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.Box (nativeBox)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.SplitView (nativeSplitView)
 import Yoga.React.Native.MacOS.TabView (nativeTabView)
 import Yoga.React.Native.Style as Style
@@ -65,7 +64,7 @@ tabViewDemo = component "TabViewDemo" \dp -> React.do
               , { id: "about", label: "About" }
               ]
           , selectedItem: selected
-          , onSelectTab: E.onString "tabId" setSelected
+          , onSelectTab: setSelected
           , style: Style.style { height: 32.0 } <> tw "mb-2"
           }
       ]

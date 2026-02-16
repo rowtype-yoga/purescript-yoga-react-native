@@ -4,12 +4,10 @@ import Prelude
 
 import Demo.Shared (DemoProps, sectionTitle)
 import React.Basic (JSX)
-import React.Basic.Events (handler, unsafeEventFn)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
-import Yoga.React.Native (nativeEvent, tw, view)
-import Yoga.React.Native.MacOS.Events as E
+import Yoga.React.Native (tw, view)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.WebView (nativeWebView)
 import Yoga.React.Native.Style as Style
@@ -31,11 +29,7 @@ webViewDemo = component "WebViewDemo" \dp -> React.do
           }
       , nativeWebView
           { url
-          , onFinishLoad: handler
-              ( nativeEvent >>> unsafeEventFn \e ->
-                  { url: E.getFieldStr "url" e, title: E.getFieldStr "title" e }
-              )
-              \r -> setUrlBar r.url
+          , onFinishLoad: setUrlBar
           , style: tw "flex-1" <> Style.style { minHeight: 400.0 }
           }
       ]

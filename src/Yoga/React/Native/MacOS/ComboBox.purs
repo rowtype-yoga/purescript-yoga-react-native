@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.ComboBox
   , NativeComboBoxAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -17,6 +18,6 @@ type NativeComboBoxAttributes = BaseAttributes
   ( items :: Array String
   , text :: String
   , placeholder :: String
-  , onChangeText :: EventHandler
-  , onSelectItem :: EventHandler
+  , onChangeText :: String -> Effect Unit
+  , onSelectItem :: String -> Effect Unit
   )

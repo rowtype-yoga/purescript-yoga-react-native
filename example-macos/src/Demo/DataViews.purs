@@ -69,7 +69,7 @@ outlineViewDemo = component "OutlineViewDemo" \dp -> React.do
               , OutlineItem { id: "pkg", title: "package.json", sfSymbol: "doc.text", children: [] }
               ]
           , headerVisible: false
-          , onSelectItem: E.onString "id" setSelection
+          , onSelectItem: setSelection
           , style: Style.style { height: 200.0 } <> tw "rounded-lg overflow-hidden mb-2"
           }
       , if selection == "" then mempty

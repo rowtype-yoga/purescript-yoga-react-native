@@ -154,8 +154,8 @@ comboBoxDemo = component "ComboBoxDemo" \dp -> React.do
               { items: [ "Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape" ]
               , text: txt
               , placeholder: "Type a fruit..."
-              , onChangeText: E.onString "text" setTxt
-              , onSelectItem: E.onString "text" \t -> do
+              , onChangeText: setTxt
+              , onSelectItem: \t -> do
                   setTxt t
                   setResult ("Selected: " <> t)
               , style: Style.style { height: 28.0 } <> tw "mb-2"
@@ -196,7 +196,7 @@ datePickerDemo = component "DatePickerDemo" \dp -> React.do
       , card dp.cardBg
           [ nativeDatePicker
               { graphical: false
-              , onChange: E.onString "date" setDateText
+              , onChange: setDateText
               , style: Style.style { height: 24.0, width: 200.0 }
               }
           , if dateText == "" then mempty
@@ -215,7 +215,7 @@ colorWellDemo = component "ColorWellDemo" \dp -> React.do
               [ nativeColorWell
                   { color
                   , minimal: true
-                  , onChange: E.onString "color" setColor
+                  , onChange: setColor
                   , style: Style.style { height: 32.0, width: 48.0 }
                   }
               , view
@@ -295,8 +295,8 @@ searchFieldDemo = component "SearchFieldDemo" \dp -> React.do
       , nativeSearchField
           { text: query
           , placeholder: "Search..."
-          , onChangeText: E.onString "text" setQuery
-          , onSearch: E.onString "text" \t -> setResult ("Searched: " <> t)
+          , onChangeText: setQuery
+          , onSearch: \t -> setResult ("Searched: " <> t)
           , style: Style.style { height: 28.0 } <> tw "mb-2"
           }
       , if result == "" then mempty
@@ -313,7 +313,7 @@ tokenFieldDemo = component "TokenFieldDemo" \dp -> React.do
       , nativeTokenField
           { tokens
           , placeholder: "Add tags..."
-          , onChangeTokens: E.onStrings "tokens" setTokens
+          , onChangeTokens: setTokens
           , style: Style.style { height: 28.0 } <> tw "mb-2"
           }
       ]

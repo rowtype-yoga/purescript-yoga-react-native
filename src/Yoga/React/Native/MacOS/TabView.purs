@@ -4,8 +4,9 @@ module Yoga.React.Native.MacOS.TabView
   , TabItem
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -22,5 +23,5 @@ type TabItem =
 type NativeTabViewAttributes = BaseAttributes
   ( items :: Array TabItem
   , selectedItem :: String
-  , onSelectTab :: EventHandler
+  , onSelectTab :: String -> Effect Unit
   )

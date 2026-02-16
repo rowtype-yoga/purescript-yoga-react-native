@@ -17,7 +17,6 @@ import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.Image (nativeImage)
 import Yoga.React.Native.MacOS.LevelIndicator (nativeLevelIndicator)
 import Yoga.React.Native.MacOS.PathControl (nativePathControl)
@@ -142,7 +141,7 @@ pathControlDemo = component "PathControlDemo" \dp -> pure do
     , nativePathControl
         { url: "/Users"
         , pathStyle: T.standardPath
-        , onSelectPath: E.onString "url" \_ -> pure unit
+        , onSelectPath: \_ -> pure unit
         , style: Style.style { height: 24.0 } <> tw "mb-2"
         }
     ]
