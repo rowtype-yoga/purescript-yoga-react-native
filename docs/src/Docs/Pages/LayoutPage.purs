@@ -63,7 +63,7 @@ tabView = L.componentDoc "nativeTabView" "Yoga.React.Native.MacOS.TabView (nativ
       , { id: "advanced", label: "Advanced" }
       ]
   , selectedItem: "general"
-  , onSelectTab: handler (syntheticEvent >>> \e -> ...)
+  , onSelectTab: E.onString "tabId" setTab
   }"""
   [ propsTable
       [ { name: "items", type_: "Array TabItem", description: "Tab items ({ id :: String, label :: String })" }
@@ -116,7 +116,7 @@ toolbar = L.componentDoc "nativeToolbar" "Yoga.React.Native.MacOS.Toolbar (nativ
   , selectedItem: "add"
   , toolbarStyle: T.unified
   , windowTitle: "My App"
-  , onSelectItem: handler (syntheticEvent >>> \e -> ...)
+  , onSelectItem: E.onString "itemId" setItem
   }"""
   [ propsTable
       [ { name: "items", type_: "Array ToolbarItem", description: "Toolbar items ({ id, label, sfSymbol })" }

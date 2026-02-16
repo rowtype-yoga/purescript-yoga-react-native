@@ -19,7 +19,7 @@ textField = L.componentDoc "nativeTextField" "Yoga.React.Native.MacOS.TextField 
   { text: "Hello"
   , placeholder: "Enter text..."
   , secure: false
-  , onChangeText: handler (syntheticEvent >>> \e -> ...)
+  , onChangeText: E.onString "text" setText
   , onSubmit: handler_ doSubmit
   }"""
   [ propsTable
@@ -39,7 +39,7 @@ textEditor = L.componentDoc "nativeTextEditor" "Yoga.React.Native.MacOS.TextEdit
   { text: "Rich text content..."
   , richText: true
   , showsRuler: false
-  , onChangeText: handler (syntheticEvent >>> \e -> ...)
+  , onChangeText: E.onString "text" setText
   }"""
   [ propsTable
       [ { name: "text", type_: "String", description: "Current text content" }

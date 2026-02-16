@@ -111,7 +111,7 @@ pathControl = L.componentDoc "nativePathControl" "Yoga.React.Native.MacOS.PathCo
   """nativePathControl
   { url: "/Users/you/Documents"
   , pathStyle: T.standard
-  , onSelectPath: handler (syntheticEvent >>> \e -> ...)
+  , onSelectPath: E.onString "url" setPath
   }"""
   [ propsTable
       [ { name: "url", type_: "String", description: "File path URL to display" }

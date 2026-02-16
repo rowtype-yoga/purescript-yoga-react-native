@@ -24,7 +24,7 @@ filePicker = L.componentDoc "nativeFilePicker" "Yoga.React.Native.MacOS.FilePick
   , allowedTypes: ["pdf", "txt", "png"]
   , allowMultiple: true
   , canChooseDirectories: false
-  , onPickFiles: handler (syntheticEvent >>> \e -> ...)
+  , onPickFiles: E.onStrings "files" setFiles
   , onCancel: handler_ (pure unit)
   }"""
   [ propsTable
@@ -45,7 +45,7 @@ dropZone :: Nut
 dropZone = L.componentDoc "nativeDropZone" "Yoga.React.Native.MacOS.DropZone (nativeDropZone)"
   """-- FFINativeComponent: takes props then children
 nativeDropZone
-  { onFileDrop: handler (syntheticEvent >>> \e -> ...)
+  { onFileDrop: E.onStrings "files" setFiles
   , onFilesDragEnter: handler_ setDragActive
   , onFilesDragExit: handler_ clearDragActive
   }

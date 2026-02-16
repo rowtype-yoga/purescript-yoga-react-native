@@ -77,7 +77,7 @@ nativeContextMenu
       [ { id: "copy", title: "Copy", sfSymbol: "doc.on.doc" }
       , { id: "paste", title: "Paste", sfSymbol: "doc.on.clipboard" }
       ]
-  , onSelectItem: handler (syntheticEvent >>> \e -> ...)
+  , onSelectItem: E.onString "itemId" setSelected
   }
   [ rightClickTarget ]"""
   [ propsTable

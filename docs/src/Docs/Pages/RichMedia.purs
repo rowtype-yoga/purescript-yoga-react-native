@@ -33,7 +33,7 @@ mapView = L.componentDoc "nativeMapView" "Yoga.React.Native.MacOS.MapView (nativ
         , subtitle: "CA"
         }
       ]
-  , onRegionChange: handler (syntheticEvent >>> \e -> ...)
+  , onRegionChange: E.onNumber "latitude" setLat
   }"""
   [ propsTable
       [ { name: "latitude", type_: "Number", description: "Center latitude" }
@@ -54,7 +54,7 @@ pdfView = L.componentDoc "nativePDFView" "Yoga.React.Native.MacOS.PDFView (nativ
   { source: "/path/to/document.pdf"
   , autoScales: true
   , displayMode: T.singlePage
-  , onPageChange: handler (syntheticEvent >>> \e -> ...)
+  , onPageChange: E.onInt "page" setPage
   }"""
   [ propsTable
       [ { name: "source", type_: "String", description: "PDF file path or URL" }
@@ -68,7 +68,7 @@ webView :: Nut
 webView = L.componentDoc "nativeWebView" "Yoga.React.Native.MacOS.WebView (nativeWebView)"
   """nativeWebView
   { url: "https://purescript.org"
-  , onNavigate: handler (syntheticEvent >>> \e -> ...)
+  , onNavigate: E.onString "url" setUrl
   , onFinishLoad: handler_ onPageLoaded
   }"""
   [ propsTable

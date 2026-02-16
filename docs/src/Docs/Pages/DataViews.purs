@@ -23,7 +23,7 @@ tableView = L.componentDoc "nativeTableView" "Yoga.React.Native.MacOS.TableView 
   , rows: [ ["file.txt", "4 KB"], ["image.png", "1.2 MB"] ]
   , headerVisible: true
   , alternatingRows: true
-  , onSelectRow: handler (syntheticEvent >>> \e -> ...)
+  , onSelectRow: E.onInt "rowIndex" setSelected
   }"""
   [ propsTable
       [ { name: "columns", type_: "Array TableColumn", description: "Column definitions ({ id, title, width })" }
@@ -50,7 +50,7 @@ outlineView = L.componentDoc "nativeOutlineView" "Yoga.React.Native.MacOS.Outlin
           }
       ]
   , headerVisible: true
-  , onSelectItem: handler (syntheticEvent >>> \e -> ...)
+  , onSelectItem: E.onString "id" setSelected
   }"""
   [ propsTable
       [ { name: "items", type_: "Array OutlineItem", description: "Hierarchical tree data (newtype with { id, title, sfSymbol, children })" }
