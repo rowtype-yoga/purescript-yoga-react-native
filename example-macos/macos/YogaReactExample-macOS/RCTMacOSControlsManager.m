@@ -24,6 +24,7 @@
 @property (nonatomic, strong) NSButton *button;
 @property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *sfSymbol;
 @property (nonatomic, copy) NSString *bezelStyle;
 @property (nonatomic, assign) BOOL destructive;
 @property (nonatomic, assign) BOOL primary;
@@ -48,7 +49,28 @@
 
 - (void)setTitle:(NSString *)title {
   _title = title;
-  _button.title = title ?: @"";
+  if (title.length > 0) {
+    _button.image = nil;
+    _button.title = title;
+  } else {
+    _button.title = @"";
+  }
+}
+
+- (void)setSfSymbol:(NSString *)sfSymbol {
+  _sfSymbol = sfSymbol;
+  if (sfSymbol.length > 0) {
+    NSImage *img = [NSImage imageWithSystemSymbolName:sfSymbol accessibilityDescription:sfSymbol];
+    if (img) {
+      _button.image = img;
+      _button.title = @"";
+      _button.imagePosition = NSImageOnly;
+    }
+  } else {
+    _button.image = nil;
+    _button.title = _title ?: @"";
+    _button.imagePosition = NSNoImage;
+  }
 }
 
 - (void)setBezelStyle:(NSString *)bezelStyle {
@@ -87,6 +109,7 @@
 RCT_EXPORT_MODULE(NativeButton)
 - (NSView *)view { return [[RCTNativeButtonView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(title, NSString)
+RCT_EXPORT_VIEW_PROPERTY(sfSymbol, NSString)
 RCT_EXPORT_VIEW_PROPERTY(bezelStyle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(destructive, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(primary, BOOL)

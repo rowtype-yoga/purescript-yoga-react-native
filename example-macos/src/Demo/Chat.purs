@@ -366,7 +366,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                         , style: tw "flex-1" <> Style.style { height: 28.0 }
                         }
                     , nativeButton
-                        { title: ""
+                        { sfSymbol: "paperplane.fill"
                         , bezelStyle: T.toolbar
                         , onPress: handler_ (sendMessage rid inputText)
                         , style: Style.style { height: 28.0, width: 36.0, marginLeft: 8.0 }

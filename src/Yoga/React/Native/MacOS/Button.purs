@@ -13,6 +13,7 @@ nativeButton = createNativeElement_ buttonImpl
 
 type NativeButtonAttributes = BaseAttributes
   ( title :: String
+  , sfSymbol :: String
   , bezelStyle :: BezelStyle
   , destructive :: Boolean
   , primary :: Boolean
