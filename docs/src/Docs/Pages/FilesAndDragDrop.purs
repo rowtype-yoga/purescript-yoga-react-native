@@ -44,13 +44,17 @@ nativeFilePicker
 
 dropZone :: Nut
 dropZone = L.componentDoc "nativeDropZone" "Yoga.React.Native.MacOS.DropZone (nativeDropZone)"
-  """-- FFINativeComponent: takes props then children
+  """dropped /\ setDropped <- useState' ""
+dragging /\ setDragging <- useState' false
+
 nativeDropZone
-  { onFileDrop: \dropped -> setFiles dropped.files
-  , onFilesDragEnter: setDragActive
-  , onFilesDragExit: clearDragActive
+  { onFileDrop: \d -> do
+      setDropped (joinWith ", " (map _.name d.files))
+      setDragging false
+  , onFilesDragEnter: setDragging true
+  , onFilesDragExit: setDragging false
   }
-  [ dropTargetContent ]"""
+  [ text_ (if dragging then "Release to drop!" else "Drop files here") ]"""
   [ propsTable
       [ { name: "onFileDrop", type_: "DroppedData -> Effect Unit", description: "Drop callback ({ files, strings })" }
       , { name: "onFilesDragEnter", type_: "Effect Unit", description: "Drag enter callback" }
