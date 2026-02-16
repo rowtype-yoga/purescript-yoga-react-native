@@ -94,7 +94,7 @@ naturalLanguageDemo = component "NaturalLanguageDemo" \dp -> React.do
       , nativeTextField
           { text: txt
           , placeholder: "Enter text to analyze..."
-          , onChangeText: E.onString "text" setTxt
+          , onChangeText: setTxt
           , style: Style.style { height: 24.0 } <> tw "mb-2"
           }
       , view { style: tw "flex-row items-center mb-2" }

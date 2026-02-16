@@ -361,8 +361,8 @@ chatDemo = component "ChatDemo" \dp -> React.do
                         , placeholder: "Message..."
                         , search: false
                         , rounded: true
-                        , onChangeText: E.onString "text" \t -> setInputText (replaceEmoji t)
-                        , onSubmit: E.onString "text" \t -> sendMessage rid t
+                        , onChangeText: \t -> setInputText (replaceEmoji t)
+                        , onSubmit: \t -> sendMessage rid t
                         , style: tw "flex-1" <> Style.style { height: 28.0 }
                         }
                     , nativeButton

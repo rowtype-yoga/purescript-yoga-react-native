@@ -1,7 +1,7 @@
 module Yoga.React.Native.MacOS.TextField (nativeTextField, NativeTextFieldAttributes) where
 
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 
@@ -16,6 +16,6 @@ type NativeTextFieldAttributes = BaseAttributes
   , secure :: Boolean
   , search :: Boolean
   , rounded :: Boolean
-  , onChangeText :: EventHandler
-  , onSubmit :: EventHandler
+  , onChangeText :: String -> Effect Unit
+  , onSubmit :: String -> Effect Unit
   )

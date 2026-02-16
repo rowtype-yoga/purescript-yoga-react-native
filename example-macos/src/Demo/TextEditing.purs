@@ -24,7 +24,7 @@ textFieldDemo = component "TextFieldDemo" \dp -> React.do
               { placeholder: "Type something..."
               , search: true
               , text: txt
-              , onChangeText: E.onString "text" setTxt
+              , onChangeText: setTxt
               , style: Style.style { height: 24.0 }
               }
           , if txt == "" then mempty

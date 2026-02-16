@@ -25,8 +25,8 @@ webViewDemo = component "WebViewDemo" \dp -> React.do
           { text: urlBar
           , placeholder: "Enter URL..."
           , search: false
-          , onChangeText: E.onString "text" setUrlBar
-          , onSubmit: E.onString "text" setUrl
+          , onChangeText: setUrlBar
+          , onSubmit: setUrl
           , style: Style.style { height: 24.0, marginBottom: 8.0 }
           }
       , nativeWebView
