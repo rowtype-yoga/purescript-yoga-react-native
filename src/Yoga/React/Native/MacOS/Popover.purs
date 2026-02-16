@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.Popover
   , NativePopoverAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 import Yoga.React.Native.MacOS.Types (PopoverEdge, PopoverBehavior)
@@ -18,5 +19,5 @@ type NativePopoverAttributes = BaseAttributes
   ( visible :: Boolean
   , preferredEdge :: PopoverEdge
   , behavior :: PopoverBehavior
-  , onClose :: EventHandler
+  , onClose :: Effect Unit
   )

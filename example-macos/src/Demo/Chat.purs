@@ -18,7 +18,6 @@ import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.Button (nativeButton)
-import Yoga.React.Native.MacOS.Events as E
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
 import Yoga.React.Native.MacOS.Popover (nativePopover)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
@@ -213,7 +212,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
         { visible: reactPopover == Just idx
         , preferredEdge: T.bottom
         , behavior: T.transient
-        , onClose: handler_ (setReactPopover Nothing)
+        , onClose: setReactPopover Nothing
         , style: Style.style {}
         }
         [ nativeButton

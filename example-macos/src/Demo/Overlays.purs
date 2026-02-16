@@ -10,7 +10,6 @@ import Prelude
 
 import Demo.Shared (DemoProps, card, desc, label, scrollWrap, sectionTitle)
 import React.Basic (JSX)
-import React.Basic.Events (handler_)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
@@ -53,7 +52,7 @@ sheetDemo = component "SheetDemo" \dp -> React.do
           }
       , nativeSheet
           { visible
-          , onDismiss: handler_ (setVisible false)
+          , onDismiss: setVisible false
           }
           [ view { style: tw "p-6" <> Style.style { width: 400.0, height: 200.0 } }
               [ text { style: tw "text-lg font-semibold mb-2" <> Style.style { color: dp.fg } } "Sheet Content"
@@ -79,7 +78,7 @@ popoverDemo = component "PopoverDemo" \dp -> React.do
           { visible
           , preferredEdge: T.bottom
           , behavior: T.transient
-          , onClose: handler_ (setVisible false)
+          , onClose: setVisible false
           , style: tw "mb-2"
           }
           [ nativeButton

@@ -3,8 +3,9 @@ module Yoga.React.Native.MacOS.Sheet
   , NativeSheetAttributes
   ) where
 
+import Prelude
+import Effect (Effect)
 import React.Basic (ReactComponent)
-import React.Basic.Events (EventHandler)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 
@@ -15,5 +16,5 @@ nativeSheet = createNativeElement sheetImpl
 
 type NativeSheetAttributes = BaseAttributes
   ( visible :: Boolean
-  , onDismiss :: EventHandler
+  , onDismiss :: Effect Unit
   )

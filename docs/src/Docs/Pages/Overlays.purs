@@ -38,12 +38,12 @@ sheet = L.componentDoc "nativeSheet" "Yoga.React.Native.MacOS.Sheet (nativeSheet
   """-- FFINativeComponent: takes props then children
 nativeSheet
   { visible: true
-  , onDismiss: handler_ hideSheet
+  , onDismiss: hideSheet
   }
   [ sheetContent ]"""
   [ propsTable
       [ { name: "visible", type_: "Boolean", description: "Show/hide the sheet" }
-      , { name: "onDismiss", type_: "EventHandler", description: "Dismiss callback" }
+      , { name: "onDismiss", type_: "Effect Unit", description: "Dismiss callback" }
       ]
   , D.p [ DA.klass_ "text-sm text-gray-400 mt-2" ]
       [ D.text_ "Sheet content is passed as the second argument (IsJSX)." ]
@@ -56,14 +56,14 @@ nativePopover
   { visible: true
   , preferredEdge: T.maxY
   , behavior: T.transient
-  , onClose: handler_ hidePopover
+  , onClose: hidePopover
   }
   [ popoverContent ]"""
   [ propsTable
       [ { name: "visible", type_: "Boolean", description: "Show/hide" }
       , { name: "preferredEdge", type_: "PopoverEdge", description: "Preferred edge for popover placement" }
       , { name: "behavior", type_: "PopoverBehavior", description: "Popover behavior" }
-      , { name: "onClose", type_: "EventHandler", description: "Close callback" }
+      , { name: "onClose", type_: "Effect Unit", description: "Close callback" }
       ]
   , D.p [ DA.klass_ "text-sm text-gray-400 mt-2" ]
       [ D.text_ "Popover content is passed as the second argument (IsJSX)." ]
