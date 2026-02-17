@@ -4383,9 +4383,22 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     _textView.horizontallyResizable = NO;
     _textView.textContainer.widthTracksTextView = YES;
     _textView.wantsLayer = YES;
+    _textView.layer.contentsScale = [[NSScreen mainScreen] backingScaleFactor] ?: 2.0;
     [self addSubview:_textView];
   }
   return self;
+}
+
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+  if (self.window) {
+    CGFloat scale = self.window.backingScaleFactor;
+    if (scale < 1.0) scale = 2.0;
+    _textView.layer.contentsScale = scale;
+    for (CALayer *sub in _textView.layer.sublayers) {
+      sub.contentsScale = scale;
+    }
+  }
 }
 
 - (void)dealloc {
@@ -4629,4 +4642,55 @@ RCT_EXPORT_VIEW_PROPERTY(emojiMap, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(textColor, NSString)
 RCT_EXPORT_VIEW_PROPERTY(fontSize, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(emojiSize, CGFloat)
+@end
+
+// ============================================================
+// Hover View — container with NSTrackingArea for hover detection
+// ============================================================
+
+@interface RCTHoverView : NSView
+@property (nonatomic, copy) RCTBubblingEventBlock onHoverChange;
+@property (nonatomic, strong) NSTrackingArea *trackingArea;
+@end
+
+@implementation RCTHoverView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    [self setupTracking];
+  }
+  return self;
+}
+
+- (void)setupTracking {
+  if (_trackingArea) [self removeTrackingArea:_trackingArea];
+  _trackingArea = [[NSTrackingArea alloc]
+    initWithRect:self.bounds
+         options:(NSTrackingMouseEnteredAndExited | NSTrackingActiveInKeyWindow | NSTrackingInVisibleRect)
+           owner:self
+        userInfo:nil];
+  [self addTrackingArea:_trackingArea];
+}
+
+- (void)updateTrackingAreas {
+  [super updateTrackingAreas];
+  [self setupTracking];
+}
+
+- (void)mouseEntered:(NSEvent *)event {
+  if (_onHoverChange) _onHoverChange(@{@"hovered": @(YES)});
+}
+
+- (void)mouseExited:(NSEvent *)event {
+  if (_onHoverChange) _onHoverChange(@{@"hovered": @(NO)});
+}
+
+- (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
+@end
+
+@interface RCTHoverViewManager : RCTViewManager @end
+@implementation RCTHoverViewManager
+RCT_EXPORT_MODULE(MacOSHoverView)
+- (NSView *)view { return [[RCTHoverView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(onHoverChange, RCTBubblingEventBlock)
 @end

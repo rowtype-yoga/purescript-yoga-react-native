@@ -23,6 +23,7 @@ import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.MacOS.RichTextLabel (EmojiMap, nativeRichTextLabel, emojiMap)
 import Yoga.React.Native.MacOS.Button (nativeButton)
+import Yoga.React.Native.MacOS.HoverView (nativeHoverView)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.Reanimated as R
@@ -160,6 +161,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
   visiblePickerIdx /\ setVisiblePickerIdx <- useState' (Nothing :: Maybe Int)
+  hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
   pickerScale <- R.useSharedValue 0.0
   pickerOpacity <- R.useSharedValue 0.0
   useEffect reactPopover do
@@ -256,19 +258,23 @@ chatDemo = component "ChatDemo" \dp -> React.do
               ]
         )
 
+    showSmiley idx = hoveredIdx == Just idx || reactPopover == Just idx || visiblePickerIdx == Just idx
+
     reactionPicker idx =
-      view { style: tw "flex-row items-center ml-1" }
-        [ nativeButton
-            { title: "☺"
-            , bezelStyle: T.toolbar
-            , onPress:
-                if reactPopover == Just idx then setReactPopover Nothing
-                else setReactPopover (Just idx)
-            , style: Style.style { height: 20.0, width: 24.0 }
-            }
-        , if visiblePickerIdx == Just idx then emojiRow idx
-          else mempty
-        ]
+      if showSmiley idx then
+        view { style: tw "flex-row items-center" <> Style.style { alignSelf: "flex-end" } }
+          [ nativeButton
+              { title: "☺"
+              , bezelStyle: T.toolbar
+              , onPress:
+                  if reactPopover == Just idx then setReactPopover Nothing
+                  else setReactPopover (Just idx)
+              , style: Style.style { height: 18.0, width: 22.0 }
+              }
+          , if visiblePickerIdx == Just idx then emojiRow idx
+            else mempty
+          ]
+      else mempty
 
     emojiRow idx =
       R.reanimatedView
@@ -318,8 +324,13 @@ chatDemo = component "ChatDemo" \dp -> React.do
       let singleGif = singleCustomEmoji msg.body
       let senderLabel = if msg.isMine then "" else msg.sender
       let isHighlighted = highlightIdx == Just idx
-      view { style: tw "px-3 mb-1 rounded-lg" <> Style.style { backgroundColor: if isHighlighted then highlightBg else "transparent" } }
-        [ view { style: tw "flex-row items-end" <> Style.style { alignSelf: align } }
+      nativeHoverView
+        { onHoverChange: \hovered ->
+            if hovered then setHoveredIdx (Just idx)
+            else setHoveredIdx Nothing
+        , style: tw "px-3 mb-1 rounded-lg" <> Style.style { backgroundColor: if isHighlighted then highlightBg else "transparent" }
+        }
+        [ view { style: Style.style { alignSelf: align } }
             [ view
                 { onDoubleClick: handler_ (setReplyingTo (Just idx))
                 , style: Style.style { maxWidth: 360.0 }
@@ -361,8 +372,8 @@ chatDemo = component "ChatDemo" \dp -> React.do
                               ]
                           ]
                 , reactionPills msg
+                , if not msg.isMine then reactionPicker idx else mempty
                 ]
-            , if msg.isMine then mempty else reactionPicker idx
             ]
         ]
 
