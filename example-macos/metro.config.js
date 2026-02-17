@@ -13,9 +13,6 @@ const config = {
   resolver: {
     unstable_enableSymlinks: true,
     nodeModulesPaths: [modules],
-    extraNodeModules: {
-      "react-native": path.resolve(modules, "react-native-macos"),
-    },
     resolveRequest: (context, moduleName, platform) => {
       if (context.originModulePath.includes("/output/")) {
         return context.resolveRequest(

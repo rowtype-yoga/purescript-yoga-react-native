@@ -25,3 +25,15 @@ export function getGlobalHookSettings() { return null; }
 STUB
   echo "Patched $DEVTOOLS_DIR: created macOS ReactDevToolsSettingsManager stub"
 fi
+
+# Fixes Reanimated/Worklets importing Platform from upstream react-native
+# which doesn't set Platform.OS on macOS. Redirect to react-native-macos.
+REANIMATED_PLATFORM="node_modules/react-native-reanimated/lib/module/common/constants/platform.js"
+WORKLETS_PLATFORM="node_modules/react-native-worklets/lib/module/platformChecker.js"
+
+for F in "$REANIMATED_PLATFORM" "$WORKLETS_PLATFORM"; do
+  if [ -f "$F" ]; then
+    sed -i '' "s|from 'react-native'|from 'react-native-macos'|g" "$F"
+    echo "Patched $F: Platform import redirected to react-native-macos"
+  fi
+done
