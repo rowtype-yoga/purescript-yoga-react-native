@@ -16,14 +16,14 @@
 		AA0000032437B4B30078DB4F /* RCTFinderViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */; };
 		AA0000052437B4B30078DB4F /* RCTNativeShowcaseManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */; };
 		AA0000072437B4B30078DB4F /* RCTMacOSControlsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */; };
-		BE70DEDEE32B54947FC49AFF /* libPods-YogaReactExample-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */; };
-		DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F264B867F71A9A4C58140DE /* PrivacyInfo.xcprivacy */; };
 		BB0000012437B4B30078DB4F /* windy_tree.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000002437B4B30078DB4F /* windy_tree.riv */; };
 		BB0000032437B4B30078DB4F /* light_switch.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000022437B4B30078DB4F /* light_switch.riv */; };
 		BB0000052437B4B30078DB4F /* rating_animation.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000042437B4B30078DB4F /* rating_animation.riv */; };
 		BB0000072437B4B30078DB4F /* switch_event_example.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000062437B4B30078DB4F /* switch_event_example.riv */; };
 		BB0000092437B4B30078DB4F /* cat_following_mouse.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000082437B4B30078DB4F /* cat_following_mouse.riv */; };
 		BB00000B2437B4B30078DB4F /* cursor_tracking.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB00000A2437B4B30078DB4F /* cursor_tracking.riv */; };
+		BE70DEDEE32B54947FC49AFF /* libPods-YogaReactExample-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */; };
+		DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F264B867F71A9A4C58140DE /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,14 +43,14 @@
 		AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTFinderViewManager.m; sourceTree = "<group>"; };
 		AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNativeShowcaseManager.m; sourceTree = "<group>"; };
 		AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTMacOSControlsManager.m; sourceTree = "<group>"; };
-		C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-YogaReactExample-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		BB0000002437B4B30078DB4F /* windy_tree.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = windy_tree.riv; sourceTree = "<group>"; };
 		BB0000022437B4B30078DB4F /* light_switch.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = light_switch.riv; sourceTree = "<group>"; };
 		BB0000042437B4B30078DB4F /* rating_animation.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = rating_animation.riv; sourceTree = "<group>"; };
 		BB0000062437B4B30078DB4F /* switch_event_example.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = switch_event_example.riv; sourceTree = "<group>"; };
 		BB0000082437B4B30078DB4F /* cat_following_mouse.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cat_following_mouse.riv; sourceTree = "<group>"; };
 		BB00000A2437B4B30078DB4F /* cursor_tracking.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cursor_tracking.riv; sourceTree = "<group>"; };
+		C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-YogaReactExample-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
