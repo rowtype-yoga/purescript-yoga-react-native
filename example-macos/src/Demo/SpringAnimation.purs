@@ -34,10 +34,12 @@ springDemo = component "SpringDemo" \dp -> React.do
       springToggle on = R.springTo translateX (if on then 200.0 else 0.0) { stiffness: 180.0, damping: 14.0 }
       springFade on = R.springTo opacity (if on then 1.0 else 0.0) { stiffness: 120.0, damping: 20.0 }
       springItems on = do
-        R.springTo item0 (if on then 1.0 else 0.0) { stiffness: 200.0, damping: 18.0 }
-        R.springTo item1 (if on then 1.0 else 0.0) { stiffness: 180.0, damping: 18.0 }
-        R.springTo item2 (if on then 1.0 else 0.0) { stiffness: 160.0, damping: 18.0 }
-        R.springTo item3 (if on then 1.0 else 0.0) { stiffness: 140.0, damping: 18.0 }
+        let target = if on then 1.0 else 0.0
+        let spring = R.withSpring target { stiffness: 200.0, damping: 18.0 }
+        R.animate item0 spring
+        R.animate item1 (R.withDelay 60 spring)
+        R.animate item2 (R.withDelay 120 spring)
+        R.animate item3 (R.withDelay 180 spring)
     scrollWrap dp
       [ sectionTitle dp.fg "Spring Animations"
       , desc dp "Reanimated 4 — springs run on the UI thread"

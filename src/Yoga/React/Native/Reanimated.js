@@ -23,7 +23,8 @@ export const _reanimatedScrollViewImpl = Animated.ScrollView;
 export const useSharedValueImpl = (initial) => () => useSharedValue(initial);
 
 // useAnimatedStyle hook
-export const useAnimatedStyleImpl = (updater) => () => useAnimatedStyle(updater);
+export const useAnimatedStyleImpl = (updater) => () =>
+  useAnimatedStyle(updater);
 
 // Read shared value
 export const readSharedValue = (sv) => () => sv.value;
@@ -34,14 +35,16 @@ export const writeSharedValue = (sv) => (val) => () => {
 };
 
 // Write shared value with spring
-export const writeSharedValueWithSpring = (sv) => (target) => (config) => () => {
-  sv.value = withSpring(target, config);
-};
+export const writeSharedValueWithSpring =
+  (sv) => (target) => (config) => () => {
+    sv.value = withSpring(target, config);
+  };
 
 // Write shared value with timing
-export const writeSharedValueWithTiming = (sv) => (target) => (config) => () => {
-  sv.value = withTiming(target, config);
-};
+export const writeSharedValueWithTiming =
+  (sv) => (target) => (config) => () => {
+    sv.value = withTiming(target, config);
+  };
 
 // Write shared value with decay
 export const writeSharedValueWithDecay = (sv) => (config) => () => {
@@ -54,16 +57,25 @@ export const writeSharedValueWithDelay = (sv) => (ms) => (animation) => () => {
 };
 
 // Standalone animation builders (for composing)
-export const withSpringImpl = (target) => (config) => withSpring(target, config);
-export const withTimingImpl = (target) => (config) => withTiming(target, config);
+export const withSpringImpl = (target) => (config) =>
+  withSpring(target, config);
+export const withTimingImpl = (target) => (config) =>
+  withTiming(target, config);
 export const withDecayImpl = (config) => withDecay(config);
 export const withDelayImpl = (ms) => (anim) => withDelay(ms, anim);
 export const withSequenceImpl = (anims) => withSequence(...anims);
-export const withRepeatImpl = (anim) => (count) => (reverse) => withRepeat(anim, count, reverse);
+export const withRepeatImpl = (anim) => (count) => (reverse) =>
+  withRepeat(anim, count, reverse);
 
 // Interpolation
-export const interpolateImpl = (value) => (inputRange) => (outputRange) => (extrapolation) =>
-  interpolate(value, inputRange, outputRange, extrapolation);
+export const interpolateImpl =
+  (value) => (inputRange) => (outputRange) => (extrapolation) =>
+    interpolate(value, inputRange, outputRange, extrapolation);
+
+// Write a composed animation value to a shared value
+export const animateImpl = (sv) => (animValue) => () => {
+  sv.value = animValue;
+};
 
 // Cancel animation on a shared value
 export const cancelAnimationImpl = (sv) => () => cancelAnimation(sv);
@@ -85,4 +97,5 @@ export const easingBounce = Easing.bounce;
 export const easingIn = (e) => Easing.in(e);
 export const easingOut = (e) => Easing.out(e);
 export const easingInOut = (e) => Easing.inOut(e);
-export const easingBezier = (x1) => (y1) => (x2) => (y2) => Easing.bezier(x1, y1, x2, y2);
+export const easingBezier = (x1) => (y1) => (x2) => (y2) =>
+  Easing.bezier(x1, y1, x2, y2);

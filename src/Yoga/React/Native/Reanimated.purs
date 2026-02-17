@@ -26,6 +26,7 @@ module Yoga.React.Native.Reanimated
   , reanimatedImage
   , reanimatedScrollView
   , reanimatedScrollView_
+  , animate
   , extrapolationClamp
   , extrapolationExtend
   , extrapolationIdentity
@@ -96,6 +97,12 @@ foreign import writeSharedValueWithTiming :: forall r. SharedValue Number -> Num
 
 timingTo :: forall r. SharedValue Number -> Number -> { | r } -> Effect Unit
 timingTo = writeSharedValueWithTiming
+
+-- | Write a composed animation value to a shared value
+foreign import animateImpl :: forall a. SharedValue a -> AnimationValue -> Effect Unit
+
+animate :: forall a. SharedValue a -> AnimationValue -> Effect Unit
+animate = animateImpl
 
 -- | Cancel any running animation on a shared value
 foreign import cancelAnimationImpl :: forall a. SharedValue a -> Effect Unit
