@@ -6,6 +6,7 @@ import Data.Array (mapWithIndex, length, filter, snoc, (!!), modifyAt)
 import Data.Foldable (foldl)
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Nullable (Nullable, toMaybe)
 import Data.String (take)
 import Data.String as String
 
@@ -19,6 +20,7 @@ import React.Basic.Hooks (useState, useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
+import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.MacOS.RichTextLabel (EmojiMap, nativeRichTextLabel, emojiMap)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
@@ -62,13 +64,26 @@ foreign import isSingleEmoji :: String -> Boolean
 foreign import replaceEmoji :: String -> String
 foreign import setTimeout_ :: EffectFn2 Int (Effect Unit) Unit
 foreign import emojiDir :: String
+foreign import singleCustomEmoji_ :: EmojiMap -> String -> Nullable String
+
+singleCustomEmoji :: String -> Maybe String
+singleCustomEmoji = toMaybe <<< singleCustomEmoji_ customEmojiMap
 
 customEmojiMap :: EmojiMap
 customEmojiMap = emojiMap
-  { ps: emojiDir <> "/purescript.png"
-  , haskell: emojiDir <> "/haskell.png"
-  , shipit: emojiDir <> "/shipit.png"
-  , party: emojiDir <> "/party.png"
+  { ps: "purescript.png"
+  , haskell: "haskell.png"
+  , shipit: "shipit.png"
+  , party: "party.png"
+  , parrot: "parrot.gif"
+  , fastparrot: "fastparrot.gif"
+  , ultraparrot: "ultraparrot.gif"
+  , congaparrot: "congaparrot.gif"
+  , opensourceparrot: "opensourceparrot.gif"
+  , dealwithit: "dealwithit.gif"
+  , doge: "cooldoge.gif"
+  , partyblob: "partyblob.gif"
+  , typingcat: "typingcat.gif"
   }
 
 addReaction :: String -> Array Reaction -> Array Reaction
@@ -100,6 +115,9 @@ mockMessagesRaw = case _ of
     , { sender: "You", body: "The bubbles look great :sparkles:", isMine: true, reactions: [ { emoji: "👍", count: 2 } ], replyTo: Nothing }
     , { sender: "Bob", body: "Click the smiley to react!", isMine: false, reactions: noReactions, replyTo: Just 4 }
     , { sender: "Alice", body: ":party: :shipit:", isMine: false, reactions: [ { emoji: "🎉", count: 5 } ], replyTo: Nothing }
+    , { sender: "Bob", body: ":parrot: Party Parrot! :parrot:", isMine: false, reactions: [ { emoji: "🦜", count: 3 } ], replyTo: Nothing }
+    , { sender: "You", body: ":dealwithit: deal with it :doge:", isMine: true, reactions: noReactions, replyTo: Nothing }
+    , { sender: "Alice", body: ":typingcat:", isMine: false, reactions: noReactions, replyTo: Nothing }
     ]
   "purescript" ->
     [ { sender: "Phil", body: "Has anyone tried the new compiler release?", isMine: false, reactions: [ { emoji: "👍", count: 4 } ], replyTo: Nothing }
@@ -107,6 +125,7 @@ mockMessagesRaw = case _ of
     , { sender: "Phil", body: "Row polymorphism makes FFI so clean", isMine: false, reactions: [ { emoji: "❤️", count: 3 } ], replyTo: Nothing }
     , { sender: "Jordan", body: "The ecosystem keeps getting better", isMine: false, reactions: noReactions, replyTo: Nothing }
     , { sender: "You", body: "Agreed, especially for React Native", isMine: true, reactions: [ { emoji: "🔥", count: 1 } ], replyTo: Just 2 }
+    , { sender: "Jordan", body: ":opensourceparrot: :ps: :haskell: :opensourceparrot:", isMine: false, reactions: [ { emoji: "❤️", count: 4 } ], replyTo: Nothing }
     ]
   "react-native" ->
     [ { sender: "Christoph", body: "macOS support is looking solid", isMine: false, reactions: [ { emoji: "🔥", count: 3 } ], replyTo: Nothing }
@@ -114,10 +133,12 @@ mockMessagesRaw = case _ of
     , { sender: "Christoph", body: "NSOutlineView, NSSplitView, toolbars...", isMine: false, reactions: noReactions, replyTo: Nothing }
     , { sender: "You", body: "Even the vibrancy effects work", isMine: true, reactions: [ { emoji: "😮", count: 2 } ], replyTo: Nothing }
     , { sender: "Christoph", body: "🚀", isMine: false, reactions: [ { emoji: "🚀", count: 7 } ], replyTo: Nothing }
+    , { sender: "You", body: ":fastparrot: :congaparrot: :ultraparrot: conga line!", isMine: true, reactions: [ { emoji: "🎉", count: 3 } ], replyTo: Nothing }
     ]
   "random" ->
     [ { sender: "Eve", body: "Anyone here?", isMine: false, reactions: noReactions, replyTo: Nothing }
     , { sender: "You", body: "👋", isMine: true, reactions: [ { emoji: "👋", count: 1 } ], replyTo: Just 0 }
+    , { sender: "Eve", body: ":partyblob: :partyblob: :partyblob:", isMine: false, reactions: [ { emoji: "🎉", count: 2 } ], replyTo: Nothing }
     ]
   _ -> []
 
@@ -271,6 +292,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
     messageBubble idx msg = do
       let align = if msg.isMine then "flex-end" else "flex-start"
       let bigEmoji = isSingleEmoji msg.body
+      let singleGif = singleCustomEmoji msg.body
       let senderLabel = if msg.isMine then "" else msg.sender
       let isHighlighted = highlightIdx == Just idx
       view { style: tw "px-3 mb-1 rounded-lg" <> Style.style { backgroundColor: if isHighlighted then highlightBg else "transparent" } }
@@ -282,25 +304,39 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 [ if senderLabel == "" then text { style: Style.style { height: 0.0 } } ""
                   else text { style: tw "text-xs mb-0.5" <> Style.style { color: dp.dimFg } } senderLabel
                 , replyQuote msg
-                , if bigEmoji then
-                    text
-                      { style: Style.style { fontSize: 64.0, lineHeight: 72.0 } }
-                      msg.body
-                  else
-                    view
-                      { style: tw "rounded-2xl px-3 py-2"
-                          <> Style.style
-                            { backgroundColor: if msg.isMine then sentBubbleBg else receivedBubbleBg }
-                      }
-                      [ nativeRichTextLabel
-                          { text: msg.body
-                          , emojiMap: customEmojiMap
-                          , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
-                          , fontSize: 14.0
-                          , emojiSize: 18.0
-                          , style: tw "text-sm"
+                , case singleGif of
+                    Just gifFile ->
+                      nativeAnimatedImage
+                        { source: gifFile
+                        , animating: true
+                        , cornerRadius: 8.0
+                        , style: Style.style { width: 120.0, height: 120.0 }
+                        }
+                    Nothing ->
+                      if bigEmoji then
+                        text
+                          { style: Style.style { fontSize: 64.0, lineHeight: 72.0 } }
+                          msg.body
+                      else
+                        view
+                          { style: tw "rounded-2xl px-3 py-2"
+                              <> Style.style
+                                { backgroundColor: if msg.isMine then sentBubbleBg else receivedBubbleBg }
                           }
-                      ]
+                          [ view { style: Style.style {} }
+                              [ text
+                                  { style: Style.style { fontSize: 14.0, color: "transparent" } }
+                                  msg.body
+                              , nativeRichTextLabel
+                                  { text: msg.body
+                                  , emojiMap: customEmojiMap
+                                  , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
+                                  , fontSize: 14.0
+                                  , emojiSize: 0.0
+                                  , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0 }
+                                  }
+                              ]
+                          ]
                 , reactionPills msg
                 ]
             , if msg.isMine then mempty else reactionPicker idx

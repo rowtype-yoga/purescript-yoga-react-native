@@ -2,7 +2,7 @@ module Yoga.React.Native.MacOS.RichTextLabel (nativeRichTextLabel, NativeRichTex
 
 import React.Basic (ReactComponent)
 import Yoga.React.Native.Attributes (BaseAttributes)
-import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
+import Yoga.React.Native.Internal (FFINativeComponent, createNativeElement)
 
 foreign import data EmojiMap :: Type
 foreign import richTextLabelImpl :: forall props. ReactComponent props
@@ -11,12 +11,11 @@ foreign import emojiMapImpl :: forall r. { | r } -> EmojiMap
 emojiMap :: forall r. { | r } -> EmojiMap
 emojiMap = emojiMapImpl
 
-nativeRichTextLabel :: FFINativeComponent_ NativeRichTextLabelAttributes
-nativeRichTextLabel = createNativeElement_ richTextLabelImpl
+nativeRichTextLabel :: FFINativeComponent NativeRichTextLabelAttributes
+nativeRichTextLabel = createNativeElement richTextLabelImpl
 
 type NativeRichTextLabelAttributes = BaseAttributes
-  ( text :: String
-  , emojiMap :: EmojiMap
+  ( emojiMap :: EmojiMap
   , textColor :: String
   , fontSize :: Number
   , emojiSize :: Number

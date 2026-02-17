@@ -1743,7 +1743,14 @@ RCT_EXPORT_METHOD(show:(NSString *)style
       }];
     [task resume];
   } else {
-    _image = [[NSImage alloc] initByReferencingFile:source];
+    NSString *filePath = source;
+    if (![source hasPrefix:@"/"]) {
+      NSString *ext = [source pathExtension];
+      NSString *name = [source stringByDeletingPathExtension];
+      NSString *bundlePath = [[NSBundle mainBundle] pathForResource:name ofType:ext];
+      if (bundlePath) filePath = bundlePath;
+    }
+    _image = [[NSImage alloc] initByReferencingFile:filePath];
     [self setupAnimation];
     [self updateLayerContents];
   }
@@ -4336,6 +4343,17 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 // Rich Text Label — read-only NSTextView with inline emoji images
 // ============================================================
 
+// Holds pre-rendered frames for one animated GIF
+@interface RCTGifAnimation : NSObject
+@property (nonatomic, strong) NSArray<id> *cgFrames; // array of CGImageRef (bridged as id)
+@property (nonatomic, strong) CALayer *layer;
+@property (nonatomic, assign) NSUInteger charIndex;  // position in attributed string
+@property (nonatomic, assign) NSUInteger currentFrame;
+@end
+
+@implementation RCTGifAnimation
+@end
+
 @interface RCTNativeRichTextLabelView : NSView
 @property (nonatomic, strong) NSTextView *textView;
 @property (nonatomic, copy) NSString *text;
@@ -4343,6 +4361,8 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 @property (nonatomic, copy) NSString *textColor;
 @property (nonatomic, assign) CGFloat fontSize;
 @property (nonatomic, assign) CGFloat emojiSize;
+@property (nonatomic, strong) NSTimer *gifTimer;
+@property (nonatomic, strong) NSMutableArray<RCTGifAnimation *> *gifAnimations;
 @end
 
 @implementation RCTNativeRichTextLabelView
@@ -4359,10 +4379,61 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     _textView.drawsBackground = NO;
     _textView.textContainerInset = NSZeroSize;
     _textView.textContainer.lineFragmentPadding = 0;
-    _textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    _textView.verticallyResizable = YES;
+    _textView.horizontallyResizable = NO;
+    _textView.textContainer.widthTracksTextView = YES;
+    _textView.wantsLayer = YES;
     [self addSubview:_textView];
   }
   return self;
+}
+
+- (void)dealloc {
+  [_gifTimer invalidate];
+}
+
+- (void)stopGifAnimation {
+  [_gifTimer invalidate];
+  _gifTimer = nil;
+  for (RCTGifAnimation *anim in _gifAnimations) {
+    [anim.layer removeFromSuperlayer];
+  }
+  _gifAnimations = nil;
+}
+
+- (void)startGifAnimationIfNeeded {
+  if (_gifAnimations.count == 0) return;
+  if (_gifTimer) return;
+  [self positionGifLayers];
+  _gifTimer = [NSTimer scheduledTimerWithTimeInterval:0.06
+                                               target:self
+                                             selector:@selector(advanceGifFrames)
+                                             userInfo:nil
+                                              repeats:YES];
+}
+
+- (void)positionGifLayers {
+  NSLayoutManager *lm = _textView.layoutManager;
+  NSTextContainer *tc = _textView.textContainer;
+  CGFloat viewHeight = _textView.frame.size.height;
+  CGFloat es = _emojiSize > 0 ? _emojiSize : (_fontSize > 0 ? _fontSize : 14.0) * 1.3;
+
+  for (RCTGifAnimation *anim in _gifAnimations) {
+    NSUInteger charIdx = anim.charIndex;
+    if (charIdx >= _textView.textStorage.length) continue;
+    NSRange glyphRange = [lm glyphRangeForCharacterRange:NSMakeRange(charIdx, 1) actualCharacterRange:NULL];
+    NSRect glyphRect = [lm boundingRectForGlyphRange:glyphRange inTextContainer:tc];
+    // Flip Y for CALayer (CALayer origin is bottom-left, NSTextView is flipped)
+    CGFloat layerY = viewHeight - glyphRect.origin.y - es;
+    anim.layer.frame = CGRectMake(glyphRect.origin.x, layerY, es, es);
+  }
+}
+
+- (void)advanceGifFrames {
+  for (RCTGifAnimation *anim in _gifAnimations) {
+    anim.currentFrame = (anim.currentFrame + 1) % anim.cgFrames.count;
+    anim.layer.contents = anim.cgFrames[anim.currentFrame];
+  }
 }
 
 - (void)setText:(NSString *)text {
@@ -4404,9 +4475,12 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 - (void)rebuildAttributedString {
   if (!_text) return;
 
+  [self stopGifAnimation];
+  _gifAnimations = [NSMutableArray new];
+
   CGFloat fs = _fontSize > 0 ? _fontSize : 14.0;
-  CGFloat es = _emojiSize > 0 ? _emojiSize : fs * 1.3;
   NSFont *font = [NSFont systemFontOfSize:fs];
+  CGFloat es = _emojiSize > 0 ? _emojiSize : (font.ascender - font.descender);
   NSColor *color = [self parsedTextColor];
   NSDictionary *textAttrs = @{
     NSFontAttributeName: font,
@@ -4432,32 +4506,74 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     NSString *emojiName = [_text substringWithRange:[match rangeAtIndex:1]];
     NSString *imagePath = _emojiMap[emojiName];
     NSImage *image = nil;
+    NSArray *gifFrames = nil;
+    NSInteger gifFrameCount = 0;
 
     if (imagePath) {
+      NSString *bundlePath = nil;
       if ([imagePath hasPrefix:@"/"]) {
-        image = [[NSImage alloc] initWithContentsOfFile:imagePath];
+        bundlePath = imagePath;
       } else if ([imagePath hasPrefix:@"http"]) {
+        // URL loading — no GIF animation support for URLs
         NSURL *url = [NSURL URLWithString:imagePath];
         image = [[NSImage alloc] initWithContentsOfURL:url];
       } else {
-        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:[imagePath stringByDeletingPathExtension]
-                                                               ofType:[imagePath pathExtension]];
-        if (bundlePath) image = [[NSImage alloc] initWithContentsOfFile:bundlePath];
+        bundlePath = [[NSBundle mainBundle] pathForResource:[imagePath stringByDeletingPathExtension]
+                                                     ofType:[imagePath pathExtension]];
+      }
+
+      if (bundlePath) {
+        // Check if it's a GIF with multiple frames
+        if ([[imagePath pathExtension] caseInsensitiveCompare:@"gif"] == NSOrderedSame) {
+          NSData *data = [NSData dataWithContentsOfFile:bundlePath];
+          if (data) {
+            NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithData:data];
+            NSNumber *frameCountNum = [rep valueForProperty:NSImageFrameCount];
+            if (frameCountNum && [frameCountNum integerValue] > 1) {
+              gifFrameCount = [frameCountNum integerValue];
+              // Pre-render all frames into CGImage array
+              NSMutableArray *frames = [NSMutableArray arrayWithCapacity:gifFrameCount];
+              for (NSInteger f = 0; f < gifFrameCount; f++) {
+                [rep setProperty:NSImageCurrentFrame withValue:@(f)];
+                CGImageRef cgImg = [rep CGImageForProposedRect:NULL context:nil hints:nil];
+                if (cgImg) [frames addObject:(__bridge id)cgImg];
+              }
+              if (frames.count > 0) {
+                gifFrames = frames;
+                // Use a transparent placeholder — the CALayer renders the actual frames
+                image = [[NSImage alloc] initWithSize:NSMakeSize(es, es)];
+              }
+            } else {
+              image = [[NSImage alloc] initWithContentsOfFile:bundlePath];
+            }
+          }
+        } else {
+          image = [[NSImage alloc] initWithContentsOfFile:bundlePath];
+        }
       }
     }
 
     if (image) {
-      image.size = NSMakeSize(es, es);
-      NSTextAttachmentCell *cell = [[NSTextAttachmentCell alloc] initImageCell:image];
       NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-      [attachment setAttachmentCell:cell];
-      NSMutableAttributedString *emojiStr = [[NSMutableAttributedString alloc]
-        initWithAttributedString:[NSAttributedString attributedStringWithAttachment:attachment]];
-      CGFloat baseline = -(es - fs) * 0.35;
-      [emojiStr addAttribute:NSBaselineOffsetAttributeName
-                       value:@(baseline)
-                       range:NSMakeRange(0, emojiStr.length)];
+      // Set bounds so emoji is vertically centered on the text line.
+      // y offset shifts attachment down from baseline; negative y = below baseline.
+      CGFloat yOffset = font.descender;
+      attachment.bounds = CGRectMake(0, yOffset, es, es);
+      attachment.image = image;
+      NSAttributedString *emojiStr = [NSAttributedString attributedStringWithAttachment:attachment];
       [result appendAttributedString:emojiStr];
+
+      if (gifFrames && gifFrames.count > 1) {
+        RCTGifAnimation *anim = [[RCTGifAnimation alloc] init];
+        anim.cgFrames = gifFrames;
+        anim.charIndex = result.length - 1;
+        anim.currentFrame = 0;
+        anim.layer = [CALayer layer];
+        anim.layer.contentsGravity = kCAGravityResizeAspect;
+        anim.layer.contents = gifFrames[0];
+        [_textView.layer addSublayer:anim.layer];
+        [_gifAnimations addObject:anim];
+      }
     } else {
       NSString *fallback = [_text substringWithRange:fullRange];
       [result appendAttributedString:[[NSAttributedString alloc] initWithString:fallback attributes:textAttrs]];
@@ -4472,15 +4588,34 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
   }
 
   [[_textView textStorage] setAttributedString:result];
+  [self startGifAnimationIfNeeded];
 }
 
 - (NSSize)intrinsicContentSize {
   return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
 }
 
+- (void)reactSetFrame:(CGRect)frame {
+  [super reactSetFrame:frame];
+  _textView.frame = NSMakeRect(0, 0, frame.size.width, frame.size.height);
+  _textView.textContainer.containerSize = NSMakeSize(frame.size.width, FLT_MAX);
+
+  NSLayoutManager *lm = _textView.layoutManager;
+  NSTextContainer *tc = _textView.textContainer;
+  [lm ensureLayoutForTextContainer:tc];
+  NSRect usedRect = [lm usedRectForTextContainer:tc];
+  CGFloat textHeight = ceil(usedRect.size.height);
+
+  if (textHeight > 0 && fabs(textHeight - frame.size.height) > 1.0) {
+    _textView.frame = NSMakeRect(0, 0, frame.size.width, textHeight);
+  }
+  [self positionGifLayers];
+}
+
 - (void)layout {
   [super layout];
   _textView.frame = self.bounds;
+  [self positionGifLayers];
 }
 
 @end

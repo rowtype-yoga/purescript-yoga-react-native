@@ -125,11 +125,6 @@ var emojiMap = {
   hugs: "🤗",
   salute: "🫡",
   shrug: "🤷",
-  purescript: "⊳",
-  haskell: "λ",
-  rust: "🦀",
-  js: "📜",
-  ts: "🔷",
 };
 export const replaceEmoji = (str) =>
   str.replace(
@@ -141,3 +136,13 @@ export const setTimeout_ = (ms, fn) => {
 };
 export const emojiDir =
   "/Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/YogaReactExample-macOS/emoji";
+
+// Returns the custom emoji filename if the message is a single custom emoji, otherwise null
+export const singleCustomEmoji_ = (emojiMap) => (str) => {
+  var trimmed = str.trim();
+  var match = trimmed.match(/^:([a-zA-Z0-9_]+):$/);
+  if (!match) return null;
+  var name = match[1];
+  var file = emojiMap[name];
+  return file || null;
+};

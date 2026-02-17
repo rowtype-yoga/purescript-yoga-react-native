@@ -24,7 +24,7 @@ main = registerComponent "YogaReactExample" \_ -> app {}
 
 app :: {} -> JSX
 app = component "App" \_ -> React.do
-  selectedItem /\ setSelectedItem <- useState' "button"
+  selectedItem /\ setSelectedItem <- useState' "chat"
   colorScheme <- useColorScheme
   let isDark = toNullable (Just "dark") == colorScheme
   let fg = if isDark then "#FFFFFF" else "#000000"

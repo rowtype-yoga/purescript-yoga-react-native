@@ -28,6 +28,15 @@
 		CC0000032437B4B30078DB4F /* haskell.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0000022437B4B30078DB4F /* haskell.png */; };
 		CC0000052437B4B30078DB4F /* shipit.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0000042437B4B30078DB4F /* shipit.png */; };
 		CC0000072437B4B30078DB4F /* party.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0000062437B4B30078DB4F /* party.png */; };
+		CC0000092437B4B30078DB4F /* parrot.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC00000A2437B4B30078DB4F /* parrot.gif */; };
+		CC00000B2437B4B30078DB4F /* congaparrot.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC00000C2437B4B30078DB4F /* congaparrot.gif */; };
+		CC00000D2437B4B30078DB4F /* cooldoge.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC00000E2437B4B30078DB4F /* cooldoge.gif */; };
+		CC00000F2437B4B30078DB4F /* dealwithit.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC0000102437B4B30078DB4F /* dealwithit.gif */; };
+		CC0000112437B4B30078DB4F /* fastparrot.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC0000122437B4B30078DB4F /* fastparrot.gif */; };
+		CC0000132437B4B30078DB4F /* opensourceparrot.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC0000142437B4B30078DB4F /* opensourceparrot.gif */; };
+		CC0000152437B4B30078DB4F /* partyblob.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC0000162437B4B30078DB4F /* partyblob.gif */; };
+		CC0000172437B4B30078DB4F /* typingcat.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC0000182437B4B30078DB4F /* typingcat.gif */; };
+		CC0000192437B4B30078DB4F /* ultraparrot.gif in Resources */ = {isa = PBXBuildFile; fileRef = CC00001A2437B4B30078DB4F /* ultraparrot.gif */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +68,15 @@
 		CC0000022437B4B30078DB4F /* haskell.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = haskell.png; sourceTree = "<group>"; };
 		CC0000042437B4B30078DB4F /* shipit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = shipit.png; sourceTree = "<group>"; };
 		CC0000062437B4B30078DB4F /* party.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = party.png; sourceTree = "<group>"; };
+		CC00000A2437B4B30078DB4F /* parrot.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = parrot.gif; sourceTree = "<group>"; };
+		CC00000C2437B4B30078DB4F /* congaparrot.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = congaparrot.gif; sourceTree = "<group>"; };
+		CC00000E2437B4B30078DB4F /* cooldoge.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = cooldoge.gif; sourceTree = "<group>"; };
+		CC0000102437B4B30078DB4F /* dealwithit.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = dealwithit.gif; sourceTree = "<group>"; };
+		CC0000122437B4B30078DB4F /* fastparrot.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = fastparrot.gif; sourceTree = "<group>"; };
+		CC0000142437B4B30078DB4F /* opensourceparrot.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = opensourceparrot.gif; sourceTree = "<group>"; };
+		CC0000162437B4B30078DB4F /* partyblob.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = partyblob.gif; sourceTree = "<group>"; };
+		CC0000182437B4B30078DB4F /* typingcat.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = typingcat.gif; sourceTree = "<group>"; };
+		CC00001A2437B4B30078DB4F /* ultraparrot.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = ultraparrot.gif; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +139,15 @@
 				CC0000022437B4B30078DB4F /* haskell.png */,
 				CC0000042437B4B30078DB4F /* shipit.png */,
 				CC0000062437B4B30078DB4F /* party.png */,
+				CC00000A2437B4B30078DB4F /* parrot.gif */,
+				CC00000C2437B4B30078DB4F /* congaparrot.gif */,
+				CC00000E2437B4B30078DB4F /* cooldoge.gif */,
+				CC0000102437B4B30078DB4F /* dealwithit.gif */,
+				CC0000122437B4B30078DB4F /* fastparrot.gif */,
+				CC0000142437B4B30078DB4F /* opensourceparrot.gif */,
+				CC0000162437B4B30078DB4F /* partyblob.gif */,
+				CC0000182437B4B30078DB4F /* typingcat.gif */,
+				CC00001A2437B4B30078DB4F /* ultraparrot.gif */,
 			);
 			path = emoji;
 			sourceTree = "<group>";
@@ -270,6 +297,15 @@
 				CC0000032437B4B30078DB4F /* haskell.png in Resources */,
 				CC0000052437B4B30078DB4F /* shipit.png in Resources */,
 				CC0000072437B4B30078DB4F /* party.png in Resources */,
+				CC0000092437B4B30078DB4F /* parrot.gif in Resources */,
+				CC00000B2437B4B30078DB4F /* congaparrot.gif in Resources */,
+				CC00000D2437B4B30078DB4F /* cooldoge.gif in Resources */,
+				CC00000F2437B4B30078DB4F /* dealwithit.gif in Resources */,
+				CC0000112437B4B30078DB4F /* fastparrot.gif in Resources */,
+				CC0000132437B4B30078DB4F /* opensourceparrot.gif in Resources */,
+				CC0000152437B4B30078DB4F /* partyblob.gif in Resources */,
+				CC0000172437B4B30078DB4F /* typingcat.gif in Resources */,
+				CC0000192437B4B30078DB4F /* ultraparrot.gif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
