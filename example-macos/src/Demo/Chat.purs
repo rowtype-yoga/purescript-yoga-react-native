@@ -16,7 +16,7 @@ import Effect.Uncurried (EffectFn2, runEffectFn2)
 
 import React.Basic (JSX)
 import React.Basic.Events (handler_)
-import React.Basic.Hooks (useState, useState', (/\))
+import React.Basic.Hooks (useEffect, useState, useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
@@ -24,8 +24,8 @@ import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.MacOS.RichTextLabel (EmojiMap, nativeRichTextLabel, emojiMap)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
-import Yoga.React.Native.MacOS.Popover (nativePopover)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
+import Yoga.React.Native.Reanimated as R
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.Types as T
@@ -159,6 +159,22 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollBottomTrigger /\ setScrollBottomTrigger <- useState 1
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
+  visiblePickerIdx /\ setVisiblePickerIdx <- useState' (Nothing :: Maybe Int)
+  pickerScale <- R.useSharedValue 0.0
+  pickerOpacity <- R.useSharedValue 0.0
+  useEffect reactPopover do
+    case reactPopover of
+      Just _ -> do
+        setVisiblePickerIdx reactPopover
+        R.writeSharedValue pickerScale 0.0
+        R.writeSharedValue pickerOpacity 0.0
+        R.springTo pickerScale 1.0 { stiffness: 500.0, damping: 20.0 }
+        R.springTo pickerOpacity 1.0 { stiffness: 500.0, damping: 20.0 }
+      Nothing -> do
+        R.timingTo pickerScale 0.0 { duration: 120.0 }
+        R.timingTo pickerOpacity 0.0 { duration: 120.0 }
+        runEffectFn2 setTimeout_ 150 (setVisiblePickerIdx Nothing)
+    pure (pure unit)
   let
     selectRoom rid = do
       setActiveRoom (Just rid)
@@ -241,13 +257,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
         )
 
     reactionPicker idx =
-      nativePopover
-        { visible: reactPopover == Just idx
-        , preferredEdge: T.bottom
-        , behavior: T.transient
-        , onClose: setReactPopover Nothing
-        , style: Style.style {}
-        }
+      view { style: tw "flex-row items-center ml-1" }
         [ nativeButton
             { title: "☺"
             , bezelStyle: T.toolbar
@@ -256,16 +266,29 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 else setReactPopover (Just idx)
             , style: Style.style { height: 20.0, width: 24.0 }
             }
-        , view { style: tw "flex-row items-center p-2" <> Style.style { height: 40.0 } }
-            ( reactionEmoji <#> \emoji ->
-                nativeButton
-                  { title: emoji
-                  , bezelStyle: T.toolbar
-                  , onPress: reactToMessage idx emoji
-                  , style: Style.style { height: 32.0, width: 32.0 }
-                  }
-            )
+        , if visiblePickerIdx == Just idx then emojiRow idx
+          else mempty
         ]
+
+    emojiRow idx =
+      R.reanimatedView
+        { style: tw "flex-row items-center rounded-full px-1 py-0.5 ml-1"
+            <> Style.style
+              { backgroundColor: emojiRowBg
+              , transform: [ { scale: pickerScale } ]
+              , opacity: pickerOpacity
+              }
+        }
+        ( reactionEmoji <#> \emoji ->
+            nativeButton
+              { title: emoji
+              , bezelStyle: T.toolbar
+              , onPress: reactToMessage idx emoji
+              , style: Style.style { height: 28.0, width: 28.0 }
+              }
+        )
+
+    emojiRowBg = if dp.isDark then "#3B3B3D" else "#F0F0F0"
 
     replyQuote msg = case msg.replyTo of
       Nothing -> mempty
