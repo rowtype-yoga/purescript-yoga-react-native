@@ -8,15 +8,18 @@ import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (take)
 import Data.String as String
+
 import Demo.Shared (DemoProps)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn2, runEffectFn2)
+
 import React.Basic (JSX)
 import React.Basic.Events (handler_)
 import React.Basic.Hooks (useState, useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
+import Yoga.React.Native.MacOS.RichTextLabel (EmojiMap, nativeRichTextLabel, emojiMap)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
 import Yoga.React.Native.MacOS.Popover (nativePopover)
@@ -58,6 +61,15 @@ foreign import abs :: Int -> Int
 foreign import isSingleEmoji :: String -> Boolean
 foreign import replaceEmoji :: String -> String
 foreign import setTimeout_ :: EffectFn2 Int (Effect Unit) Unit
+foreign import emojiDir :: String
+
+customEmojiMap :: EmojiMap
+customEmojiMap = emojiMap
+  { ps: emojiDir <> "/purescript.png"
+  , haskell: emojiDir <> "/haskell.png"
+  , shipit: emojiDir <> "/shipit.png"
+  , party: emojiDir <> "/party.png"
+  }
 
 addReaction :: String -> Array Reaction -> Array Reaction
 addReaction emoji rs = case filter (\r -> r.emoji == emoji) rs of
@@ -82,12 +94,12 @@ mockMessagesRaw :: String -> Array Message
 mockMessagesRaw = case _ of
   "general" ->
     [ { sender: "Alice", body: "Hey everyone! Welcome to the chat demo :wave:", isMine: false, reactions: [ { emoji: "👋", count: 3 } ], replyTo: Nothing }
-    , { sender: "Bob", body: "This is built with PureScript + React Native macOS :purescript:", isMine: false, reactions: [ { emoji: "🔥", count: 2 }, { emoji: "❤️", count: 1 } ], replyTo: Nothing }
+    , { sender: "Bob", body: "This is built with :ps: + React Native macOS", isMine: false, reactions: [ { emoji: "🔥", count: 2 }, { emoji: "❤️", count: 1 } ], replyTo: Nothing }
     , { sender: "You", body: "That's awesome! :fire:", isMine: true, reactions: noReactions, replyTo: Just 1 }
     , { sender: "Alice", body: "Try typing :rocket: or :heart: in a message", isMine: false, reactions: noReactions, replyTo: Nothing }
     , { sender: "You", body: "The bubbles look great :sparkles:", isMine: true, reactions: [ { emoji: "👍", count: 2 } ], replyTo: Nothing }
     , { sender: "Bob", body: "Click the smiley to react!", isMine: false, reactions: noReactions, replyTo: Just 4 }
-    , { sender: "Alice", body: ":tada:", isMine: false, reactions: [ { emoji: "🎉", count: 5 } ], replyTo: Nothing }
+    , { sender: "Alice", body: ":party: :shipit:", isMine: false, reactions: [ { emoji: "🎉", count: 5 } ], replyTo: Nothing }
     ]
   "purescript" ->
     [ { sender: "Phil", body: "Has anyone tried the new compiler release?", isMine: false, reactions: [ { emoji: "👍", count: 4 } ], replyTo: Nothing }
@@ -280,11 +292,14 @@ chatDemo = component "ChatDemo" \dp -> React.do
                           <> Style.style
                             { backgroundColor: if msg.isMine then sentBubbleBg else receivedBubbleBg }
                       }
-                      [ text
-                          { style: tw "text-sm"
-                              <> Style.style { color: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000") }
+                      [ nativeRichTextLabel
+                          { text: msg.body
+                          , emojiMap: customEmojiMap
+                          , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
+                          , fontSize: 14.0
+                          , emojiSize: 18.0
+                          , style: tw "text-sm"
                           }
-                          msg.body
                       ]
                 , reactionPills msg
                 ]

@@ -139,3 +139,5 @@ export const replaceEmoji = (str) =>
 export const setTimeout_ = (ms, fn) => {
   setTimeout(fn, ms);
 };
+export const emojiDir =
+  "/Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/YogaReactExample-macOS/emoji";

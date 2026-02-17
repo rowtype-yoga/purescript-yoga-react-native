@@ -24,6 +24,10 @@
 		BB00000B2437B4B30078DB4F /* cursor_tracking.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB00000A2437B4B30078DB4F /* cursor_tracking.riv */; };
 		BE70DEDEE32B54947FC49AFF /* libPods-YogaReactExample-macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */; };
 		DEB487CCA36791EC34548205 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2F264B867F71A9A4C58140DE /* PrivacyInfo.xcprivacy */; };
+		CC0000012437B4B30078DB4F /* purescript.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0000002437B4B30078DB4F /* purescript.png */; };
+		CC0000032437B4B30078DB4F /* haskell.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0000022437B4B30078DB4F /* haskell.png */; };
+		CC0000052437B4B30078DB4F /* shipit.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0000042437B4B30078DB4F /* shipit.png */; };
+		CC0000072437B4B30078DB4F /* party.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0000062437B4B30078DB4F /* party.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +55,10 @@
 		BB00000A2437B4B30078DB4F /* cursor_tracking.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cursor_tracking.riv; sourceTree = "<group>"; };
 		C3E14041CD325948C5922BE0 /* libPods-YogaReactExample-macOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-YogaReactExample-macOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		CC0000002437B4B30078DB4F /* purescript.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = purescript.png; sourceTree = "<group>"; };
+		CC0000022437B4B30078DB4F /* haskell.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = haskell.png; sourceTree = "<group>"; };
+		CC0000042437B4B30078DB4F /* shipit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = shipit.png; sourceTree = "<group>"; };
+		CC0000062437B4B30078DB4F /* party.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = party.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,8 +109,20 @@
 				BB0000062437B4B30078DB4F /* switch_event_example.riv */,
 				BB0000082437B4B30078DB4F /* cat_following_mouse.riv */,
 				BB00000A2437B4B30078DB4F /* cursor_tracking.riv */,
+				CC0000082437B4B30078DB4F /* emoji */,
 			);
 			path = "YogaReactExample-macOS";
+			sourceTree = "<group>";
+		};
+		CC0000082437B4B30078DB4F /* emoji */ = {
+			isa = PBXGroup;
+			children = (
+				CC0000002437B4B30078DB4F /* purescript.png */,
+				CC0000022437B4B30078DB4F /* haskell.png */,
+				CC0000042437B4B30078DB4F /* shipit.png */,
+				CC0000062437B4B30078DB4F /* party.png */,
+			);
+			path = emoji;
 			sourceTree = "<group>";
 		};
 		5C1D5C2AEABED01E6110A444 /* Pods */ = {
@@ -246,6 +266,10 @@
 				BB0000072437B4B30078DB4F /* switch_event_example.riv in Resources */,
 				BB0000092437B4B30078DB4F /* cat_following_mouse.riv in Resources */,
 				BB00000B2437B4B30078DB4F /* cursor_tracking.riv in Resources */,
+				CC0000012437B4B30078DB4F /* purescript.png in Resources */,
+				CC0000032437B4B30078DB4F /* haskell.png in Resources */,
+				CC0000052437B4B30078DB4F /* shipit.png in Resources */,
+				CC0000072437B4B30078DB4F /* party.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

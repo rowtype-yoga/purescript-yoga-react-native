@@ -4331,3 +4331,167 @@ RCT_EXPORT_MODULE(MacOSCameraView)
 - (NSView *)view { return [[RCTCameraView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 @end
+
+// ============================================================
+// Rich Text Label — read-only NSTextView with inline emoji images
+// ============================================================
+
+@interface RCTNativeRichTextLabelView : NSView
+@property (nonatomic, strong) NSTextView *textView;
+@property (nonatomic, copy) NSString *text;
+@property (nonatomic, copy) NSDictionary *emojiMap;
+@property (nonatomic, copy) NSString *textColor;
+@property (nonatomic, assign) CGFloat fontSize;
+@property (nonatomic, assign) CGFloat emojiSize;
+@end
+
+@implementation RCTNativeRichTextLabelView
+
+- (instancetype)initWithFrame:(NSRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    _fontSize = 14.0;
+    _emojiSize = 0;
+    _textColor = @"#FFFFFF";
+
+    _textView = [[NSTextView alloc] initWithFrame:self.bounds];
+    _textView.editable = NO;
+    _textView.selectable = NO;
+    _textView.drawsBackground = NO;
+    _textView.textContainerInset = NSZeroSize;
+    _textView.textContainer.lineFragmentPadding = 0;
+    _textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [self addSubview:_textView];
+  }
+  return self;
+}
+
+- (void)setText:(NSString *)text {
+  _text = text;
+  [self rebuildAttributedString];
+}
+
+- (void)setEmojiMap:(NSDictionary *)emojiMap {
+  _emojiMap = emojiMap;
+  [self rebuildAttributedString];
+}
+
+- (void)setTextColor:(NSString *)textColor {
+  _textColor = textColor;
+  [self rebuildAttributedString];
+}
+
+- (void)setFontSize:(CGFloat)fontSize {
+  _fontSize = fontSize;
+  [self rebuildAttributedString];
+}
+
+- (void)setEmojiSize:(CGFloat)emojiSize {
+  _emojiSize = emojiSize;
+  [self rebuildAttributedString];
+}
+
+- (NSColor *)parsedTextColor {
+  NSString *hex = _textColor ?: @"#FFFFFF";
+  if ([hex hasPrefix:@"#"]) hex = [hex substringFromIndex:1];
+  unsigned int rgb = 0;
+  [[NSScanner scannerWithString:hex] scanHexInt:&rgb];
+  return [NSColor colorWithSRGBRed:((rgb >> 16) & 0xFF) / 255.0
+                             green:((rgb >> 8) & 0xFF) / 255.0
+                              blue:(rgb & 0xFF) / 255.0
+                             alpha:1.0];
+}
+
+- (void)rebuildAttributedString {
+  if (!_text) return;
+
+  CGFloat fs = _fontSize > 0 ? _fontSize : 14.0;
+  CGFloat es = _emojiSize > 0 ? _emojiSize : fs * 1.3;
+  NSFont *font = [NSFont systemFontOfSize:fs];
+  NSColor *color = [self parsedTextColor];
+  NSDictionary *textAttrs = @{
+    NSFontAttributeName: font,
+    NSForegroundColorAttributeName: color,
+  };
+
+  NSMutableAttributedString *result = [[NSMutableAttributedString alloc] init];
+
+  NSRegularExpression *regex = [NSRegularExpression
+    regularExpressionWithPattern:@":([a-zA-Z0-9_]+):"
+    options:0 error:nil];
+
+  NSUInteger pos = 0;
+  NSArray *matches = [regex matchesInString:_text options:0 range:NSMakeRange(0, _text.length)];
+
+  for (NSTextCheckingResult *match in matches) {
+    NSRange fullRange = [match range];
+    if (fullRange.location > pos) {
+      NSString *before = [_text substringWithRange:NSMakeRange(pos, fullRange.location - pos)];
+      [result appendAttributedString:[[NSAttributedString alloc] initWithString:before attributes:textAttrs]];
+    }
+
+    NSString *emojiName = [_text substringWithRange:[match rangeAtIndex:1]];
+    NSString *imagePath = _emojiMap[emojiName];
+    NSImage *image = nil;
+
+    if (imagePath) {
+      if ([imagePath hasPrefix:@"/"]) {
+        image = [[NSImage alloc] initWithContentsOfFile:imagePath];
+      } else if ([imagePath hasPrefix:@"http"]) {
+        NSURL *url = [NSURL URLWithString:imagePath];
+        image = [[NSImage alloc] initWithContentsOfURL:url];
+      } else {
+        NSString *bundlePath = [[NSBundle mainBundle] pathForResource:[imagePath stringByDeletingPathExtension]
+                                                               ofType:[imagePath pathExtension]];
+        if (bundlePath) image = [[NSImage alloc] initWithContentsOfFile:bundlePath];
+      }
+    }
+
+    if (image) {
+      image.size = NSMakeSize(es, es);
+      NSTextAttachmentCell *cell = [[NSTextAttachmentCell alloc] initImageCell:image];
+      NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+      [attachment setAttachmentCell:cell];
+      NSMutableAttributedString *emojiStr = [[NSMutableAttributedString alloc]
+        initWithAttributedString:[NSAttributedString attributedStringWithAttachment:attachment]];
+      CGFloat baseline = -(es - fs) * 0.35;
+      [emojiStr addAttribute:NSBaselineOffsetAttributeName
+                       value:@(baseline)
+                       range:NSMakeRange(0, emojiStr.length)];
+      [result appendAttributedString:emojiStr];
+    } else {
+      NSString *fallback = [_text substringWithRange:fullRange];
+      [result appendAttributedString:[[NSAttributedString alloc] initWithString:fallback attributes:textAttrs]];
+    }
+
+    pos = NSMaxRange(fullRange);
+  }
+
+  if (pos < _text.length) {
+    NSString *tail = [_text substringFromIndex:pos];
+    [result appendAttributedString:[[NSAttributedString alloc] initWithString:tail attributes:textAttrs]];
+  }
+
+  [[_textView textStorage] setAttributedString:result];
+}
+
+- (NSSize)intrinsicContentSize {
+  return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
+}
+
+- (void)layout {
+  [super layout];
+  _textView.frame = self.bounds;
+}
+
+@end
+
+@interface RCTNativeRichTextLabelViewManager : RCTViewManager @end
+@implementation RCTNativeRichTextLabelViewManager
+RCT_EXPORT_MODULE(NativeRichTextLabel)
+- (NSView *)view { return [[RCTNativeRichTextLabelView alloc] initWithFrame:CGRectZero]; }
+RCT_EXPORT_VIEW_PROPERTY(text, NSString)
+RCT_EXPORT_VIEW_PROPERTY(emojiMap, NSDictionary)
+RCT_EXPORT_VIEW_PROPERTY(textColor, NSString)
+RCT_EXPORT_VIEW_PROPERTY(fontSize, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(emojiSize, CGFloat)
+@end
