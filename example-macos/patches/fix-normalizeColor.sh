@@ -47,3 +47,32 @@ export default Platform;
 PLAT
   echo "Patched $PLATFORM_DIR: created Platform.macos.js"
 fi
+
+# Fixes New Architecture (Fabric) and general macOS support: many files in
+# react-native are backwards-compat shims that import themselves, expecting
+# Metro to resolve a platform-specific variant (.ios.js, .macos.js, etc).
+# react-native-macos ships .macos.js variants but they only exist in the
+# react-native-macos package. Since Metro resolves from react-native (not
+# react-native-macos), we must copy them over.
+MACOS_FILES="
+  Libraries/NativeComponent/BaseViewConfig.macos.js
+  Libraries/Image/Image.macos.js
+  Libraries/Alert/RCTAlertManager.macos.js
+  Libraries/Components/AccessibilityInfo/legacySendAccessibilityEvent.macos.js
+  Libraries/DevToolsSettings/DevToolsSettingsManager.macos.js
+  Libraries/Network/RCTNetworking.macos.js
+  Libraries/Settings/Settings.macos.js
+  Libraries/StyleSheet/PlatformColorValueTypes.macos.js
+  Libraries/StyleSheet/PlatformColorValueTypesMacOS.macos.js
+  Libraries/Utilities/BackHandler.macos.js
+"
+
+for f in $MACOS_FILES; do
+  SRC="node_modules/react-native-macos/$f"
+  DST="node_modules/react-native/$f"
+  if [ -f "$SRC" ] && [ ! -f "$DST" ]; then
+    mkdir -p "$(dirname "$DST")"
+    cp "$SRC" "$DST"
+    echo "Patched $DST: copied .macos.js variant from react-native-macos"
+  fi
+done
