@@ -13,12 +13,15 @@ if [ -f "$FILE" ]; then
 fi
 
 # Fixes missing ReactDevToolsSettingsManager.macos.js — react-native ships
-# ios/android variants but no macOS one. Copy the iOS version which works.
+# ios/android variants but no macOS one. Stub with no-ops (can't use iOS
+# version because it imports Settings which depends on Platform.OS).
 DEVTOOLS_DIR="node_modules/react-native/src/private/devsupport/rndevtools"
 DEVTOOLS_MACOS="$DEVTOOLS_DIR/ReactDevToolsSettingsManager.macos.js"
-DEVTOOLS_IOS="$DEVTOOLS_DIR/ReactDevToolsSettingsManager.ios.js"
 
-if [ -f "$DEVTOOLS_IOS" ] && [ ! -f "$DEVTOOLS_MACOS" ]; then
-  cp "$DEVTOOLS_IOS" "$DEVTOOLS_MACOS"
-  echo "Patched $DEVTOOLS_DIR: created macOS ReactDevToolsSettingsManager"
+if [ -d "$DEVTOOLS_DIR" ] && [ ! -f "$DEVTOOLS_MACOS" ]; then
+  cat > "$DEVTOOLS_MACOS" << 'STUB'
+export function setGlobalHookSettings(settings) {}
+export function getGlobalHookSettings() { return null; }
+STUB
+  echo "Patched $DEVTOOLS_DIR: created macOS ReactDevToolsSettingsManager stub"
 fi
