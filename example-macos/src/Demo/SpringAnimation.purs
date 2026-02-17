@@ -38,17 +38,26 @@ springDemo = component "SpringDemo" \dp -> React.do
       springToggle on = R.springTo translateX (if on then 200.0 else 0.0) { stiffness: 180.0, damping: 14.0 }
       springFade on = R.springTo opacity (if on then 1.0 else 0.0) { stiffness: 120.0, damping: 20.0 }
       springItems on = do
-        let opacity' = if on then 1.0 else 0.0
-        let y = if on then 0.0 else 20.0
         let cfg = { stiffness: 200.0, damping: 18.0 }
-        let
-          fadeSlide sv slideSv delay = do
-            R.animate sv (R.withDelay delay (R.withSpring opacity' cfg))
-            R.animate slideSv (R.withDelay delay (R.withSpring y cfg))
-        fadeSlide item0 slide0 0
-        fadeSlide item1 slide1 60
-        fadeSlide item2 slide2 120
-        fadeSlide item3 slide3 180
+        if on then do
+          let
+            fadeSlide sv slideSv delay = do
+              R.animate sv (R.withDelay delay (R.withSpring 1.0 cfg))
+              R.animate slideSv (R.withDelay delay (R.withSpring 0.0 cfg))
+          fadeSlide item0 slide0 0
+          fadeSlide item1 slide1 60
+          fadeSlide item2 slide2 120
+          fadeSlide item3 slide3 180
+        else do
+          let fastCfg = { duration: 150.0 }
+          let
+            fadeOut sv slideSv delay = do
+              R.animate sv (R.withDelay delay (R.withTiming 0.0 fastCfg))
+              R.animate slideSv (R.withDelay delay (R.withTiming (-10.0) fastCfg))
+          fadeOut item3 slide3 0
+          fadeOut item2 slide2 40
+          fadeOut item1 slide1 80
+          fadeOut item0 slide0 120
     scrollWrap dp
       [ sectionTitle dp.fg "Spring Animations"
       , desc dp "Reanimated 4 — springs run on the UI thread"
