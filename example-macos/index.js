@@ -5,28 +5,29 @@
 import { AppRegistry, Text, View } from "react-native";
 import React from "react";
 
-function App() {
+let startupError = null;
+
+function ErrorScreen() {
   return React.createElement(
     View,
-    {
-      style: {
-        flex: 1,
-        backgroundColor: "#1e1e1e",
-        justifyContent: "center",
-        alignItems: "center",
-      },
-    },
+    { style: { flex: 1, padding: 20, backgroundColor: "#300" } },
     React.createElement(
       Text,
-      { style: { color: "#fff", fontSize: 24, fontWeight: "bold" } },
-      "Minimal test app"
+      { style: { color: "#fff", fontSize: 16, fontWeight: "bold" } },
+      "Startup Error"
     ),
     React.createElement(
       Text,
-      { style: { color: "#aaa", fontSize: 14, marginTop: 8 } },
-      "If you see this, React Native macOS works"
+      { style: { color: "#fcc", fontSize: 13, marginTop: 10 } },
+      String(startupError)
     )
   );
 }
 
-AppRegistry.registerComponent("YogaReactExample", () => App);
+try {
+  const { main } = require("./output/Main/index.js");
+  main();
+} catch (e) {
+  startupError = e.message + "\n\n" + e.stack;
+  AppRegistry.registerComponent("YogaReactExample", () => ErrorScreen);
+}
