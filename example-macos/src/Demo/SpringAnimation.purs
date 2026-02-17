@@ -28,18 +28,27 @@ springDemo = component "SpringDemo" \dp -> React.do
   item1 <- R.useSharedValue 0.0
   item2 <- R.useSharedValue 0.0
   item3 <- R.useSharedValue 0.0
+  slide0 <- R.useSharedValue 20.0
+  slide1 <- R.useSharedValue 20.0
+  slide2 <- R.useSharedValue 20.0
+  slide3 <- R.useSharedValue 20.0
   pure do
     let
       springScale target = R.springTo scale target { stiffness: 400.0, damping: 15.0 }
       springToggle on = R.springTo translateX (if on then 200.0 else 0.0) { stiffness: 180.0, damping: 14.0 }
       springFade on = R.springTo opacity (if on then 1.0 else 0.0) { stiffness: 120.0, damping: 20.0 }
       springItems on = do
-        let target = if on then 1.0 else 0.0
-        let spring = R.withSpring target { stiffness: 200.0, damping: 18.0 }
-        R.animate item0 spring
-        R.animate item1 (R.withDelay 60 spring)
-        R.animate item2 (R.withDelay 120 spring)
-        R.animate item3 (R.withDelay 180 spring)
+        let opacity' = if on then 1.0 else 0.0
+        let y = if on then 0.0 else 20.0
+        let cfg = { stiffness: 200.0, damping: 18.0 }
+        let
+          fadeSlide sv slideSv delay = do
+            R.animate sv (R.withDelay delay (R.withSpring opacity' cfg))
+            R.animate slideSv (R.withDelay delay (R.withSpring y cfg))
+        fadeSlide item0 slide0 0
+        fadeSlide item1 slide1 60
+        fadeSlide item2 slide2 120
+        fadeSlide item3 slide3 180
     scrollWrap dp
       [ sectionTitle dp.fg "Spring Animations"
       , desc dp "Reanimated 4 — springs run on the UI thread"
@@ -115,17 +124,18 @@ springDemo = component "SpringDemo" \dp -> React.do
               springItems next
           , style: Style.style { height: 24.0, width: 120.0, marginBottom: 8.0 }
           }
-      , staggeredItem "PureScript" "#007AFF" item0
-      , staggeredItem "React Native" "#34C759" item1
-      , staggeredItem "macOS" "#FF9500" item2
-      , staggeredItem "Spring Physics" "#AF52DE" item3
+      , staggeredItem "PureScript" "#007AFF" item0 slide0
+      , staggeredItem "React Native" "#34C759" item1 slide1
+      , staggeredItem "macOS" "#FF9500" item2 slide2
+      , staggeredItem "Spring Physics" "#AF52DE" item3 slide3
       ]
   where
-  staggeredItem title color sv =
+  staggeredItem title color sv slideSv =
     R.reanimatedView
       { style: Style.style
           { opacity: sv
           , marginBottom: 4.0
+          , transform: [ { translateY: slideSv } ]
           }
       }
       [ view
