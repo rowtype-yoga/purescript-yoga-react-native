@@ -7,11 +7,25 @@ const { getDefaultConfig, mergeConfig } = require("@react-native/metro-config");
  *
  * @type {import('@react-native/metro-config').MetroConfig}
  */
+const modules = path.resolve(__dirname, "node_modules");
 const config = {
   watchFolders: [path.resolve(__dirname, "..", "output")],
   resolver: {
     unstable_enableSymlinks: true,
-    nodeModulesPaths: [path.resolve(__dirname, "node_modules")],
+    nodeModulesPaths: [modules],
+    resolveRequest: (context, moduleName, platform) => {
+      if (context.originModulePath.includes("/output/")) {
+        return context.resolveRequest(
+          {
+            ...context,
+            nodeModulesPaths: [modules, ...context.nodeModulesPaths],
+          },
+          moduleName,
+          platform
+        );
+      }
+      return context.resolveRequest(context, moduleName, platform);
+    },
   },
 };
 
