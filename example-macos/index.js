@@ -5,30 +5,28 @@
 import { AppRegistry, Text, View } from "react-native";
 import React from "react";
 
-// Register a fallback error screen first
-let startupError = null;
-
-function ErrorScreen() {
+function App() {
   return React.createElement(
     View,
-    { style: { flex: 1, padding: 20, backgroundColor: "#300" } },
+    {
+      style: {
+        flex: 1,
+        backgroundColor: "#1e1e1e",
+        justifyContent: "center",
+        alignItems: "center",
+      },
+    },
     React.createElement(
       Text,
-      { style: { color: "#fff", fontSize: 16, fontWeight: "bold" } },
-      "Startup Error"
+      { style: { color: "#fff", fontSize: 24, fontWeight: "bold" } },
+      "Minimal test app"
     ),
     React.createElement(
       Text,
-      { style: { color: "#fcc", fontSize: 13, marginTop: 10 } },
-      String(startupError)
+      { style: { color: "#aaa", fontSize: 14, marginTop: 8 } },
+      "If you see this, React Native macOS works"
     )
   );
 }
 
-try {
-  const { main } = require("./output/Main/index.js");
-  main();
-} catch (e) {
-  startupError = e.message + "\n\n" + e.stack;
-  AppRegistry.registerComponent("YogaReactExample", () => ErrorScreen);
-}
+AppRegistry.registerComponent("YogaReactExample", () => App);

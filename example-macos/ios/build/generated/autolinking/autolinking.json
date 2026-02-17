@@ -34,7 +34,7 @@
       "platforms": {
         "ios": {
           "podspecPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-reanimated/RNReanimated.podspec",
-          "version": "4.2.1",
+          "version": "3.19.5",
           "configurations": [],
           "scriptPhases": []
         },
@@ -75,32 +75,6 @@
             "RNCSafeAreaViewComponentDescriptor"
           ],
           "cmakeListsPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
-          "cxxModuleCMakeListsModuleName": null,
-          "cxxModuleCMakeListsPath": null,
-          "cxxModuleHeaderName": null,
-          "isPureCxxDependency": false
-        },
-        "macos": null
-      }
-    },
-    "react-native-worklets": {
-      "root": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-worklets",
-      "name": "react-native-worklets",
-      "platforms": {
-        "ios": {
-          "podspecPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-worklets/RNWorklets.podspec",
-          "version": "0.7.4",
-          "configurations": [],
-          "scriptPhases": []
-        },
-        "android": {
-          "sourceDir": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-worklets/android",
-          "packageImportPath": "import com.swmansion.worklets.WorkletsPackage;",
-          "packageInstance": "new WorkletsPackage()",
-          "buildTypes": [],
-          "libraryName": "rnworklets",
-          "componentDescriptors": [],
-          "cmakeListsPath": "/Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-worklets/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,

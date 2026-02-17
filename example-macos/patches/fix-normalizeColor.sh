@@ -26,14 +26,24 @@ STUB
   echo "Patched $DEVTOOLS_DIR: created macOS ReactDevToolsSettingsManager stub"
 fi
 
-# Fixes Reanimated/Worklets importing Platform from upstream react-native
-# which doesn't set Platform.OS on macOS. Redirect to react-native-macos.
-REANIMATED_PLATFORM="node_modules/react-native-reanimated/lib/module/common/constants/platform.js"
-WORKLETS_PLATFORM="node_modules/react-native-worklets/lib/module/platformChecker.js"
+# Fixes upstream react-native missing Platform.macos.js — Metro resolves
+# Platform.ios.js for iOS but has no macOS variant, leaving Platform.OS
+# undefined. Create one from the iOS version with OS set to 'macos'.
+PLATFORM_DIR="node_modules/react-native/Libraries/Utilities"
+PLATFORM_MACOS="$PLATFORM_DIR/Platform.macos.js"
 
-for F in "$REANIMATED_PLATFORM" "$WORKLETS_PLATFORM"; do
-  if [ -f "$F" ]; then
-    sed -i '' "s|from 'react-native'|from 'react-native-macos'|g" "$F"
-    echo "Patched $F: Platform import redirected to react-native-macos"
-  fi
-done
+if [ -d "$PLATFORM_DIR" ] && [ ! -f "$PLATFORM_MACOS" ]; then
+  cat > "$PLATFORM_MACOS" << 'PLAT'
+const Platform = {
+  OS: 'macos',
+  select: (spec) => 'macos' in spec ? spec.macos : 'ios' in spec ? spec.ios : 'native' in spec ? spec.native : spec.default,
+  get Version() { return ''; },
+  get constants() { return { osVersion: '', reactNativeVersion: { major: 0, minor: 81, patch: 5 } }; },
+  get isPad() { return false; },
+  get isTV() { return false; },
+  get isTesting() { return false; },
+};
+export default Platform;
+PLAT
+  echo "Patched $PLATFORM_DIR: created Platform.macos.js"
+fi
