@@ -7,5 +7,8 @@ export const hoverViewImpl = React.forwardRef((props, ref) => {
     nativeProps.onHoverChange = (e) =>
       props.onHoverChange(e.nativeEvent.hovered)();
   }
+  if (typeof props.onPress === "function") {
+    nativeProps.onPress = () => props.onPress();
+  }
   return React.createElement(NativeHoverView, { ...nativeProps, ref });
 });

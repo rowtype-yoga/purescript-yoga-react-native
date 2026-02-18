@@ -1,0 +1,36 @@
+dependencies: \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputUtils.mm \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Target\ Support\ Files/React-RCTFabric/React-RCTFabric-prefix.pch \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputUtils.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUIKit.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTAssert.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTDefines.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTInspectorDevServerHelper.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTPackagerConnection.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUITextField.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTTextUIKit.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBackedTextInputDelegate.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBackedTextInputViewProtocol.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUITextView.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-FabricComponents/react/renderer/components/iostextinput/primitives.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-FabricComponents/react/renderer/components/textinput/basePrimitives.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Private/React-RCTFabric/React/RCTConversions.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Fabric/react/renderer/components/view/AccessibilityPrimitives.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Fabric/react/renderer/components/view/primitives.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/Color.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/ColorComponents.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/HostPlatformColor.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-utils/react/utils/hash_combine.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/RectangleCorners.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/Float.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/RectangleEdges.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/Rect.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/Point.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/Size.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/ValueUnit.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Fabric/react/renderer/core/LayoutPrimitives.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/RCTPlatformColorUtils.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/Transform.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-rendererdebug/react/renderer/debug/flags.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-debug/react/debug/flags.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-graphics/react/renderer/graphics/Vector.h

@@ -1,0 +1,29 @@
+dependencies: \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerCallInvoker.cpp \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Target\ Support\ Files/React-runtimescheduler/React-runtimescheduler-prefix.pch \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerCallInvoker.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-callinvoker/ReactCommon/CallInvoker.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-callinvoker/ReactCommon/SchedulerPriority.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-runtimeexecutor/ReactCommon/RuntimeExecutor.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-jsi/jsi/jsi.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-jsi/jsi/jsi-inl.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-performancetimeline/react/performance/timeline/PerformanceEntryReporter.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-performancetimeline/react/performance/timeline/PerformanceEntryCircularBuffer.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-performancetimeline/react/performance/timeline/CircularBuffer.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-performancetimeline/react/performance/timeline/PerformanceEntryBuffer.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-performancetimeline/react/performance/timeline/PerformanceEntry.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-timing/react/timing/primitives.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-performancetimeline/react/performance/timeline/PerformanceEntryKeyedBuffer.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-performancetimeline/react/performance/timeline/PerformanceObserverRegistry.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-jsinspectortracing/jsinspector-modern/tracing/CdpTracing.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-rendererconsistency/react/renderer/consistency/ShadowTreeRevisionConsistencyManager.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Private/React-runtimescheduler/react/renderer/runtimescheduler/SchedulerPriorityUtils.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-debug/react/debug/react_native_assert.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-debug/react/debug/flags.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/glog/glog/logging.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/glog/glog/log_severity.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/glog/glog/vlog_is_on.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Private/React-runtimescheduler/react/renderer/runtimescheduler/Task.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerEventTimingDelegate.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/ReactCommon/react/renderer/runtimescheduler/RuntimeSchedulerIntersectionObserverDelegate.h

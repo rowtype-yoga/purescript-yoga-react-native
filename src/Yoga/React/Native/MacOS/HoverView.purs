@@ -13,4 +13,5 @@ nativeHoverView = createNativeElement hoverViewImpl
 
 type NativeHoverViewAttributes = BaseAttributes
   ( onHoverChange :: Boolean -> Effect Unit
+  , onPress :: Effect Unit
   )

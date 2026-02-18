@@ -1,0 +1,33 @@
+dependencies: \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/React/CoreModules/RCTLogBoxView.mm \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Target\ Support\ Files/React-CoreModules/React-CoreModules-prefix.pch \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/React/CoreModules/RCTLogBoxView.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBridge.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUIKit.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTAssert.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTDefines.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTInspectorDevServerHelper.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTPackagerConnection.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBridgeDelegate.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTJavaScriptLoader.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBridgeModule.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTJSThread.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/RCTDeprecation/RCTDeprecation.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBundleManager.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBridgeModuleDecorator.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTFrameUpdate.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTPlatformDisplayLink.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTInvalidating.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBridgeConstants.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTConstants.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurfacePresenterStub.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBridgeProxy.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurfaceView.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTLog.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUtils.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurface.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurfaceProtocol.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurfaceStage.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurfaceHostingView.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurfaceDelegate.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTSurfaceSizeMeasureMode.h

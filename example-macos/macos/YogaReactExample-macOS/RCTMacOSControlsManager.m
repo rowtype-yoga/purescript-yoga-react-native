@@ -4634,6 +4634,7 @@ RCT_EXPORT_VIEW_PROPERTY(emojiSize, CGFloat)
 
 @interface RCTHoverView : NSView
 @property (nonatomic, copy) RCTBubblingEventBlock onHoverChange;
+@property (nonatomic, copy) RCTBubblingEventBlock onPress;
 @property (nonatomic, strong) NSTrackingArea *trackingArea;
 @end
 
@@ -4669,6 +4670,11 @@ RCT_EXPORT_VIEW_PROPERTY(emojiSize, CGFloat)
   if (_onHoverChange) _onHoverChange(@{@"hovered": @(NO)});
 }
 
+- (void)mouseDown:(NSEvent *)event {
+  if (_onPress) _onPress(@{});
+  else [super mouseDown:event];
+}
+
 - (NSSize)intrinsicContentSize { return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric); }
 @end
 
@@ -4677,4 +4683,5 @@ RCT_EXPORT_VIEW_PROPERTY(emojiSize, CGFloat)
 RCT_EXPORT_MODULE(MacOSHoverView)
 - (NSView *)view { return [[RCTHoverView alloc] initWithFrame:CGRectZero]; }
 RCT_EXPORT_VIEW_PROPERTY(onHoverChange, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 @end

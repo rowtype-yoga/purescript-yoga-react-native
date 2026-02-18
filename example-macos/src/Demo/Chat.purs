@@ -24,6 +24,7 @@ import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.MacOS.RichTextLabel (EmojiMap, nativeRichTextLabel, emojiMap)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.HoverView (nativeHoverView)
+import Yoga.React.Native.Pressable (pressable)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.Reanimated as R
@@ -161,6 +162,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
   hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
+  hoveredEmoji /\ setHoveredEmoji <- useState' (Nothing :: Maybe Int)
   pickerScale <- R.useSharedValue 0.01
   pickerOpacity <- R.useSharedValue 0.0
   useEffect reactPopover do
@@ -258,7 +260,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
     showSmiley idx = hoveredIdx == Just idx || reactPopover == Just idx
 
     emojiRowBg = if dp.isDark then "#3B3B3D" else "#F0F0F0"
-    emojiRowBorder = if dp.isDark then "#555555" else "#CCCCCC"
 
     reactionPicker idx =
       view { style: Style.style {} }
@@ -293,16 +294,25 @@ chatDemo = component "ChatDemo" \dp -> React.do
               , transform: [ { scale: pickerScale } ]
               , opacity: pickerOpacity
               , backgroundColor: emojiRowBg
+              , zIndex: 10
               }
         }
         ( if reactPopover == Just idx then
-            reactionEmoji <#> \emoji ->
-              nativeButton
-                { title: emoji
-                , bezelStyle: T.accessoryBarAction
-                , onPress: reactToMessage idx emoji
-                , style: Style.style { height: 30.0, width: 30.0 }
-                }
+            mapWithIndex
+              ( \i emoji ->
+                  let
+                    hoverBg = if hoveredEmoji == Just i then (if dp.isDark then "#555555" else "#D8D8D8") else "transparent"
+                  in
+                    pressable
+                      { onPress: handler_ (reactToMessage idx emoji)
+                      , style: tw "items-center justify-center rounded-full mx-0.5"
+                          <> Style.style { width: 30.0, height: 30.0, backgroundColor: hoverBg }
+                      , onMouseEnter: handler_ (setHoveredEmoji (Just i))
+                      , onMouseLeave: handler_ (setHoveredEmoji Nothing)
+                      }
+                      [ text { style: Style.style { fontSize: 18.0 } } emoji ]
+              )
+              reactionEmoji
           else []
         )
 
@@ -350,7 +360,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 [ if senderLabel == "" then text { style: Style.style { height: 0.0 } } ""
                   else text { style: tw "text-xs mb-0.5" <> Style.style { color: dp.dimFg } } senderLabel
                 , replyQuote msg
-                , view { style: Style.style { overflow: "visible" } }
+                , view { style: Style.style { overflow: "visible", zIndex: 10 } }
                     [ case singleGif of
                         Just gifFile ->
                           nativeAnimatedImage

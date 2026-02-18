@@ -1,0 +1,38 @@
+dependencies: \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/Libraries/Text/TextInput/Singleline/macOS/RCTUISecureTextField.m \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Target\ Support\ Files/React-RCTText/React-RCTText-prefix.pch \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Cocoa.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/TargetConditionals.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/CoreGraphics.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/QuartzCore.framework/Modules/module.modulemap \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/Libraries/Text/TextInput/Singleline/macOS/../RCTUITextField.mm \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUITextField.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUIKit.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTAssert.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTDefines.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTInspectorDevServerHelper.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTPackagerConnection.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTTextUIKit.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBackedTextInputDelegate.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBackedTextInputViewProtocol.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBackedTextInputDelegateAdapter.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTTextAttributes.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTCursor.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTDynamicTypeRamp.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTConvert.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTAnimationType.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBorderCurve.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTBorderStyle.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTLog.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTUtils.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTPointerEvents.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTTextDecorationLineType.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/yoga/Yoga.modulemap \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTTextTransform.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/UIView+React.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTComponent.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTTouchHandler.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTFrameUpdate.h \
+  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Headers/Public/React-Core/React/RCTPlatformDisplayLink.h
