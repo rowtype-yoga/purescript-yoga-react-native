@@ -261,28 +261,28 @@ chatDemo = component "ChatDemo" \dp -> React.do
     showSmiley idx = hoveredIdx == Just idx || reactPopover == Just idx || visiblePickerIdx == Just idx
 
     reactionPicker idx =
-      if showSmiley idx then
-        view
-          { style: Style.style
-              { position: "absolute"
-              , bottom: -4.0
-              , right: -6.0
-              , flexDirection: "row"
-              , alignItems: "center"
-              }
-          }
-          [ nativeButton
-              { title: "☺"
-              , bezelStyle: T.toolbar
-              , onPress:
-                  if reactPopover == Just idx then setReactPopover Nothing
-                  else setReactPopover (Just idx)
-              , style: Style.style { height: 18.0, width: 22.0 }
-              }
-          , if visiblePickerIdx == Just idx then emojiRow idx
-            else mempty
-          ]
-      else mempty
+      view
+        { style: Style.style
+            { position: "absolute"
+            , bottom: -4.0
+            , right: -6.0
+            , flexDirection: "row"
+            , alignItems: "center"
+            , opacity: if showSmiley idx then 1.0 else 0.0
+            }
+        }
+        [ nativeButton
+            { title: "☺"
+            , bezelStyle: T.toolbar
+            , onPress:
+                if reactPopover == Just idx then setReactPopover Nothing
+                else setReactPopover (Just idx)
+            , style: Style.style { height: 18.0, width: 22.0 }
+            , buttonEnabled: showSmiley idx
+            }
+        , if visiblePickerIdx == Just idx then emojiRow idx
+          else mempty
+        ]
 
     emojiRow idx =
       R.reanimatedView
