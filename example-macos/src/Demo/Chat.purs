@@ -161,17 +161,17 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
   hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
-  pickerScale <- R.useSharedValue 0.0
+  pickerScale <- R.useSharedValue 0.5
   pickerOpacity <- R.useSharedValue 0.0
   useEffect reactPopover do
     case reactPopover of
       Just _ -> do
-        R.writeSharedValue pickerScale 0.0
+        R.writeSharedValue pickerScale 0.5
         R.writeSharedValue pickerOpacity 0.0
         R.springTo pickerScale 1.0 { stiffness: 500.0, damping: 20.0 }
         R.springTo pickerOpacity 1.0 { stiffness: 500.0, damping: 20.0 }
       Nothing -> do
-        R.timingTo pickerScale 0.0 { duration: 120.0 }
+        R.timingTo pickerScale 0.5 { duration: 120.0 }
         R.timingTo pickerOpacity 0.0 { duration: 120.0 }
     pure (pure unit)
   let
@@ -288,22 +288,15 @@ chatDemo = component "ChatDemo" \dp -> React.do
               , opacity: pickerOpacity
               }
         }
-        ( mapWithIndex
-            ( \i emoji ->
-                view
-                  { onDoubleClick: handler_ (pure unit)
-                  , style: Style.style { marginLeft: if i == 0 then 0.0 else (-2.0) }
-                  }
-                  [ nativeButton
-                      { title: emoji
-                      , bezelStyle: T.inline
-                      , onPress: reactToMessage idx emoji
-                      , style: Style.style { height: 26.0, width: 26.0 }
-                      , buttonEnabled: reactPopover == Just idx
-                      }
-                  ]
-            )
-            reactionEmoji
+        ( if reactPopover == Just idx then
+            reactionEmoji <#> \emoji ->
+              nativeButton
+                { title: emoji
+                , bezelStyle: T.inline
+                , onPress: reactToMessage idx emoji
+                , style: Style.style { height: 26.0, width: 26.0 }
+                }
+          else []
         )
 
     replyQuote msg = case msg.replyTo of
