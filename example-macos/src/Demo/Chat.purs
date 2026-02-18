@@ -160,14 +160,12 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollBottomTrigger /\ setScrollBottomTrigger <- useState 1
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
-  visiblePickerIdx /\ setVisiblePickerIdx <- useState' (Nothing :: Maybe Int)
   hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
   pickerScale <- R.useSharedValue 0.0
   pickerOpacity <- R.useSharedValue 0.0
   useEffect reactPopover do
     case reactPopover of
       Just _ -> do
-        setVisiblePickerIdx reactPopover
         R.writeSharedValue pickerScale 0.0
         R.writeSharedValue pickerOpacity 0.0
         R.springTo pickerScale 1.0 { stiffness: 500.0, damping: 20.0 }
@@ -175,7 +173,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
       Nothing -> do
         R.timingTo pickerScale 0.0 { duration: 120.0 }
         R.timingTo pickerOpacity 0.0 { duration: 120.0 }
-        runEffectFn2 setTimeout_ 150 (setVisiblePickerIdx Nothing)
     pure (pure unit)
   let
     selectRoom rid = do
@@ -258,7 +255,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
               ]
         )
 
-    showSmiley idx = hoveredIdx == Just idx || reactPopover == Just idx || visiblePickerIdx == Just idx
+    showSmiley idx = hoveredIdx == Just idx || reactPopover == Just idx
 
     reactionPicker idx =
       view
@@ -282,8 +279,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , style: Style.style { height: 18.0, width: 22.0 }
             , buttonEnabled: showSmiley idx
             }
-        , if visiblePickerIdx == Just idx then emojiRow idx
-          else mempty
+        , emojiRow idx
         ]
 
     emojiRow idx =
@@ -305,6 +301,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                       , bezelStyle: T.inline
                       , onPress: reactToMessage idx emoji
                       , style: Style.style { height: 26.0, width: 26.0 }
+                      , buttonEnabled: reactPopover == Just idx
                       }
                   ]
             )
