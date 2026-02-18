@@ -354,41 +354,43 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 [ if senderLabel == "" then text { style: Style.style { height: 0.0 } } ""
                   else text { style: tw "text-xs mb-0.5" <> Style.style { color: dp.dimFg } } senderLabel
                 , replyQuote msg
-                , case singleGif of
-                    Just gifFile ->
-                      nativeAnimatedImage
-                        { source: gifFile
-                        , animating: true
-                        , cornerRadius: 8.0
-                        , style: Style.style { width: 120.0, height: 120.0 }
-                        }
-                    Nothing ->
-                      if bigEmoji then
-                        text
-                          { style: Style.style { fontSize: 64.0, lineHeight: 72.0 } }
-                          msg.body
-                      else
-                        view
-                          { style: tw "rounded-2xl px-3 py-2"
-                              <> Style.style
-                                { backgroundColor: if msg.isMine then sentBubbleBg else receivedBubbleBg }
-                          }
-                          [ view { style: Style.style {} }
-                              [ text
-                                  { style: Style.style { fontSize: 14.0, color: "transparent" } }
-                                  msg.body
-                              , nativeRichTextLabel
-                                  { text: msg.body
-                                  , emojiMap: customEmojiMap
-                                  , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
-                                  , fontSize: 14.0
-                                  , emojiSize: 0.0
-                                  , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0 }
-                                  }
+                , view { style: Style.style {} }
+                    [ case singleGif of
+                        Just gifFile ->
+                          nativeAnimatedImage
+                            { source: gifFile
+                            , animating: true
+                            , cornerRadius: 8.0
+                            , style: Style.style { width: 120.0, height: 120.0 }
+                            }
+                        Nothing ->
+                          if bigEmoji then
+                            text
+                              { style: Style.style { fontSize: 64.0, lineHeight: 72.0 } }
+                              msg.body
+                          else
+                            view
+                              { style: tw "rounded-2xl px-3 py-2"
+                                  <> Style.style
+                                    { backgroundColor: if msg.isMine then sentBubbleBg else receivedBubbleBg }
+                              }
+                              [ view { style: Style.style {} }
+                                  [ text
+                                      { style: Style.style { fontSize: 14.0, color: "transparent" } }
+                                      msg.body
+                                  , nativeRichTextLabel
+                                      { text: msg.body
+                                      , emojiMap: customEmojiMap
+                                      , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
+                                      , fontSize: 14.0
+                                      , emojiSize: 0.0
+                                      , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0 }
+                                      }
+                                  ]
                               ]
-                          ]
+                    , if not msg.isMine then reactionPicker idx else mempty
+                    ]
                 , reactionPills msg
-                , if not msg.isMine then reactionPicker idx else mempty
                 ]
             ]
         ]
