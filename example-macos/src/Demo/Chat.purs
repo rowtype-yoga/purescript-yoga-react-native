@@ -264,11 +264,14 @@ chatDemo = component "ChatDemo" \dp -> React.do
       view
         { style: Style.style
             { position: "absolute"
-            , bottom: -4.0
-            , right: -6.0
+            , bottom: 2.0
+            , right: 0.0
+            , marginBottom: -10.0
+            , marginRight: -14.0
             , flexDirection: "row"
             , alignItems: "center"
             , opacity: if showSmiley idx then 1.0 else 0.0
+            , zIndex: 30
             }
         }
         [ nativeButton
@@ -286,23 +289,28 @@ chatDemo = component "ChatDemo" \dp -> React.do
 
     emojiRow idx =
       R.reanimatedView
-        { style: tw "flex-row items-center rounded-full px-1 py-0.5 ml-1"
+        { style: tw "flex-row items-center ml-1"
             <> Style.style
-              { backgroundColor: emojiRowBg
-              , transform: [ { scale: pickerScale } ]
+              { transform: [ { scale: pickerScale } ]
               , opacity: pickerOpacity
               }
         }
-        ( reactionEmoji <#> \emoji ->
-            nativeButton
-              { title: emoji
-              , bezelStyle: T.toolbar
-              , onPress: reactToMessage idx emoji
-              , style: Style.style { height: 28.0, width: 28.0 }
-              }
+        ( mapWithIndex
+            ( \i emoji ->
+                view
+                  { onDoubleClick: handler_ (pure unit)
+                  , style: Style.style { marginLeft: if i == 0 then 0.0 else (-2.0) }
+                  }
+                  [ nativeButton
+                      { title: emoji
+                      , bezelStyle: T.inline
+                      , onPress: reactToMessage idx emoji
+                      , style: Style.style { height: 26.0, width: 26.0 }
+                      }
+                  ]
+            )
+            reactionEmoji
         )
-
-    emojiRowBg = if dp.isDark then "#3B3B3D" else "#F0F0F0"
 
     replyQuote msg = case msg.replyTo of
       Nothing -> mempty
@@ -407,6 +415,21 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 }
             ]
 
+    dismissOverlay = case visiblePickerIdx of
+      Nothing -> mempty
+      Just _ ->
+        view
+          { onDoubleClick: handler_ (pure unit)
+          , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, zIndex: 10 }
+          }
+          [ nativeButton
+              { title: ""
+              , bezelStyle: T.toolbar
+              , onPress: setReactPopover Nothing
+              , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
+              }
+          ]
+
     activeRoomName = case activeRoom of
       Nothing -> "Select a room"
       Just rid -> fromMaybe rid (map _.name (filter (\r -> r.roomId == rid) mockRooms !! 0))
@@ -416,7 +439,8 @@ chatDemo = component "ChatDemo" \dp -> React.do
       { sidebar: roomSidebar
       , sidebarWidth: 220.0
       , content: view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
-          [ view
+          [ dismissOverlay
+          , view
               { style: tw "px-4 py-2 border-b"
                   <> Style.style { borderBottomWidth: 0.5, borderColor: dp.dimFg, backgroundColor: "transparent" }
               }
