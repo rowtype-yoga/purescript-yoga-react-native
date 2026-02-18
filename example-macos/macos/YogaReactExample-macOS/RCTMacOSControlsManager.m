@@ -4354,6 +4354,32 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 @implementation RCTGifAnimation
 @end
 
+@interface RCTScaleEnforcingLayer : CALayer
+@end
+
+@implementation RCTScaleEnforcingLayer
+
+- (void)addSublayer:(CALayer *)layer {
+  CGFloat scale = self.contentsScale;
+  if (scale < 1.0) scale = [[NSScreen mainScreen] backingScaleFactor];
+  if (scale < 1.0) scale = 2.0;
+  layer.contentsScale = scale;
+  [super addSublayer:layer];
+}
+
+@end
+
+@interface RCTScaleEnforcingTextView : NSTextView
+@end
+
+@implementation RCTScaleEnforcingTextView
+
++ (Class)defaultLayerClass {
+  return [RCTScaleEnforcingLayer class];
+}
+
+@end
+
 @interface RCTNativeRichTextLabelView : NSView
 @property (nonatomic, strong) NSTextView *textView;
 @property (nonatomic, copy) NSString *text;
@@ -4373,7 +4399,7 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     _emojiSize = 0;
     _textColor = @"#FFFFFF";
 
-    _textView = [[NSTextView alloc] initWithFrame:self.bounds];
+    _textView = [[RCTScaleEnforcingTextView alloc] initWithFrame:self.bounds];
     _textView.editable = NO;
     _textView.selectable = NO;
     _textView.drawsBackground = NO;
