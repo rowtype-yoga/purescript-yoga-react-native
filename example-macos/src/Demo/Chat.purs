@@ -271,7 +271,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , flexDirection: "row"
             , alignItems: "center"
             , opacity: if showSmiley idx then 1.0 else 0.0
-            , zIndex: 30
             }
         }
         [ nativeButton
@@ -343,7 +342,9 @@ chatDemo = component "ChatDemo" \dp -> React.do
       nativeHoverView
         { onHoverChange: \hovered ->
             if hovered then setHoveredIdx (Just idx)
-            else setHoveredIdx Nothing
+            else do
+              setHoveredIdx Nothing
+              setReactPopover Nothing
         , style: tw "px-3 mb-1 rounded-lg" <> Style.style { backgroundColor: if isHighlighted then highlightBg else "transparent" }
         }
         [ view { style: Style.style { alignSelf: align } }
@@ -417,21 +418,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 }
             ]
 
-    dismissOverlay = case visiblePickerIdx of
-      Nothing -> mempty
-      Just _ ->
-        view
-          { onDoubleClick: handler_ (pure unit)
-          , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, zIndex: 10 }
-          }
-          [ nativeButton
-              { title: ""
-              , bezelStyle: T.toolbar
-              , onPress: setReactPopover Nothing
-              , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
-              }
-          ]
-
     activeRoomName = case activeRoom of
       Nothing -> "Select a room"
       Just rid -> fromMaybe rid (map _.name (filter (\r -> r.roomId == rid) mockRooms !! 0))
@@ -441,8 +427,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
       { sidebar: roomSidebar
       , sidebarWidth: 220.0
       , content: view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
-          [ dismissOverlay
-          , view
+          [ view
               { style: tw "px-4 py-2 border-b"
                   <> Style.style { borderBottomWidth: 0.5, borderColor: dp.dimFg, backgroundColor: "transparent" }
               }
