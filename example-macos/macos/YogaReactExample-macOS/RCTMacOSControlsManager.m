@@ -4391,13 +4391,20 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 
 - (void)viewDidMoveToWindow {
   [super viewDidMoveToWindow];
-  if (self.window) {
-    CGFloat scale = self.window.backingScaleFactor;
-    if (scale < 1.0) scale = 2.0;
-    _textView.layer.contentsScale = scale;
-    for (CALayer *sub in _textView.layer.sublayers) {
-      sub.contentsScale = scale;
-    }
+  [self ensureContentsScale];
+}
+
+- (void)viewWillDraw {
+  [super viewWillDraw];
+  [self ensureContentsScale];
+}
+
+- (void)ensureContentsScale {
+  CGFloat scale = self.window ? self.window.backingScaleFactor : [[NSScreen mainScreen] backingScaleFactor];
+  if (scale < 1.0) scale = 2.0;
+  _textView.layer.contentsScale = scale;
+  for (CALayer *sub in _textView.layer.sublayers) {
+    sub.contentsScale = scale;
   }
 }
 
