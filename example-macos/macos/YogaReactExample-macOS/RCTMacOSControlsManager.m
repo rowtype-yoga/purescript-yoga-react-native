@@ -2424,6 +2424,12 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 // MARK: - NSPopover
 // ===========================================================================
 
+@interface RCTFlippedPopoverContentView : NSView
+@end
+@implementation RCTFlippedPopoverContentView
+- (BOOL)isFlipped { return YES; }
+@end
+
 @interface RCTPopoverView : NSView <NSPopoverDelegate>
 @property (nonatomic, strong) NSPopover *popover;
 @property (nonatomic, strong) NSViewController *popoverVC;
@@ -2432,6 +2438,8 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 @property (nonatomic, assign) BOOL visible;
 @property (nonatomic, copy) NSString *preferredEdge;
 @property (nonatomic, copy) NSString *behavior;
+@property (nonatomic, assign) CGFloat popoverWidth;
+@property (nonatomic, assign) CGFloat popoverHeight;
 @property (nonatomic, copy) RCTBubblingEventBlock onClose;
 @end
 
@@ -2440,7 +2448,7 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
     _reactChildren = [NSMutableArray new];
-    _contentContainer = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 200)];
+    _contentContainer = [[NSView alloc] initWithFrame:NSZeroRect];
     _popoverVC = [[NSViewController alloc] init];
     _popoverVC.view = _contentContainer;
 
@@ -2458,8 +2466,17 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
   _visible = visible;
   if (visible) {
     if (!_popover.isShown && self.window) {
+      CGFloat w = _popoverWidth > 0 ? _popoverWidth : 200;
+      CGFloat h = _popoverHeight > 0 ? _popoverHeight : 40;
+      _popover.contentSize = NSMakeSize(w, h);
+      // Position RN child centered vertically in the unflipped container
+      for (NSView *child in _contentContainer.subviews) {
+        CGRect cf = child.frame;
+        CGFloat y = (h - cf.size.height) / 2.0;
+        if (y < 0) y = 0;
+        child.frame = CGRectMake(cf.origin.x, y, cf.size.width, cf.size.height);
+      }
       NSRectEdge edge = [self edgeFromString:_preferredEdge];
-      // Anchor to first child (the button) if present, else self
       NSView *anchor = _reactChildren.count > 0 ? _reactChildren[0] : self;
       [_popover showRelativeToRect:anchor.bounds ofView:anchor preferredEdge:edge];
     }
@@ -2504,22 +2521,23 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
   return [_reactChildren copy];
 }
 
-- (void)didUpdateReactSubviews {
-  [self performSelector:@selector(layoutPopoverContent) withObject:nil afterDelay:0];
+- (void)setPopoverWidth:(CGFloat)popoverWidth {
+  _popoverWidth = popoverWidth;
+  [self updatePopoverSize];
 }
 
-- (void)layoutPopoverContent {
-  CGFloat maxW = 0, maxH = 0;
-  for (NSView *child in _contentContainer.subviews) {
-    CGFloat r = CGRectGetMaxX(child.frame);
-    CGFloat b = CGRectGetMaxY(child.frame);
-    if (r > maxW) maxW = r;
-    if (b > maxH) maxH = b;
+- (void)setPopoverHeight:(CGFloat)popoverHeight {
+  _popoverHeight = popoverHeight;
+  [self updatePopoverSize];
+}
+
+- (void)updatePopoverSize {
+  if (_popoverWidth > 0 && _popoverHeight > 0) {
+    _popover.contentSize = NSMakeSize(_popoverWidth, _popoverHeight);
   }
-  if (maxW > 0 && maxH > 0) {
-    _popover.contentSize = NSMakeSize(maxW, maxH);
-    _contentContainer.frame = NSMakeRect(0, 0, maxW, maxH);
-  }
+}
+
+- (void)didUpdateReactSubviews {
 }
 
 - (void)popoverDidClose:(NSNotification *)notification {
@@ -2537,6 +2555,8 @@ RCT_EXPORT_MODULE(MacOSPopover)
 RCT_EXPORT_VIEW_PROPERTY(visible, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(preferredEdge, NSString)
 RCT_EXPORT_VIEW_PROPERTY(behavior, NSString)
+RCT_EXPORT_VIEW_PROPERTY(popoverWidth, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(popoverHeight, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(onClose, RCTBubblingEventBlock)
 @end
 

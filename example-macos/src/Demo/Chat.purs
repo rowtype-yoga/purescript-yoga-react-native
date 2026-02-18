@@ -16,7 +16,7 @@ import Effect.Uncurried (EffectFn2, runEffectFn2)
 
 import React.Basic (JSX)
 import React.Basic.Events (handler_)
-import React.Basic.Hooks (useEffect, useState, useState', (/\))
+import React.Basic.Hooks (useState, useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
@@ -24,10 +24,10 @@ import Yoga.React.Native.MacOS.AnimatedImage (nativeAnimatedImage)
 import Yoga.React.Native.MacOS.RichTextLabel (EmojiMap, nativeRichTextLabel, emojiMap)
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.HoverView (nativeHoverView)
+import Yoga.React.Native.MacOS.Popover (nativePopover)
 import Yoga.React.Native.Pressable (pressable)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
-import Yoga.React.Native.Reanimated as R
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.Types as T
@@ -163,19 +163,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollTrigger /\ setScrollTrigger <- useState 0
   hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
   hoveredEmoji /\ setHoveredEmoji <- useState' (Nothing :: Maybe Int)
-  pickerScale <- R.useSharedValue 0.01
-  pickerOpacity <- R.useSharedValue 0.0
-  useEffect reactPopover do
-    case reactPopover of
-      Just _ -> do
-        R.writeSharedValue pickerScale 0.01
-        R.writeSharedValue pickerOpacity 0.0
-        R.animate pickerScale (R.withClamp { min: 0.01 } (R.withSpring 1.0 { stiffness: 500.0, damping: 20.0 }))
-        R.springTo pickerOpacity 1.0 { stiffness: 500.0, damping: 20.0 }
-      Nothing -> do
-        R.animate pickerScale (R.withClamp { min: 0.01 } (R.withTiming 0.01 { duration: 120.0 }))
-        R.timingTo pickerOpacity 0.0 { duration: 120.0 }
-    pure (pure unit)
   let
     selectRoom rid = do
       setActiveRoom (Just rid)
@@ -259,62 +246,43 @@ chatDemo = component "ChatDemo" \dp -> React.do
 
     showSmiley idx = hoveredIdx == Just idx || reactPopover == Just idx
 
-    emojiRowBg = if dp.isDark then "#3B3B3D" else "#F0F0F0"
-
     reactionPicker idx =
-      view { style: Style.style {} }
-        [ view
-            { style: Style.style
-                { position: "absolute"
-                , bottom: -4.0
-                , right: -10.0
-                , opacity: if showSmiley idx then 1.0 else 0.0
-                }
-            }
-            [ nativeButton
-                { title: "☺"
-                , bezelStyle: T.toolbar
-                , onPress:
-                    if reactPopover == Just idx then setReactPopover Nothing
-                    else setReactPopover (Just idx)
-                , style: Style.style { height: 24.0, width: 28.0 }
-                , buttonEnabled: showSmiley idx
-                }
-            ]
-        , emojiRow idx
-        ]
-
-    emojiRow idx =
-      R.reanimatedView
-        { style: tw "flex-row items-center rounded-full px-1 py-1"
-            <> Style.style
-              { position: "absolute"
-              , bottom: -30.0
-              , right: -10.0
-              , transform: [ { scale: pickerScale } ]
-              , opacity: pickerOpacity
-              , backgroundColor: emojiRowBg
-              , zIndex: 10
-              }
+      nativePopover
+        { visible: reactPopover == Just idx
+        , preferredEdge: T.bottom
+        , behavior: T.transient
+        , popoverWidth: 214.0
+        , popoverHeight: 40.0
+        , onClose: setReactPopover Nothing
+        , style: Style.style { opacity: if showSmiley idx then 1.0 else 0.0 }
         }
-        ( if reactPopover == Just idx then
-            mapWithIndex
-              ( \i emoji ->
-                  let
-                    hoverBg = if hoveredEmoji == Just i then (if dp.isDark then "#555555" else "#D8D8D8") else "transparent"
-                  in
-                    pressable
-                      { onPress: handler_ (reactToMessage idx emoji)
-                      , style: tw "items-center justify-center rounded-full mx-0.5"
-                          <> Style.style { width: 30.0, height: 30.0, backgroundColor: hoverBg }
-                      , onMouseEnter: handler_ (setHoveredEmoji (Just i))
-                      , onMouseLeave: handler_ (setHoveredEmoji Nothing)
-                      }
-                      [ text { style: Style.style { fontSize: 18.0 } } emoji ]
-              )
-              reactionEmoji
-          else []
-        )
+        [ nativeButton
+            { title: "☺"
+            , bezelStyle: T.toolbar
+            , onPress:
+                if reactPopover == Just idx then setReactPopover Nothing
+                else setReactPopover (Just idx)
+            , style: Style.style { height: 24.0, width: 28.0 }
+            , buttonEnabled: showSmiley idx
+            }
+        , view { style: tw "flex-row items-center" }
+            ( mapWithIndex
+                ( \i emoji ->
+                    let
+                      hoverBg = if hoveredEmoji == Just i then (if dp.isDark then "#555555" else "#D8D8D8") else "transparent"
+                    in
+                      pressable
+                        { onPress: handler_ (reactToMessage idx emoji)
+                        , style: tw "items-center justify-center rounded-full mx-0.5"
+                            <> Style.style { width: 32.0, height: 32.0, backgroundColor: hoverBg }
+                        , onMouseEnter: handler_ (setHoveredEmoji (Just i))
+                        , onMouseLeave: handler_ (setHoveredEmoji Nothing)
+                        }
+                        [ text { style: Style.style { fontSize: 20.0 } } emoji ]
+                )
+                reactionEmoji
+            )
+        ]
 
     replyQuote msg = case msg.replyTo of
       Nothing -> mempty
@@ -347,9 +315,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
       nativeHoverView
         { onHoverChange: \hovered ->
             if hovered then setHoveredIdx (Just idx)
-            else do
-              setHoveredIdx Nothing
-              setReactPopover Nothing
+            else setHoveredIdx Nothing
         , style: tw "px-3 mb-1 rounded-lg" <> Style.style { backgroundColor: if isHighlighted then highlightBg else "transparent" }
         }
         [ view { style: Style.style { alignSelf: align } }
@@ -360,7 +326,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 [ if senderLabel == "" then text { style: Style.style { height: 0.0 } } ""
                   else text { style: tw "text-xs mb-0.5" <> Style.style { color: dp.dimFg } } senderLabel
                 , replyQuote msg
-                , view { style: Style.style { overflow: "visible", zIndex: 10 } }
+                , view { style: tw "flex-row items-end" }
                     [ case singleGif of
                         Just gifFile ->
                           nativeAnimatedImage
