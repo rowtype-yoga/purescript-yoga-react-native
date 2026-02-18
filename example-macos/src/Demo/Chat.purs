@@ -262,7 +262,15 @@ chatDemo = component "ChatDemo" \dp -> React.do
 
     reactionPicker idx =
       if showSmiley idx then
-        view { style: tw "flex-row items-center" <> Style.style { alignSelf: "flex-end" } }
+        view
+          { style: Style.style
+              { position: "absolute"
+              , bottom: -4.0
+              , right: -6.0
+              , flexDirection: "row"
+              , alignItems: "center"
+              }
+          }
           [ nativeButton
               { title: "☺"
               , bezelStyle: T.toolbar
