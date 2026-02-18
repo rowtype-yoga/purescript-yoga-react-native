@@ -4354,34 +4354,10 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 @implementation RCTGifAnimation
 @end
 
-@interface RCTScaleEnforcingLayer : CALayer
-@end
-
-@implementation RCTScaleEnforcingLayer
-
-- (void)addSublayer:(CALayer *)layer {
-  CGFloat scale = self.contentsScale;
-  if (scale < 1.0) scale = [[NSScreen mainScreen] backingScaleFactor];
-  if (scale < 1.0) scale = 2.0;
-  layer.contentsScale = scale;
-  [super addSublayer:layer];
-}
-
-@end
-
-@interface RCTScaleEnforcingTextView : NSTextView
-@end
-
-@implementation RCTScaleEnforcingTextView
-
-+ (Class)defaultLayerClass {
-  return [RCTScaleEnforcingLayer class];
-}
-
-@end
-
 @interface RCTNativeRichTextLabelView : NSView
-@property (nonatomic, strong) NSTextView *textView;
+@property (nonatomic, strong) NSTextStorage *textStorage;
+@property (nonatomic, strong) NSLayoutManager *layoutManager;
+@property (nonatomic, strong) NSTextContainer *textContainer;
 @property (nonatomic, copy) NSString *text;
 @property (nonatomic, copy) NSDictionary *emojiMap;
 @property (nonatomic, copy) NSString *textColor;
@@ -4393,51 +4369,36 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 
 @implementation RCTNativeRichTextLabelView
 
+- (BOOL)isFlipped { return YES; }
+
 - (instancetype)initWithFrame:(NSRect)frame {
   if (self = [super initWithFrame:frame]) {
     _fontSize = 14.0;
     _emojiSize = 0;
     _textColor = @"#FFFFFF";
 
-    _textView = [[NSTextView alloc] initWithFrame:self.bounds];
-    _textView.editable = NO;
-    _textView.selectable = NO;
-    _textView.drawsBackground = NO;
-    _textView.textContainerInset = NSZeroSize;
-    _textView.textContainer.lineFragmentPadding = 0;
-    _textView.verticallyResizable = YES;
-    _textView.horizontallyResizable = NO;
-    _textView.textContainer.widthTracksTextView = YES;
-    // Do NOT set wantsLayer on _textView — NSTextLayer asserts contentsScale != 0.
-    // Instead, layer-back self for GIF animation sublayers.
+    _textStorage = [[NSTextStorage alloc] init];
+    _layoutManager = [[NSLayoutManager alloc] init];
+    _textContainer = [[NSTextContainer alloc] initWithContainerSize:NSMakeSize(frame.size.width, FLT_MAX)];
+    _textContainer.lineFragmentPadding = 0;
+    [_layoutManager addTextContainer:_textContainer];
+    [_textStorage addLayoutManager:_layoutManager];
+
+    // Layer-back self for GIF animation sublayers only
     self.wantsLayer = YES;
     self.layer.contentsScale = [[NSScreen mainScreen] backingScaleFactor] ?: 2.0;
-    [self addSubview:_textView];
   }
   return self;
 }
 
-- (void)viewDidMoveToWindow {
-  [super viewDidMoveToWindow];
-  [self ensureContentsScale];
-}
-
-- (void)viewWillDraw {
-  [super viewWillDraw];
-  [self ensureContentsScale];
-}
-
-- (void)ensureContentsScale {
-  CGFloat scale = self.window ? self.window.backingScaleFactor : [[NSScreen mainScreen] backingScaleFactor];
-  if (scale < 1.0) scale = 2.0;
-  self.layer.contentsScale = scale;
-  for (CALayer *sub in self.layer.sublayers) {
-    sub.contentsScale = scale;
-  }
-}
-
 - (void)dealloc {
   [_gifTimer invalidate];
+}
+
+- (void)drawRect:(NSRect)dirtyRect {
+  NSRange glyphRange = [_layoutManager glyphRangeForTextContainer:_textContainer];
+  [_layoutManager drawBackgroundForGlyphRange:glyphRange atPoint:NSZeroPoint];
+  [_layoutManager drawGlyphsForGlyphRange:glyphRange atPoint:NSZeroPoint];
 }
 
 - (void)stopGifAnimation {
@@ -4461,17 +4422,15 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 }
 
 - (void)positionGifLayers {
-  NSLayoutManager *lm = _textView.layoutManager;
-  NSTextContainer *tc = _textView.textContainer;
   CGFloat viewHeight = self.frame.size.height;
   CGFloat es = _emojiSize > 0 ? _emojiSize : (_fontSize > 0 ? _fontSize : 14.0) * 1.3;
 
   for (RCTGifAnimation *anim in _gifAnimations) {
     NSUInteger charIdx = anim.charIndex;
-    if (charIdx >= _textView.textStorage.length) continue;
-    NSRange glyphRange = [lm glyphRangeForCharacterRange:NSMakeRange(charIdx, 1) actualCharacterRange:NULL];
-    NSRect glyphRect = [lm boundingRectForGlyphRange:glyphRange inTextContainer:tc];
-    // Flip Y for CALayer (CALayer origin is bottom-left, self is flipped)
+    if (charIdx >= _textStorage.length) continue;
+    NSRange glyphRange = [_layoutManager glyphRangeForCharacterRange:NSMakeRange(charIdx, 1) actualCharacterRange:NULL];
+    NSRect glyphRect = [_layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:_textContainer];
+    // Flip Y for CALayer (CALayer origin is bottom-left, view is flipped)
     CGFloat layerY = viewHeight - glyphRect.origin.y - es;
     anim.layer.frame = CGRectMake(glyphRect.origin.x, layerY, es, es);
   }
@@ -4562,7 +4521,6 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
       if ([imagePath hasPrefix:@"/"]) {
         bundlePath = imagePath;
       } else if ([imagePath hasPrefix:@"http"]) {
-        // URL loading — no GIF animation support for URLs
         NSURL *url = [NSURL URLWithString:imagePath];
         image = [[NSImage alloc] initWithContentsOfURL:url];
       } else {
@@ -4571,7 +4529,6 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
       }
 
       if (bundlePath) {
-        // Check if it's a GIF with multiple frames
         if ([[imagePath pathExtension] caseInsensitiveCompare:@"gif"] == NSOrderedSame) {
           NSData *data = [NSData dataWithContentsOfFile:bundlePath];
           if (data) {
@@ -4579,7 +4536,6 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
             NSNumber *frameCountNum = [rep valueForProperty:NSImageFrameCount];
             if (frameCountNum && [frameCountNum integerValue] > 1) {
               gifFrameCount = [frameCountNum integerValue];
-              // Pre-render all frames into CGImage array
               NSMutableArray *frames = [NSMutableArray arrayWithCapacity:gifFrameCount];
               for (NSInteger f = 0; f < gifFrameCount; f++) {
                 [rep setProperty:NSImageCurrentFrame withValue:@(f)];
@@ -4588,7 +4544,6 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
               }
               if (frames.count > 0) {
                 gifFrames = frames;
-                // Use a transparent placeholder — the CALayer renders the actual frames
                 image = [[NSImage alloc] initWithSize:NSMakeSize(es, es)];
               }
             } else {
@@ -4603,8 +4558,6 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 
     if (image) {
       NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-      // Set bounds so emoji is vertically centered on the text line.
-      // y offset shifts attachment down from baseline; negative y = below baseline.
       CGFloat yOffset = font.descender;
       attachment.bounds = CGRectMake(0, yOffset, es, es);
       attachment.image = image;
@@ -4635,8 +4588,9 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     [result appendAttributedString:[[NSAttributedString alloc] initWithString:tail attributes:textAttrs]];
   }
 
-  [[_textView textStorage] setAttributedString:result];
+  [_textStorage setAttributedString:result];
   [self startGifAnimationIfNeeded];
+  [self setNeedsDisplay:YES];
 }
 
 - (NSSize)intrinsicContentSize {
@@ -4645,25 +4599,18 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 
 - (void)reactSetFrame:(CGRect)frame {
   [super reactSetFrame:frame];
-  _textView.frame = NSMakeRect(0, 0, frame.size.width, frame.size.height);
-  _textView.textContainer.containerSize = NSMakeSize(frame.size.width, FLT_MAX);
-
-  NSLayoutManager *lm = _textView.layoutManager;
-  NSTextContainer *tc = _textView.textContainer;
-  [lm ensureLayoutForTextContainer:tc];
-  NSRect usedRect = [lm usedRectForTextContainer:tc];
-  CGFloat textHeight = ceil(usedRect.size.height);
-
-  if (textHeight > 0 && fabs(textHeight - frame.size.height) > 1.0) {
-    _textView.frame = NSMakeRect(0, 0, frame.size.width, textHeight);
-  }
+  _textContainer.containerSize = NSMakeSize(frame.size.width, FLT_MAX);
+  [_layoutManager ensureLayoutForTextContainer:_textContainer];
   [self positionGifLayers];
+  [self setNeedsDisplay:YES];
 }
 
 - (void)layout {
   [super layout];
-  _textView.frame = self.bounds;
+  _textContainer.containerSize = NSMakeSize(self.bounds.size.width, FLT_MAX);
+  [_layoutManager ensureLayoutForTextContainer:_textContainer];
   [self positionGifLayers];
+  [self setNeedsDisplay:YES];
 }
 
 @end

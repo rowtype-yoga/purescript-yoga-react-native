@@ -261,10 +261,8 @@ chatDemo = component "ChatDemo" \dp -> React.do
       view
         { style: Style.style
             { position: "absolute"
-            , bottom: 2.0
-            , right: 0.0
-            , marginBottom: -10.0
-            , marginRight: -14.0
+            , bottom: -6.0
+            , right: -12.0
             , flexDirection: "row"
             , alignItems: "center"
             , opacity: if showSmiley idx then 1.0 else 0.0
@@ -352,7 +350,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 [ if senderLabel == "" then text { style: Style.style { height: 0.0 } } ""
                   else text { style: tw "text-xs mb-0.5" <> Style.style { color: dp.dimFg } } senderLabel
                 , replyQuote msg
-                , view { style: Style.style {} }
+                , view { style: Style.style { overflow: "visible" } }
                     [ case singleGif of
                         Just gifFile ->
                           nativeAnimatedImage
