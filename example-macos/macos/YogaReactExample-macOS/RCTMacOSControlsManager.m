@@ -4399,7 +4399,7 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     _emojiSize = 0;
     _textColor = @"#FFFFFF";
 
-    _textView = [[RCTScaleEnforcingTextView alloc] initWithFrame:self.bounds];
+    _textView = [[NSTextView alloc] initWithFrame:self.bounds];
     _textView.editable = NO;
     _textView.selectable = NO;
     _textView.drawsBackground = NO;
@@ -4408,8 +4408,10 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     _textView.verticallyResizable = YES;
     _textView.horizontallyResizable = NO;
     _textView.textContainer.widthTracksTextView = YES;
-    _textView.wantsLayer = YES;
-    _textView.layer.contentsScale = [[NSScreen mainScreen] backingScaleFactor] ?: 2.0;
+    // Do NOT set wantsLayer on _textView — NSTextLayer asserts contentsScale != 0.
+    // Instead, layer-back self for GIF animation sublayers.
+    self.wantsLayer = YES;
+    self.layer.contentsScale = [[NSScreen mainScreen] backingScaleFactor] ?: 2.0;
     [self addSubview:_textView];
   }
   return self;
@@ -4428,8 +4430,8 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 - (void)ensureContentsScale {
   CGFloat scale = self.window ? self.window.backingScaleFactor : [[NSScreen mainScreen] backingScaleFactor];
   if (scale < 1.0) scale = 2.0;
-  _textView.layer.contentsScale = scale;
-  for (CALayer *sub in _textView.layer.sublayers) {
+  self.layer.contentsScale = scale;
+  for (CALayer *sub in self.layer.sublayers) {
     sub.contentsScale = scale;
   }
 }
@@ -4461,7 +4463,7 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 - (void)positionGifLayers {
   NSLayoutManager *lm = _textView.layoutManager;
   NSTextContainer *tc = _textView.textContainer;
-  CGFloat viewHeight = _textView.frame.size.height;
+  CGFloat viewHeight = self.frame.size.height;
   CGFloat es = _emojiSize > 0 ? _emojiSize : (_fontSize > 0 ? _fontSize : 14.0) * 1.3;
 
   for (RCTGifAnimation *anim in _gifAnimations) {
@@ -4469,7 +4471,7 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
     if (charIdx >= _textView.textStorage.length) continue;
     NSRange glyphRange = [lm glyphRangeForCharacterRange:NSMakeRange(charIdx, 1) actualCharacterRange:NULL];
     NSRect glyphRect = [lm boundingRectForGlyphRange:glyphRange inTextContainer:tc];
-    // Flip Y for CALayer (CALayer origin is bottom-left, NSTextView is flipped)
+    // Flip Y for CALayer (CALayer origin is bottom-left, self is flipped)
     CGFloat layerY = viewHeight - glyphRect.origin.y - es;
     anim.layer.frame = CGRectMake(glyphRect.origin.x, layerY, es, es);
   }
@@ -4617,7 +4619,7 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
         anim.layer = [CALayer layer];
         anim.layer.contentsGravity = kCAGravityResizeAspect;
         anim.layer.contents = gifFrames[0];
-        [_textView.layer addSublayer:anim.layer];
+        [self.layer addSublayer:anim.layer];
         [_gifAnimations addObject:anim];
       }
     } else {
