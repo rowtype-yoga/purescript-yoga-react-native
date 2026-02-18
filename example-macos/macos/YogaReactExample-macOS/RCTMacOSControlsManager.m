@@ -78,6 +78,8 @@
   if ([bezelStyle isEqualToString:@"toolbar"]) _button.bezelStyle = NSBezelStyleToolbar;
   else if ([bezelStyle isEqualToString:@"texturedSquare"]) _button.bezelStyle = NSBezelStyleTexturedSquare;
   else if ([bezelStyle isEqualToString:@"inline"]) _button.bezelStyle = NSBezelStyleInline;
+  else if ([bezelStyle isEqualToString:@"circular"]) _button.bezelStyle = NSBezelStyleCircular;
+  else if ([bezelStyle isEqualToString:@"accessoryBarAction"]) _button.bezelStyle = NSBezelStyleAccessoryBarAction;
   else _button.bezelStyle = NSBezelStylePush;
 }
 

@@ -17,6 +17,12 @@ texturedSquare = BezelStyle "texturedSquare"
 inline :: BezelStyle
 inline = BezelStyle "inline"
 
+circular :: BezelStyle
+circular = BezelStyle "circular"
+
+accessoryBarAction :: BezelStyle
+accessoryBarAction = BezelStyle "accessoryBarAction"
+
 newtype VisualEffectMaterial = VisualEffectMaterial String
 
 sidebar :: VisualEffectMaterial

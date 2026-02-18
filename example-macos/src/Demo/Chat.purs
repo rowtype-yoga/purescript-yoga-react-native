@@ -161,17 +161,17 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
   hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
-  pickerScale <- R.useSharedValue 0.5
+  pickerScale <- R.useSharedValue 0.01
   pickerOpacity <- R.useSharedValue 0.0
   useEffect reactPopover do
     case reactPopover of
       Just _ -> do
-        R.writeSharedValue pickerScale 0.5
+        R.writeSharedValue pickerScale 0.01
         R.writeSharedValue pickerOpacity 0.0
-        R.springTo pickerScale 1.0 { stiffness: 500.0, damping: 20.0 }
+        R.animate pickerScale (R.withClamp { min: 0.01 } (R.withSpring 1.0 { stiffness: 500.0, damping: 20.0 }))
         R.springTo pickerOpacity 1.0 { stiffness: 500.0, damping: 20.0 }
       Nothing -> do
-        R.timingTo pickerScale 0.5 { duration: 120.0 }
+        R.animate pickerScale (R.withClamp { min: 0.01 } (R.withTiming 0.01 { duration: 120.0 }))
         R.timingTo pickerOpacity 0.0 { duration: 120.0 }
     pure (pure unit)
   let
@@ -257,44 +257,51 @@ chatDemo = component "ChatDemo" \dp -> React.do
 
     showSmiley idx = hoveredIdx == Just idx || reactPopover == Just idx
 
+    emojiRowBg = if dp.isDark then "#3B3B3D" else "#F0F0F0"
+    emojiRowBorder = if dp.isDark then "#555555" else "#CCCCCC"
+
     reactionPicker idx =
-      view
-        { style: Style.style
-            { position: "absolute"
-            , bottom: -6.0
-            , right: -12.0
-            , flexDirection: "row"
-            , alignItems: "center"
-            , opacity: if showSmiley idx then 1.0 else 0.0
+      view { style: Style.style {} }
+        [ view
+            { style: Style.style
+                { position: "absolute"
+                , bottom: -4.0
+                , right: -10.0
+                , opacity: if showSmiley idx then 1.0 else 0.0
+                }
             }
-        }
-        [ nativeButton
-            { title: "☺"
-            , bezelStyle: T.toolbar
-            , onPress:
-                if reactPopover == Just idx then setReactPopover Nothing
-                else setReactPopover (Just idx)
-            , style: Style.style { height: 18.0, width: 22.0 }
-            , buttonEnabled: showSmiley idx
-            }
+            [ nativeButton
+                { title: "☺"
+                , bezelStyle: T.toolbar
+                , onPress:
+                    if reactPopover == Just idx then setReactPopover Nothing
+                    else setReactPopover (Just idx)
+                , style: Style.style { height: 24.0, width: 28.0 }
+                , buttonEnabled: showSmiley idx
+                }
+            ]
         , emojiRow idx
         ]
 
     emojiRow idx =
       R.reanimatedView
-        { style: tw "flex-row items-center ml-1"
+        { style: tw "flex-row items-center rounded-full px-1 py-1"
             <> Style.style
-              { transform: [ { scale: pickerScale } ]
+              { position: "absolute"
+              , bottom: -30.0
+              , right: -10.0
+              , transform: [ { scale: pickerScale } ]
               , opacity: pickerOpacity
+              , backgroundColor: emojiRowBg
               }
         }
         ( if reactPopover == Just idx then
             reactionEmoji <#> \emoji ->
               nativeButton
                 { title: emoji
-                , bezelStyle: T.inline
+                , bezelStyle: T.accessoryBarAction
                 , onPress: reactToMessage idx emoji
-                , style: Style.style { height: 26.0, width: 26.0 }
+                , style: Style.style { height: 30.0, width: 30.0 }
                 }
           else []
         )

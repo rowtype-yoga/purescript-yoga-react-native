@@ -7,6 +7,7 @@ import Animated, {
   withDelay,
   withSequence,
   withRepeat,
+  withClamp,
   interpolate,
   cancelAnimation,
   Easing,
@@ -66,6 +67,8 @@ export const withDelayImpl = (ms) => (anim) => withDelay(ms, anim);
 export const withSequenceImpl = (anims) => withSequence(...anims);
 export const withRepeatImpl = (anim) => (count) => (reverse) =>
   withRepeat(anim, count, reverse);
+
+export const withClampImpl = (config) => (anim) => withClamp(config, anim);
 
 // Interpolation
 export const interpolateImpl =

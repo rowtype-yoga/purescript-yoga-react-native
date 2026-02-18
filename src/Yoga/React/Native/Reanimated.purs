@@ -18,6 +18,7 @@ module Yoga.React.Native.Reanimated
   , withDelay
   , withSequence
   , withRepeat
+  , withClamp
   , interpolate
   , reanimatedView
   , reanimatedView_
@@ -136,6 +137,11 @@ withSequence = withSequenceImpl
 
 withRepeat :: AnimationValue -> Int -> Boolean -> AnimationValue
 withRepeat = withRepeatImpl
+
+foreign import withClampImpl :: forall r. { | r } -> AnimationValue -> AnimationValue
+
+withClamp :: forall r. { | r } -> AnimationValue -> AnimationValue
+withClamp = withClampImpl
 
 -- Interpolation
 
