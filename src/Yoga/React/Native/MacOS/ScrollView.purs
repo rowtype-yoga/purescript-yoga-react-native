@@ -13,4 +13,5 @@ type NativeScrollViewAttributes = BaseAttributes
   ( scrollToBottom :: Int
   , scrollToY :: Number
   , scrollToYTrigger :: Int
+  , maintainScrollPosition :: Boolean
   )
