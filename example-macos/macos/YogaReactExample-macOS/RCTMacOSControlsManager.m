@@ -4742,18 +4742,16 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 
 - (void)didSetProps:(NSArray<NSString *> *)changedProps
 {
-  NSLog(@"[RichTextLabel] didSetProps: reactTag=%@ bridge=%@ measuredSize=%@", self.reactTag, _bridge, NSStringFromSize(_measuredContentSize));
-  // reactTag is guaranteed to be set by the time didSetProps: is called,
-  // so it's safe to update the intrinsic content size via the UIManager.
-  if (_bridge && !CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
-    CGSize size = _measuredContentSize;
-    NSLog(@"[RichTextLabel] calling setIntrinsicContentSize:%@ forView:%@", NSStringFromSize(size), self.reactTag);
-    RCTUIManager *uiManager = [_bridge moduleForClass:[RCTUIManager class]];
-    [uiManager setIntrinsicContentSize:size forView:self];
+  NSLog(@"[RichTextLabel] didSetProps: reactTag=%@ measuredSize=%@", self.reactTag, NSStringFromSize(_measuredContentSize));
+  if (!CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
+    [self invalidateIntrinsicContentSize];
   }
 }
 
 - (NSSize)intrinsicContentSize {
+  if (!CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
+    return _measuredContentSize;
+  }
   return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
 }
 
