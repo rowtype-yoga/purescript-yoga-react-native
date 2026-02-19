@@ -64,13 +64,21 @@ export const splitViewImpl = React.forwardRef((props, ref) => {
       onMouseEnter: () => setHovered(true),
       onMouseLeave: () => setHovered(false),
       style: {
-        width: Math.max(dividerThickness, 5),
+        width: 9,
         cursor: "col-resize",
-        backgroundColor: hovered ? dHoverColor : dColor,
-        justifyContent: "center",
         alignItems: "center",
+        justifyContent: "center",
       },
-    }),
+    },
+      React.createElement(View, {
+        style: {
+          width: dividerThickness,
+          height: "100%",
+          backgroundColor: hovered ? dHoverColor : dColor,
+        },
+        pointerEvents: "none",
+      })
+    ),
     React.createElement(
       View,
       { style: { flex: 1, overflow: "hidden" } },
