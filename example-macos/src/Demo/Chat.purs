@@ -249,6 +249,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
         { visible: reactPopover == Just idx
         , preferredEdge: T.bottom
         , behavior: T.transient
+        , popoverPadding: 20.0
         , onClose: setReactPopover Nothing
         , style: Style.style { opacity: if showSmiley idx then 1.0 else 0.0 }
         }

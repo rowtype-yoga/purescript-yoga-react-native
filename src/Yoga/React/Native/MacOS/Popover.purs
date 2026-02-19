@@ -21,5 +21,6 @@ type NativePopoverAttributes = BaseAttributes
   , behavior :: PopoverBehavior
   , popoverWidth :: Number
   , popoverHeight :: Number
+  , popoverPadding :: Number
   , onClose :: Effect Unit
   )

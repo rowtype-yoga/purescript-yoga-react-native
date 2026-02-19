@@ -2474,6 +2474,7 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 @property (nonatomic, copy) NSString *behavior;
 @property (nonatomic, assign) CGFloat popoverWidth;
 @property (nonatomic, assign) CGFloat popoverHeight;
+@property (nonatomic, assign) CGFloat popoverPadding;
 @property (nonatomic, copy) RCTBubblingEventBlock onClose;
 @end
 
@@ -2510,7 +2511,7 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
           contentRect = CGRectUnion(contentRect, child.frame);
         }
         if (w <= 0) w = contentRect.size.width;
-        if (h <= 0) h = contentRect.size.height - 20;
+        if (h <= 0) h = contentRect.size.height - _popoverPadding;
       }
       if (w < 20) w = 20;
       if (h < 10) h = 10;
@@ -2616,6 +2617,7 @@ RCT_EXPORT_VIEW_PROPERTY(preferredEdge, NSString)
 RCT_EXPORT_VIEW_PROPERTY(behavior, NSString)
 RCT_EXPORT_VIEW_PROPERTY(popoverWidth, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(popoverHeight, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(popoverPadding, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(onClose, RCTBubblingEventBlock)
 @end
 
