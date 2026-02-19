@@ -261,7 +261,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , style: Style.style { height: 24.0, width: 28.0 }
             , buttonEnabled: showSmiley idx
             }
-        , view { style: tw "flex-row items-center" }
+        , view { style: tw "flex-row items-center px-2" }
             ( mapWithIndex
                 ( \_ emoji ->
                     nativeButton
