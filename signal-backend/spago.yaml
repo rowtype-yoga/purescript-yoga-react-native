@@ -1,0 +1,51 @@
+workspace:
+  packageSet:
+    registry: 73.0.0
+  extraPackages:
+    ref-lifted:
+      path: /Users/mark/code/purescript-ref-lifted
+    yoga-om:
+      path: /Users/mark/code/purescript-yoga-om
+    yoga-om-layer:
+      path: /Users/mark/code/purescript-yoga-om-layer
+    yoga-bun-yoga:
+      path: /Users/mark/code/purescript-yoga-bun-yoga
+    yoga-sqlite:
+      path: /Users/mark/code/purescript-yoga-sqlite
+    yoga-sqlite-om:
+      path: /Users/mark/code/purescript-yoga-sqlite-om
+    yoga-sql-types:
+      path: /Users/mark/code/purescript-yoga-sql-types
+    yoga-json: "5.2.0"
+
+package:
+  name: signal-backend
+  dependencies:
+    - aff
+    - arraybuffer-types
+    - arrays
+    - avar
+    - console
+    - effect
+    - either
+    - foldable-traversable
+    - foreign
+    - foreign-object
+    - js-promise
+    - js-promise-aff
+    - maybe
+    - newtype
+    - nullable
+    - prelude
+    - refs
+    - strings
+    - tuples
+    - unsafe-coerce
+    - variant
+    - web-fetch
+    - yoga-json
+    - yoga-om
+    - yoga-om-layer
+    - yoga-bun-yoga
+    - yoga-sqlite
+    - yoga-sqlite-om

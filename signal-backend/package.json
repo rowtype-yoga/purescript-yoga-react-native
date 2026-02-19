@@ -1,0 +1,15 @@
+{
+  "name": "signal-backend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@signalapp/libsignal-client": "^0.87.2"
+  }
+}
