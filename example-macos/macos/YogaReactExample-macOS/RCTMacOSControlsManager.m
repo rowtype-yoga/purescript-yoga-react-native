@@ -21,9 +21,30 @@
 // 1. NSButton
 // ============================================================
 
+@interface RCTBorderlessButtonCell : NSButtonCell
+@property (nonatomic, assign) BOOL hovered;
+@end
+
+@implementation RCTBorderlessButtonCell
+- (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {
+  if (_hovered) {
+    BOOL isDark = [NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[NSAppearanceNameDarkAqua]] != nil;
+    NSColor *color = isDark
+      ? [NSColor colorWithWhite:1.0 alpha:0.15]
+      : [NSColor colorWithWhite:0.0 alpha:0.1];
+    [color setFill];
+    NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:cellFrame
+      xRadius:cellFrame.size.height / 2.0
+      yRadius:cellFrame.size.height / 2.0];
+    [path fill];
+  }
+  [super drawWithFrame:cellFrame inView:controlView];
+}
+@end
+
 @interface RCTNativeButtonView : NSView
 @property (nonatomic, strong) NSButton *button;
-@property (nonatomic, strong) CALayer *hoverLayer;
+@property (nonatomic, assign) BOOL borderlessHover;
 @property (nonatomic, copy) RCTDirectEventBlock onPressButton;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *sfSymbol;
@@ -50,17 +71,16 @@
 }
 
 - (void)mouseEntered:(NSEvent *)event {
-  if (_hoverLayer) {
-    BOOL isDark = [NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[NSAppearanceNameDarkAqua]] != nil;
-    _hoverLayer.backgroundColor = isDark
-      ? [NSColor colorWithWhite:1.0 alpha:0.15].CGColor
-      : [NSColor colorWithWhite:0.0 alpha:0.1].CGColor;
+  if (_borderlessHover) {
+    ((RCTBorderlessButtonCell *)_button.cell).hovered = YES;
+    [_button setNeedsDisplay:YES];
   }
 }
 
 - (void)mouseExited:(NSEvent *)event {
-  if (_hoverLayer) {
-    _hoverLayer.backgroundColor = nil;
+  if (_borderlessHover) {
+    ((RCTBorderlessButtonCell *)_button.cell).hovered = NO;
+    [_button setNeedsDisplay:YES];
   }
 }
 
@@ -99,9 +119,12 @@
   else if ([bezelStyle isEqualToString:@"accessoryBarAction"]) _button.bezelStyle = NSBezelStyleAccessoryBarAction;
   else if ([bezelStyle isEqualToString:@"borderless"]) {
     _button.bordered = NO;
-    self.wantsLayer = YES;
-    _hoverLayer = [CALayer layer];
-    [self.layer insertSublayer:_hoverLayer below:_button.layer];
+    RCTBorderlessButtonCell *cell = [[RCTBorderlessButtonCell alloc] initTextCell:_button.title];
+    cell.bordered = NO;
+    cell.target = self;
+    cell.action = @selector(handlePress);
+    _button.cell = cell;
+    _borderlessHover = YES;
     NSTrackingArea *ta = [[NSTrackingArea alloc]
       initWithRect:NSZeroRect
       options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect
@@ -132,10 +155,7 @@
 - (void)layout {
   [super layout];
   _button.frame = self.bounds;
-  if (_hoverLayer) {
-    _hoverLayer.frame = self.bounds;
-    _hoverLayer.cornerRadius = self.bounds.size.height / 2.0;
-  }
+
 }
 @end
 

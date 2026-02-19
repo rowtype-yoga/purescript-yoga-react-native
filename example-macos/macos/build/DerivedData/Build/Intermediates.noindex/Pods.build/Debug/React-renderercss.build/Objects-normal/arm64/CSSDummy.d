@@ -1,3 +1,0 @@
-dependencies: \
-  /Users/mark/Developer/purescript-yoga-react-native/example-macos/node_modules/react-native-macos/ReactCommon/react/renderer/css/CSSDummy.cpp \
-  /Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/Pods/Target\ Support\ Files/React-renderercss/React-renderercss-prefix.pch

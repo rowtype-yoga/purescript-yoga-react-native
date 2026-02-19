@@ -3,9 +3,9 @@ module Demo.Chat (chatDemo) where
 import Prelude
 
 import Data.Array (mapWithIndex, length, filter, snoc, (!!), modifyAt)
-import Data.Foldable (foldl)
+import Data.Foldable (foldl, traverse_)
 import Data.Int (toNumber)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Nullable (Nullable, toMaybe)
 import Data.String (take)
 import Data.String as String
@@ -16,7 +16,7 @@ import Effect.Uncurried (EffectFn2, runEffectFn2)
 
 import React.Basic (JSX)
 import React.Basic.Events (handler_)
-import React.Basic.Hooks (useState, useState', (/\))
+import React.Basic.Hooks (useEffect, useState, useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
@@ -30,6 +30,7 @@ import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.Types as T
+import Yoga.React.Native.Reanimated as R
 import Yoga.React.Native.Style as Style
 
 type Reaction = { emoji :: String, count :: Int }
@@ -161,6 +162,36 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
   hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
+  opac0 <- R.useSharedValue 0.0
+  opac1 <- R.useSharedValue 0.0
+  opac2 <- R.useSharedValue 0.0
+  opac3 <- R.useSharedValue 0.0
+  opac4 <- R.useSharedValue 0.0
+  opac5 <- R.useSharedValue 0.0
+  scl0 <- R.useSharedValue 0.3
+  scl1 <- R.useSharedValue 0.3
+  scl2 <- R.useSharedValue 0.3
+  scl3 <- R.useSharedValue 0.3
+  scl4 <- R.useSharedValue 0.3
+  scl5 <- R.useSharedValue 0.3
+  let emojiOpacities = [ opac0, opac1, opac2, opac3, opac4, opac5 ]
+  let emojiScales = [ scl0, scl1, scl2, scl3, scl4, scl5 ]
+  useEffect (isJust reactPopover) do
+    let springCfg = { stiffness: 300.0, damping: 18.0 }
+    mapWithIndex
+      ( \i _ -> do
+          case emojiOpacities !! i, emojiScales !! i of
+            Just opac, Just scl ->
+              if isJust reactPopover then do
+                R.animate opac (R.withDelay (i * 40) (R.withSpring 1.0 springCfg))
+                R.animate scl (R.withDelay (i * 40) (R.withSpring 1.0 springCfg))
+              else do
+                R.writeSharedValue opac 0.0
+                R.writeSharedValue scl 0.3
+            _, _ -> pure unit
+      )
+      reactionEmoji # traverse_ identity
+    pure (pure unit)
   let
     selectRoom rid = do
       setActiveRoom (Just rid)
@@ -264,13 +295,25 @@ chatDemo = component "ChatDemo" \dp -> React.do
             }
         , view { style: tw "flex-row items-center" }
             ( mapWithIndex
-                ( \_ emoji ->
-                    nativeButton
-                      { title: emoji
-                      , bezelStyle: T.borderless
-                      , onPress: reactToMessage idx emoji
-                      , style: Style.style { height: 28.0, width: 28.0 }
-                      }
+                ( \i emoji ->
+                    case emojiOpacities !! i, emojiScales !! i of
+                      Just opac, Just scl ->
+                        R.reanimatedView
+                          { style: Style.style { opacity: opac, transform: [ { scale: scl } ] } }
+                          [ nativeButton
+                              { title: emoji
+                              , bezelStyle: T.borderless
+                              , onPress: reactToMessage idx emoji
+                              , style: Style.style { height: 28.0, width: 28.0 }
+                              }
+                          ]
+                      _, _ ->
+                        nativeButton
+                          { title: emoji
+                          , bezelStyle: T.borderless
+                          , onPress: reactToMessage idx emoji
+                          , style: Style.style { height: 28.0, width: 28.0 }
+                          }
                 )
                 reactionEmoji
             )
