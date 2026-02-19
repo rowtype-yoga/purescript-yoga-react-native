@@ -416,13 +416,20 @@ chatDemo = component "ChatDemo" \dp -> React.do
                                   <> Style.style
                                     { backgroundColor: if msg.isMine then sentBubbleBg else receivedBubbleBg }
                               }
-                              [ nativeRichTextLabel
+                              [ text
+                                  { style: Style.style
+                                      { fontSize: 14.0
+                                      , opacity: 0.0
+                                      }
+                                  }
+                                  msg.body
+                              , nativeRichTextLabel
                                   { text: msg.body
                                   , emojiMap: customEmojiMap
                                   , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
                                   , fontSize: 14.0
                                   , emojiSize: 0.0
-                                  , style: Style.style {}
+                                  , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0 }
                                   }
                               ]
                     , if not msg.isMine then reactionPicker idx else mempty
