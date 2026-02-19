@@ -23,7 +23,7 @@
 
 @interface RCTNativeButtonView : NSView
 @property (nonatomic, strong) NSButton *button;
-@property (nonatomic, copy) RCTDirectEventBlock onPress;
+@property (nonatomic, copy) RCTDirectEventBlock onPressButton;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *sfSymbol;
 @property (nonatomic, copy) NSString *bezelStyle;
@@ -45,7 +45,7 @@
 }
 
 - (void)handlePress {
-  if (_onPress) _onPress(@{});
+  if (_onPressButton) _onPressButton(@{});
 }
 
 - (void)setTitle:(NSString *)title {
@@ -117,7 +117,7 @@ RCT_EXPORT_VIEW_PROPERTY(bezelStyle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(destructive, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(primary, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(buttonEnabled, BOOL)
-RCT_EXPORT_VIEW_PROPERTY(onPress, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onPressButton, RCTDirectEventBlock)
 @end
 
 // ============================================================
