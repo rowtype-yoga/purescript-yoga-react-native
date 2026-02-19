@@ -42,7 +42,7 @@
 }
 @end
 
-@interface RCTNativeButtonView : NSView
+@interface RCTNativeButtonView : NSView <NSTextInputClient>
 @property (nonatomic, strong) NSButton *button;
 @property (nonatomic, assign) BOOL borderlessHover;
 @property (nonatomic, copy) RCTDirectEventBlock onPressButton;
@@ -78,15 +78,28 @@
   if (_onPressButton) _onPressButton(@{});
 }
 
-- (void)insertText:(id)string {
-  if (_onEmojiPick && [string isKindOfClass:[NSString class]]) {
-    _onEmojiPick(@{@"emoji": string});
+// NSTextInputClient required methods
+- (void)insertText:(id)string replacementRange:(NSRange)replacementRange {
+  NSString *text = [string isKindOfClass:[NSAttributedString class]]
+    ? [(NSAttributedString *)string string] : string;
+  if (_onEmojiPick && text.length > 0) {
+    _onEmojiPick(@{@"emoji": text});
   }
 }
 
-- (void)doCommandBySelector:(SEL)selector {
-  // Required by NSTextInputClient protocol — ignore commands
+- (void)doCommandBySelector:(SEL)selector {}
+- (void)setMarkedText:(id)string selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange {}
+- (void)unmarkText {}
+- (NSRange)selectedRange { return NSMakeRange(NSNotFound, 0); }
+- (NSRange)markedRange { return NSMakeRange(NSNotFound, 0); }
+- (BOOL)hasMarkedText { return NO; }
+- (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)range actualRange:(NSRangePointer)actualRange { return nil; }
+- (NSArray<NSAttributedStringKey> *)validAttributesForMarkedText { return @[]; }
+- (NSRect)firstRectForCharacterRange:(NSRange)range actualRange:(NSRangePointer)actualRange {
+  NSRect r = [self convertRect:self.bounds toView:nil];
+  return [self.window convertRectToScreen:r];
 }
+- (NSUInteger)characterIndexForPoint:(NSPoint)point { return NSNotFound; }
 
 - (void)mouseEntered:(NSEvent *)event {
   if (_borderlessHover) {

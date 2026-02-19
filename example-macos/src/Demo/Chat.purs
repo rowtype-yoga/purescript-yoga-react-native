@@ -30,10 +30,11 @@ import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.Types as T
+import Yoga.React.Native.Pressable (pressable)
 import Yoga.React.Native.Reanimated as R
 import Yoga.React.Native.Style as Style
 
-type Reaction = { emoji :: String, count :: Int }
+type Reaction = { emoji :: String, count :: Int, mine :: Boolean }
 
 type Message =
   { sender :: String
@@ -90,8 +91,12 @@ customEmojiMap = emojiMap
 
 addReaction :: String -> Array Reaction -> Array Reaction
 addReaction emoji rs = case filter (\r -> r.emoji == emoji) rs of
-  [] -> snoc rs { emoji, count: 1 }
-  _ -> map (\r -> if r.emoji == emoji then r { count = r.count + 1 } else r) rs
+  [] -> snoc rs { emoji, count: 1, mine: true }
+  _ -> map (\r -> if r.emoji == emoji then r { count = r.count + 1, mine = true } else r) rs
+
+removeReaction :: String -> Array Reaction -> Array Reaction
+removeReaction emoji rs = filter (\r -> r.count > 0) $
+  map (\r -> if r.emoji == emoji && r.mine then r { count = r.count - 1, mine = false } else r) rs
 
 mockRooms :: Array Room
 mockRooms =
@@ -107,40 +112,43 @@ mockMessages room = map (\m -> m { body = replaceEmoji m.body }) (mockMessagesRa
 noReactions :: Array Reaction
 noReactions = []
 
+mkReaction :: String -> Int -> Reaction
+mkReaction emoji count = { emoji, count, mine: false }
+
 mockMessagesRaw :: String -> Array Message
 mockMessagesRaw = case _ of
   "general" ->
-    [ { sender: "Alice", body: "Hey everyone! Welcome to the chat demo :wave:", isMine: false, reactions: [ { emoji: "👋", count: 3 } ], replyTo: Nothing }
-    , { sender: "Bob", body: "This is built with :ps: + React Native macOS", isMine: false, reactions: [ { emoji: "🔥", count: 2 }, { emoji: "❤️", count: 1 } ], replyTo: Nothing }
+    [ { sender: "Alice", body: "Hey everyone! Welcome to the chat demo :wave:", isMine: false, reactions: [ mkReaction "👋" 3 ], replyTo: Nothing }
+    , { sender: "Bob", body: "This is built with :ps: + React Native macOS", isMine: false, reactions: [ mkReaction "🔥" 2, mkReaction "❤️" 1 ], replyTo: Nothing }
     , { sender: "You", body: "That's awesome! :fire:", isMine: true, reactions: noReactions, replyTo: Just 1 }
     , { sender: "Alice", body: "Try typing :rocket: or :heart: in a message", isMine: false, reactions: noReactions, replyTo: Nothing }
-    , { sender: "You", body: "The bubbles look great :sparkles:", isMine: true, reactions: [ { emoji: "👍", count: 2 } ], replyTo: Nothing }
+    , { sender: "You", body: "The bubbles look great :sparkles:", isMine: true, reactions: [ mkReaction "👍" 2 ], replyTo: Nothing }
     , { sender: "Bob", body: "Click the smiley to react!", isMine: false, reactions: noReactions, replyTo: Just 4 }
-    , { sender: "Alice", body: ":party: :shipit:", isMine: false, reactions: [ { emoji: "🎉", count: 5 } ], replyTo: Nothing }
-    , { sender: "Bob", body: ":parrot: Party Parrot! :parrot:", isMine: false, reactions: [ { emoji: "🦜", count: 3 } ], replyTo: Nothing }
+    , { sender: "Alice", body: ":party: :shipit:", isMine: false, reactions: [ mkReaction "🎉" 5 ], replyTo: Nothing }
+    , { sender: "Bob", body: ":parrot: Party Parrot! :parrot:", isMine: false, reactions: [ mkReaction "🦜" 3 ], replyTo: Nothing }
     , { sender: "You", body: ":dealwithit: deal with it :doge:", isMine: true, reactions: noReactions, replyTo: Nothing }
     , { sender: "Alice", body: ":typingcat:", isMine: false, reactions: noReactions, replyTo: Nothing }
     ]
   "purescript" ->
-    [ { sender: "Phil", body: "Has anyone tried the new compiler release?", isMine: false, reactions: [ { emoji: "👍", count: 4 } ], replyTo: Nothing }
+    [ { sender: "Phil", body: "Has anyone tried the new compiler release?", isMine: false, reactions: [ mkReaction "👍" 4 ], replyTo: Nothing }
     , { sender: "You", body: "Yes! The build times are much better", isMine: true, reactions: noReactions, replyTo: Just 0 }
-    , { sender: "Phil", body: "Row polymorphism makes FFI so clean", isMine: false, reactions: [ { emoji: "❤️", count: 3 } ], replyTo: Nothing }
+    , { sender: "Phil", body: "Row polymorphism makes FFI so clean", isMine: false, reactions: [ mkReaction "❤️" 3 ], replyTo: Nothing }
     , { sender: "Jordan", body: "The ecosystem keeps getting better", isMine: false, reactions: noReactions, replyTo: Nothing }
-    , { sender: "You", body: "Agreed, especially for React Native", isMine: true, reactions: [ { emoji: "🔥", count: 1 } ], replyTo: Just 2 }
-    , { sender: "Jordan", body: ":opensourceparrot: :ps: :haskell: :opensourceparrot:", isMine: false, reactions: [ { emoji: "❤️", count: 4 } ], replyTo: Nothing }
+    , { sender: "You", body: "Agreed, especially for React Native", isMine: true, reactions: [ mkReaction "🔥" 1 ], replyTo: Just 2 }
+    , { sender: "Jordan", body: ":opensourceparrot: :ps: :haskell: :opensourceparrot:", isMine: false, reactions: [ mkReaction "❤️" 4 ], replyTo: Nothing }
     ]
   "react-native" ->
-    [ { sender: "Christoph", body: "macOS support is looking solid", isMine: false, reactions: [ { emoji: "🔥", count: 3 } ], replyTo: Nothing }
+    [ { sender: "Christoph", body: "macOS support is looking solid", isMine: false, reactions: [ mkReaction "🔥" 3 ], replyTo: Nothing }
     , { sender: "You", body: "Native controls feel right at home", isMine: true, reactions: noReactions, replyTo: Just 0 }
     , { sender: "Christoph", body: "NSOutlineView, NSSplitView, toolbars...", isMine: false, reactions: noReactions, replyTo: Nothing }
-    , { sender: "You", body: "Even the vibrancy effects work", isMine: true, reactions: [ { emoji: "😮", count: 2 } ], replyTo: Nothing }
-    , { sender: "Christoph", body: "🚀", isMine: false, reactions: [ { emoji: "🚀", count: 7 } ], replyTo: Nothing }
-    , { sender: "You", body: ":fastparrot: :congaparrot: :ultraparrot: conga line!", isMine: true, reactions: [ { emoji: "🎉", count: 3 } ], replyTo: Nothing }
+    , { sender: "You", body: "Even the vibrancy effects work", isMine: true, reactions: [ mkReaction "😮" 2 ], replyTo: Nothing }
+    , { sender: "Christoph", body: "🚀", isMine: false, reactions: [ mkReaction "🚀" 7 ], replyTo: Nothing }
+    , { sender: "You", body: ":fastparrot: :congaparrot: :ultraparrot: conga line!", isMine: true, reactions: [ mkReaction "🎉" 3 ], replyTo: Nothing }
     ]
   "random" ->
     [ { sender: "Eve", body: "Anyone here?", isMine: false, reactions: noReactions, replyTo: Nothing }
-    , { sender: "You", body: "👋", isMine: true, reactions: [ { emoji: "👋", count: 1 } ], replyTo: Just 0 }
-    , { sender: "Eve", body: ":partyblob: :partyblob: :partyblob:", isMine: false, reactions: [ { emoji: "🎉", count: 2 } ], replyTo: Nothing }
+    , { sender: "You", body: "👋", isMine: true, reactions: [ mkReaction "👋" 1 ], replyTo: Just 0 }
+    , { sender: "Eve", body: ":partyblob: :partyblob: :partyblob:", isMine: false, reactions: [ mkReaction "🎉" 2 ], replyTo: Nothing }
     ]
   _ -> []
 
@@ -260,16 +268,35 @@ chatDemo = component "ChatDemo" \dp -> React.do
             ]
       )
 
-    reactionPills msg =
+    toggleReaction idx emoji = do
+      setMessages \msgs -> fromMaybe msgs
+        ( modifyAt idx
+            ( \m ->
+                let
+                  existing = filter (\rx -> rx.emoji == emoji) m.reactions
+                in
+                  case existing !! 0 of
+                    Just rx | rx.mine -> m { reactions = removeReaction emoji m.reactions }
+                    _ -> m { reactions = addReaction emoji m.reactions }
+            )
+            msgs
+        )
+
+    reactionPills idx msg =
       if length msg.reactions == 0 then mempty
       else view { style: tw "flex-row mt-1" <> Style.style { alignSelf: if msg.isMine then "flex-end" else "flex-start" } }
-        ( msg.reactions <#> \r ->
-            view
-              { style: tw "flex-row items-center rounded-full px-2 py-0.5 mr-1"
-                  <> Style.style { backgroundColor: reactionBg }
+        ( msg.reactions <#> \rx ->
+            pressable
+              { onPress: handler_ (toggleReaction idx rx.emoji)
               }
-              [ text { style: Style.style { fontSize: 12.0 } } r.emoji
-              , text { style: tw "text-xs ml-1" <> Style.style { color: dp.dimFg } } (show r.count)
+              [ view
+                  { style: tw "flex-row items-center rounded-full px-2 py-0.5 mr-1"
+                      <> Style.style
+                        { backgroundColor: if rx.mine then sentBubbleBg else reactionBg }
+                  }
+                  [ text { style: Style.style { fontSize: 12.0 } } rx.emoji
+                  , text { style: tw "text-xs ml-1" <> Style.style { color: if rx.mine then "#FFFFFF" else dp.dimFg } } (show rx.count)
+                  ]
               ]
         )
 
@@ -405,7 +432,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                               ]
                     , if not msg.isMine then reactionPicker idx else mempty
                     ]
-                , reactionPills msg
+                , reactionPills idx msg
                 ]
             ]
         ]
