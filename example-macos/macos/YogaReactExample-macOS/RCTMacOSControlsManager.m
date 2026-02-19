@@ -23,6 +23,7 @@
 
 @interface RCTNativeButtonView : NSView
 @property (nonatomic, strong) NSButton *button;
+@property (nonatomic, strong) CALayer *hoverLayer;
 @property (nonatomic, copy) RCTDirectEventBlock onPressButton;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *sfSymbol;
@@ -49,17 +50,17 @@
 }
 
 - (void)mouseEntered:(NSEvent *)event {
-  if (_button.wantsLayer) {
+  if (_hoverLayer) {
     BOOL isDark = [NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[NSAppearanceNameDarkAqua]] != nil;
-    _button.layer.backgroundColor = isDark
+    _hoverLayer.backgroundColor = isDark
       ? [NSColor colorWithWhite:1.0 alpha:0.15].CGColor
       : [NSColor colorWithWhite:0.0 alpha:0.1].CGColor;
   }
 }
 
 - (void)mouseExited:(NSEvent *)event {
-  if (_button.wantsLayer) {
-    _button.layer.backgroundColor = nil;
+  if (_hoverLayer) {
+    _hoverLayer.backgroundColor = nil;
   }
 }
 
@@ -98,15 +99,15 @@
   else if ([bezelStyle isEqualToString:@"accessoryBarAction"]) _button.bezelStyle = NSBezelStyleAccessoryBarAction;
   else if ([bezelStyle isEqualToString:@"borderless"]) {
     _button.bordered = NO;
-    _button.wantsLayer = YES;
-    _button.layer.cornerRadius = 6.0;
-    // Add tracking area for hover highlight
+    self.wantsLayer = YES;
+    _hoverLayer = [CALayer layer];
+    [self.layer insertSublayer:_hoverLayer below:_button.layer];
     NSTrackingArea *ta = [[NSTrackingArea alloc]
       initWithRect:NSZeroRect
       options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect
       owner:self
       userInfo:nil];
-    [_button addTrackingArea:ta];
+    [self addTrackingArea:ta];
   }
   else _button.bezelStyle = NSBezelStylePush;
 }
@@ -131,6 +132,10 @@
 - (void)layout {
   [super layout];
   _button.frame = self.bounds;
+  if (_hoverLayer) {
+    _hoverLayer.frame = self.bounds;
+    _hoverLayer.cornerRadius = self.bounds.size.height / 2.0;
+  }
 }
 @end
 
