@@ -2510,7 +2510,7 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
           contentRect = CGRectUnion(contentRect, child.frame);
         }
         if (w <= 0) w = contentRect.size.width;
-        if (h <= 0) h = contentRect.size.height;
+        if (h <= 0) h = contentRect.size.height - 20;
       }
       if (w < 20) w = 20;
       if (h < 10) h = 10;
@@ -2579,6 +2579,14 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 }
 
 - (void)centerContent {
+  // NSPopover adds ~13px internal padding. Expand our container to reduce vertical padding.
+  NSView *popoverFrame = _contentContainer.superview;
+  if (popoverFrame) {
+    CGRect pf = popoverFrame.bounds;
+    // Keep horizontal inset but eliminate vertical inset
+    CGFloat hInset = _contentContainer.frame.origin.x;
+    _contentContainer.frame = CGRectMake(hInset, 0, pf.size.width - hInset * 2, pf.size.height);
+  }
   CGFloat containerH = _contentContainer.bounds.size.height;
   for (NSView *child in _contentContainer.subviews) {
     CGRect cf = child.frame;
