@@ -249,7 +249,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
         { visible: reactPopover == Just idx
         , preferredEdge: T.bottom
         , behavior: T.transient
-        , popoverPadding: 20.0
+        , popoverPadding: 0.0
         , onClose: setReactPopover Nothing
         , style: Style.style { opacity: if showSmiley idx then 1.0 else 0.0 }
         }
@@ -262,7 +262,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
             , style: Style.style { height: 24.0, width: 28.0 }
             , buttonEnabled: showSmiley idx
             }
-        , view { style: tw "flex-row items-center px-2" }
+        , view { style: tw "flex-row items-center" }
             ( mapWithIndex
                 ( \_ emoji ->
                     nativeButton
