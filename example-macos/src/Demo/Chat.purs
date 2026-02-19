@@ -30,7 +30,6 @@ import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.TextField (nativeTextField)
 import Yoga.React.Native.MacOS.Types as T
-import Yoga.React.Native.Pressable (pressable)
 import Yoga.React.Native.Reanimated as R
 import Yoga.React.Native.Style as Style
 
@@ -290,17 +289,19 @@ chatDemo = component "ChatDemo" \dp -> React.do
       if length msg.reactions == 0 then mempty
       else view { style: tw "flex-row mt-1" <> Style.style { alignSelf: if msg.isMine then "flex-end" else "flex-start" } }
         ( msg.reactions <#> \rx ->
-            pressable
-              { onPress: handler_ (toggleReaction idx rx.emoji)
+            view
+              { style: tw "flex-row items-center rounded-full px-2 py-0.5 mr-1"
+                  <> Style.style
+                    { backgroundColor: if rx.mine then sentBubbleBg else reactionBg }
               }
-              [ view
-                  { style: tw "flex-row items-center rounded-full px-2 py-0.5 mr-1"
-                      <> Style.style
-                        { backgroundColor: if rx.mine then sentBubbleBg else reactionBg }
+              [ text { style: Style.style { fontSize: 12.0 } } rx.emoji
+              , text { style: tw "text-xs ml-1" <> Style.style { color: if rx.mine then "#FFFFFF" else dp.dimFg } } (show rx.count)
+              , nativeButton
+                  { title: ""
+                  , bezelStyle: T.toolbar
+                  , onPress: toggleReaction idx rx.emoji
+                  , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0, opacity: 0.0 }
                   }
-                  [ text { style: Style.style { fontSize: 12.0 } } rx.emoji
-                  , text { style: tw "text-xs ml-1" <> Style.style { color: if rx.mine then "#FFFFFF" else dp.dimFg } } (show rx.count)
-                  ]
               ]
         )
 
@@ -420,21 +421,19 @@ chatDemo = component "ChatDemo" \dp -> React.do
                                   <> Style.style
                                     { backgroundColor: if msg.isMine then sentBubbleBg else receivedBubbleBg }
                               }
-                              [ text
-                                  { style: Style.style
-                                      { fontSize: 14.0
-                                      , opacity: 0.0
+                              [ view { style: Style.style { overflow: "hidden" } }
+                                  [ text
+                                      { style: Style.style { fontSize: 14.0, opacity: 0.0 } }
+                                      (stripCustomEmoji msg.body)
+                                  , nativeRichTextLabel
+                                      { text: msg.body
+                                      , emojiMap: customEmojiMap
+                                      , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
+                                      , fontSize: 14.0
+                                      , emojiSize: 0.0
+                                      , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0 }
                                       }
-                                  }
-                                  (stripCustomEmoji msg.body)
-                              , nativeRichTextLabel
-                                  { text: msg.body
-                                  , emojiMap: customEmojiMap
-                                  , textColor: if msg.isMine then "#FFFFFF" else (if dp.isDark then "#FFFFFF" else "#000000")
-                                  , fontSize: 14.0
-                                  , emojiSize: 0.0
-                                  , style: Style.style { position: "absolute", top: 0.0, left: 0.0, right: 0.0, bottom: 0.0 }
-                                  }
+                                  ]
                               ]
                     , if not msg.isMine then reactionPicker idx else mempty
                     ]

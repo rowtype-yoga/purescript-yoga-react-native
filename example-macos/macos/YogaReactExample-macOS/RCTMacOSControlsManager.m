@@ -4744,15 +4744,13 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 {
   if (_bridge && !CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
     CGSize size = _measuredContentSize;
-    RCTUIManager *uiManager = [_bridge moduleForClass:[RCTUIManager class]];
+    RCTUIManager *uiManager = [_bridge moduleForName:@"UIManager"];
+    NSLog(@"[RichTextLabel] setIntrinsicContentSize:%@ tag=%@ uiManager=%@ responds=%d", NSStringFromSize(size), self.reactTag, uiManager, [uiManager respondsToSelector:@selector(setIntrinsicContentSize:forView:)]);
     [uiManager setIntrinsicContentSize:size forView:self];
   }
 }
 
 - (NSSize)intrinsicContentSize {
-  if (!CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
-    return _measuredContentSize;
-  }
   return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
 }
 
