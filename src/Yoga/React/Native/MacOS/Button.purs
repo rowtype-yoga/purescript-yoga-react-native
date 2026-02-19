@@ -20,4 +20,5 @@ type NativeButtonAttributes = BaseAttributes
   , primary :: Boolean
   , buttonEnabled :: Boolean
   , onPress :: Effect Unit
+  , onEmojiPick :: String -> Effect Unit
   )

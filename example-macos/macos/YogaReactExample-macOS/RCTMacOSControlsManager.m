@@ -52,6 +52,7 @@
 @property (nonatomic, assign) BOOL destructive;
 @property (nonatomic, assign) BOOL primary;
 @property (nonatomic, assign) BOOL buttonEnabled;
+@property (nonatomic, copy) RCTDirectEventBlock onEmojiPick;
 @end
 
 @implementation RCTNativeButtonView
@@ -66,8 +67,25 @@
   return self;
 }
 
+- (BOOL)acceptsFirstResponder { return _onEmojiPick != nil; }
+
 - (void)handlePress {
+  if (_onEmojiPick) {
+    [self.window makeFirstResponder:self];
+    [NSApp orderFrontCharacterPalette:nil];
+    return;
+  }
   if (_onPressButton) _onPressButton(@{});
+}
+
+- (void)insertText:(id)string {
+  if (_onEmojiPick && [string isKindOfClass:[NSString class]]) {
+    _onEmojiPick(@{@"emoji": string});
+  }
+}
+
+- (void)doCommandBySelector:(SEL)selector {
+  // Required by NSTextInputClient protocol — ignore commands
 }
 
 - (void)mouseEntered:(NSEvent *)event {
@@ -170,6 +188,7 @@ RCT_EXPORT_VIEW_PROPERTY(destructive, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(primary, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(buttonEnabled, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(onPressButton, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onEmojiPick, RCTDirectEventBlock)
 @end
 
 // ============================================================
