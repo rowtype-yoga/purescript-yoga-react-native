@@ -2512,8 +2512,8 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
         if (w <= 0) w = contentRect.size.width;
         if (h <= 0) h = contentRect.size.height;
       }
-      if (w < 40) w = 40;
-      if (h < 30) h = 30;
+      if (w < 20) w = 20;
+      if (h < 10) h = 10;
       _popover.contentSize = NSMakeSize(w, h);
       NSRectEdge edge = [self edgeFromString:_preferredEdge];
       NSView *anchor = _reactChildren.count > 0 ? _reactChildren[0] : self;
