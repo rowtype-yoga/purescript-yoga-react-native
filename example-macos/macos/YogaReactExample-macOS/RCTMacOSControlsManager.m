@@ -2561,7 +2561,7 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
     CGRect cf = child.frame;
     CGFloat y = (containerH - cf.size.height) / 2.0;
     if (y < 0) y = 0;
-    child.frame = CGRectMake(cf.origin.x + padding, y, cf.size.width, cf.size.height);
+    child.frame = CGRectMake(padding, y, cf.size.width, cf.size.height);
   }
 }
 
