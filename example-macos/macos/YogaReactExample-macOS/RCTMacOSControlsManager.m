@@ -1,6 +1,7 @@
 #import <React/RCTViewManager.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTBridge.h>
+#import <React/RCTUIManager.h>
 
 #import <AppKit/AppKit.h>
 #import <WebKit/WebKit.h>
@@ -4497,6 +4498,8 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 @property (nonatomic, assign) CGFloat emojiSize;
 @property (nonatomic, strong) NSTimer *gifTimer;
 @property (nonatomic, strong) NSMutableArray<RCTGifAnimation *> *gifAnimations;
+@property (nonatomic, weak) RCTBridge *bridge;
+@property (nonatomic, assign) CGSize measuredContentSize;
 @end
 
 @implementation RCTNativeRichTextLabelView
@@ -4723,11 +4726,37 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
   [_textStorage setAttributedString:result];
   [self startGifAnimationIfNeeded];
   [self setNeedsDisplay:YES];
+
+  // Measure the content size using a temp layout manager (unbounded width)
+  NSTextContainer *tempContainer = [[NSTextContainer alloc] initWithContainerSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+  tempContainer.lineFragmentPadding = 0;
+  NSLayoutManager *tempLayoutManager = [[NSLayoutManager alloc] init];
+  [tempLayoutManager addTextContainer:tempContainer];
+  NSTextStorage *tempStorage = [[NSTextStorage alloc] initWithAttributedString:result];
+  [tempStorage addLayoutManager:tempLayoutManager];
+  [tempLayoutManager ensureLayoutForTextContainer:tempContainer];
+  NSRect usedRect = [tempLayoutManager usedRectForTextContainer:tempContainer];
+  _measuredContentSize = CGSizeMake(ceil(usedRect.size.width), ceil(usedRect.size.height));
+  NSLog(@"[RichTextLabel] rebuildAttributedString: text=%@ measuredSize=%@", _text, NSStringFromSize(_measuredContentSize));
+}
+
+- (void)didSetProps:(NSArray<NSString *> *)changedProps
+{
+  NSLog(@"[RichTextLabel] didSetProps: reactTag=%@ bridge=%@ measuredSize=%@", self.reactTag, _bridge, NSStringFromSize(_measuredContentSize));
+  // reactTag is guaranteed to be set by the time didSetProps: is called,
+  // so it's safe to update the intrinsic content size via the UIManager.
+  if (_bridge && !CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
+    CGSize size = _measuredContentSize;
+    NSLog(@"[RichTextLabel] calling setIntrinsicContentSize:%@ forView:%@", NSStringFromSize(size), self.reactTag);
+    RCTUIManager *uiManager = [_bridge moduleForClass:[RCTUIManager class]];
+    [uiManager setIntrinsicContentSize:size forView:self];
+  }
 }
 
 - (NSSize)intrinsicContentSize {
   return NSMakeSize(NSViewNoIntrinsicMetric, NSViewNoIntrinsicMetric);
 }
+
 
 - (void)reactSetFrame:(CGRect)frame {
   [super reactSetFrame:frame];
@@ -4750,7 +4779,11 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 @interface RCTNativeRichTextLabelViewManager : RCTViewManager @end
 @implementation RCTNativeRichTextLabelViewManager
 RCT_EXPORT_MODULE(NativeRichTextLabel)
-- (NSView *)view { return [[RCTNativeRichTextLabelView alloc] initWithFrame:CGRectZero]; }
+- (NSView *)view {
+  RCTNativeRichTextLabelView *view = [[RCTNativeRichTextLabelView alloc] initWithFrame:CGRectZero];
+  view.bridge = self.bridge;
+  return view;
+}
 RCT_EXPORT_VIEW_PROPERTY(text, NSString)
 RCT_EXPORT_VIEW_PROPERTY(emojiMap, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(textColor, NSString)
