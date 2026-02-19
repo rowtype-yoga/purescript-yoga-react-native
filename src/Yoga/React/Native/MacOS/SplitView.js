@@ -54,11 +54,9 @@ export const splitViewImpl = React.forwardRef((props, ref) => {
       style: [{ flexDirection: "row" }, style],
       ...rest,
     },
-    React.createElement(
-      View,
-      { style: { width: sidebarWidth, overflow: "hidden" } },
-      leftChild
-    ),
+    leftChild && React.cloneElement(leftChild, {
+      style: [leftChild.props.style, { width: sidebarWidth, overflow: "hidden" }],
+    }),
     React.createElement(View, {
       ...panRef.current.panHandlers,
       onMouseEnter: () => setHovered(true),
@@ -79,10 +77,8 @@ export const splitViewImpl = React.forwardRef((props, ref) => {
         pointerEvents: "none",
       })
     ),
-    React.createElement(
-      View,
-      { style: { flex: 1, overflow: "hidden" } },
-      rightChild
-    )
+    rightChild && React.cloneElement(rightChild, {
+      style: [rightChild.props.style, { flex: 1, overflow: "hidden" }],
+    })
   );
 });
