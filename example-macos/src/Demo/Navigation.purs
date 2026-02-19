@@ -18,6 +18,7 @@ import Demo.MapsDocs (mapViewDemo, pdfViewDemo)
 import Demo.Overlays (alertDemo, contextMenuDemo, menuDemo, popoverDemo, sheetDemo)
 import Demo.Shared (DemoProps)
 import Demo.SystemServices (clipboardDemo, colorPanelDemo, fontPanelDemo, notificationsDemo, quickLookDemo, shareDemo, soundDemo, speechDemo, statusBarDemo)
+import Demo.Terminal (terminalDemo)
 import Demo.TextEditing (textEditorDemo, textFieldDemo)
 import Demo.WebBrowser (webViewDemo)
 import Effect (Effect)
@@ -113,6 +114,9 @@ outlineTree = do
       [ leaf "matrix" "Matrix" "bubble.left.and.bubble.right"
       , leaf "signal" "Signal" "lock.shield"
       ]
+  , folder "terminal" "Terminal" "terminal"
+      [ leaf "ghostty" "Ghostty Terminal" "terminal"
+      ]
   ]
 
 filterTree :: String -> Array OutlineItem -> Array OutlineItem
@@ -204,6 +208,7 @@ demoContent dp = case _ of
   "webview" -> webViewDemo dp
   "matrix" -> chatDemo dp
   "signal" -> signalDemo dp
+  "ghostty" -> terminalDemo dp
   _ -> placeholder dp
 
 placeholder :: DemoProps -> JSX

@@ -16,6 +16,7 @@
 		AA0000032437B4B30078DB4F /* RCTFinderViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */; };
 		AA0000052437B4B30078DB4F /* RCTNativeShowcaseManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */; };
 		AA0000072437B4B30078DB4F /* RCTMacOSControlsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */; };
+		DD0000012437B4B30078DB4F /* RCTGhosttyTerminalManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DD0000002437B4B30078DB4F /* RCTGhosttyTerminalManager.m */; };
 		BB0000012437B4B30078DB4F /* windy_tree.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000002437B4B30078DB4F /* windy_tree.riv */; };
 		BB0000032437B4B30078DB4F /* light_switch.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000022437B4B30078DB4F /* light_switch.riv */; };
 		BB0000052437B4B30078DB4F /* rating_animation.riv in Resources */ = {isa = PBXBuildFile; fileRef = BB0000042437B4B30078DB4F /* rating_animation.riv */; };
@@ -56,6 +57,7 @@
 		AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTFinderViewManager.m; sourceTree = "<group>"; };
 		AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNativeShowcaseManager.m; sourceTree = "<group>"; };
 		AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTMacOSControlsManager.m; sourceTree = "<group>"; };
+		DD0000002437B4B30078DB4F /* RCTGhosttyTerminalManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTGhosttyTerminalManager.m; sourceTree = "<group>"; };
 		BB0000002437B4B30078DB4F /* windy_tree.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = windy_tree.riv; sourceTree = "<group>"; };
 		BB0000022437B4B30078DB4F /* light_switch.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = light_switch.riv; sourceTree = "<group>"; };
 		BB0000042437B4B30078DB4F /* rating_animation.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = rating_animation.riv; sourceTree = "<group>"; };
@@ -121,6 +123,7 @@
 				AA0000022437B4B30078DB4F /* RCTFinderViewManager.m */,
 				AA0000042437B4B30078DB4F /* RCTNativeShowcaseManager.m */,
 				AA0000062437B4B30078DB4F /* RCTMacOSControlsManager.m */,
+				DD0000002437B4B30078DB4F /* RCTGhosttyTerminalManager.m */,
 				BB0000002437B4B30078DB4F /* windy_tree.riv */,
 				BB0000022437B4B30078DB4F /* light_switch.riv */,
 				BB0000042437B4B30078DB4F /* rating_animation.riv */,
@@ -434,6 +437,7 @@
 				AA0000032437B4B30078DB4F /* RCTFinderViewManager.m in Sources */,
 				AA0000052437B4B30078DB4F /* RCTNativeShowcaseManager.m in Sources */,
 				AA0000072437B4B30078DB4F /* RCTMacOSControlsManager.m in Sources */,
+				DD0000012437B4B30078DB4F /* RCTGhosttyTerminalManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -502,13 +506,29 @@
 				CODE_SIGN_ENTITLEMENTS = "YogaReactExample-macOS/YogaReactExample.entitlements";
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(HOME)/code/ghostty/include",
+				);
 				INFOPLIST_FILE = "YogaReactExample-macos/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(HOME)/code/ghostty/zig-out/lib",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-lghostty",
+					"-framework Metal",
+					"-framework MetalKit",
+					"-framework CoreText",
+					"-framework CoreGraphics",
+					"-framework QuartzCore",
+					"-framework IOSurface",
+					"-framework Carbon",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = YogaReactExample;
@@ -526,13 +546,29 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "YogaReactExample-macOS/YogaReactExample.entitlements";
 				CURRENT_PROJECT_VERSION = 1;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(HOME)/code/ghostty/include",
+				);
 				INFOPLIST_FILE = "YogaReactExample-macos/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(HOME)/code/ghostty/zig-out/lib",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-lghostty",
+					"-framework Metal",
+					"-framework MetalKit",
+					"-framework CoreText",
+					"-framework CoreGraphics",
+					"-framework QuartzCore",
+					"-framework IOSurface",
+					"-framework Carbon",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = YogaReactExample;
