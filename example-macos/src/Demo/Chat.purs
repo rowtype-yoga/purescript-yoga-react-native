@@ -25,7 +25,6 @@ import Yoga.React.Native.MacOS.RichTextLabel (EmojiMap, nativeRichTextLabel, emo
 import Yoga.React.Native.MacOS.Button (nativeButton)
 import Yoga.React.Native.MacOS.HoverView (nativeHoverView)
 import Yoga.React.Native.MacOS.Popover (nativePopover)
-import Yoga.React.Native.Pressable (pressable)
 import Yoga.React.Native.MacOS.PatternBackground (nativePatternBackground)
 import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
@@ -162,7 +161,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
   scrollY /\ setScrollY <- useState' 0.0
   scrollTrigger /\ setScrollTrigger <- useState 0
   hoveredIdx /\ setHoveredIdx <- useState' (Nothing :: Maybe Int)
-  hoveredEmoji /\ setHoveredEmoji <- useState' (Nothing :: Maybe Int)
   let
     selectRoom rid = do
       setActiveRoom (Just rid)
@@ -251,8 +249,6 @@ chatDemo = component "ChatDemo" \dp -> React.do
         { visible: reactPopover == Just idx
         , preferredEdge: T.bottom
         , behavior: T.transient
-        , popoverWidth: 214.0
-        , popoverHeight: 40.0
         , onClose: setReactPopover Nothing
         , style: Style.style { opacity: if showSmiley idx then 1.0 else 0.0 }
         }
@@ -267,18 +263,13 @@ chatDemo = component "ChatDemo" \dp -> React.do
             }
         , view { style: tw "flex-row items-center" }
             ( mapWithIndex
-                ( \i emoji ->
-                    let
-                      hoverBg = if hoveredEmoji == Just i then (if dp.isDark then "#555555" else "#D8D8D8") else "transparent"
-                    in
-                      pressable
-                        { onPress: handler_ (reactToMessage idx emoji)
-                        , style: tw "items-center justify-center rounded-full mx-0.5"
-                            <> Style.style { width: 32.0, height: 32.0, backgroundColor: hoverBg }
-                        , onMouseEnter: handler_ (setHoveredEmoji (Just i))
-                        , onMouseLeave: handler_ (setHoveredEmoji Nothing)
-                        }
-                        [ text { style: Style.style { fontSize: 20.0 } } emoji ]
+                ( \_ emoji ->
+                    nativeButton
+                      { title: emoji
+                      , bezelStyle: T.inline
+                      , onPress: reactToMessage idx emoji
+                      , style: Style.style { height: 28.0, width: 28.0, marginLeft: 2.0, marginRight: 2.0 }
+                      }
                 )
                 reactionEmoji
             )

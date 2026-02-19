@@ -1,6 +1,7 @@
 #import <React/RCTViewManager.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTBridge.h>
+
 #import <AppKit/AppKit.h>
 #import <WebKit/WebKit.h>
 #import <AVKit/AVKit.h>
@@ -22,7 +23,7 @@
 
 @interface RCTNativeButtonView : NSView
 @property (nonatomic, strong) NSButton *button;
-@property (nonatomic, copy) RCTBubblingEventBlock onPress;
+@property (nonatomic, copy) RCTDirectEventBlock onPress;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *sfSymbol;
 @property (nonatomic, copy) NSString *bezelStyle;
@@ -116,7 +117,7 @@ RCT_EXPORT_VIEW_PROPERTY(bezelStyle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(destructive, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(primary, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(buttonEnabled, BOOL)
-RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onPress, RCTDirectEventBlock)
 @end
 
 // ============================================================
@@ -2434,6 +2435,7 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 @property (nonatomic, strong) NSPopover *popover;
 @property (nonatomic, strong) NSViewController *popoverVC;
 @property (nonatomic, strong) NSView *contentContainer;
+
 @property (nonatomic, strong) NSMutableArray<NSView *> *reactChildren;
 @property (nonatomic, assign) BOOL visible;
 @property (nonatomic, copy) NSString *preferredEdge;
@@ -2458,6 +2460,7 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
     _popover.animates = YES;
     _popover.delegate = self;
     _preferredEdge = @"bottom";
+
   }
   return self;
 }
@@ -2466,19 +2469,15 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
   _visible = visible;
   if (visible) {
     if (!_popover.isShown && self.window) {
-      CGFloat w = _popoverWidth > 0 ? _popoverWidth : 200;
-      CGFloat h = _popoverHeight > 0 ? _popoverHeight : 40;
+      // Start with explicit size if provided, otherwise a generous default
+      CGFloat w = _popoverWidth > 0 ? _popoverWidth : 300;
+      CGFloat h = _popoverHeight > 0 ? _popoverHeight : 60;
       _popover.contentSize = NSMakeSize(w, h);
-      // Position RN child centered vertically in the unflipped container
-      for (NSView *child in _contentContainer.subviews) {
-        CGRect cf = child.frame;
-        CGFloat y = (h - cf.size.height) / 2.0;
-        if (y < 0) y = 0;
-        child.frame = CGRectMake(cf.origin.x, y, cf.size.width, cf.size.height);
-      }
       NSRectEdge edge = [self edgeFromString:_preferredEdge];
       NSView *anchor = _reactChildren.count > 0 ? _reactChildren[0] : self;
       [_popover showRelativeToRect:anchor.bounds ofView:anchor preferredEdge:edge];
+      // After RN has laid out children, auto-size and center
+      [self performSelector:@selector(autoSizePopover) withObject:nil afterDelay:0.02];
     }
   } else {
     if (_popover.isShown) [_popover close];
@@ -2534,6 +2533,35 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 - (void)updatePopoverSize {
   if (_popoverWidth > 0 && _popoverHeight > 0) {
     _popover.contentSize = NSMakeSize(_popoverWidth, _popoverHeight);
+  }
+}
+
+- (void)autoSizePopover {
+  // Measure the union of all RN content children
+  CGRect contentRect = CGRectZero;
+  for (NSView *child in _contentContainer.subviews) {
+    contentRect = CGRectUnion(contentRect, child.frame);
+  }
+  if (contentRect.size.width < 1 || contentRect.size.height < 1) return;
+
+  // Only auto-size if no explicit size was provided
+  CGFloat padding = 8.0;
+  if (_popoverWidth <= 0) {
+    CGFloat newW = contentRect.size.width + padding * 2;
+    _popover.contentSize = NSMakeSize(newW, _popover.contentSize.height);
+  }
+  if (_popoverHeight <= 0) {
+    CGFloat newH = contentRect.size.height + padding;
+    _popover.contentSize = NSMakeSize(_popover.contentSize.width, newH);
+  }
+
+  // Center children vertically in the (possibly resized) container
+  CGFloat containerH = _contentContainer.bounds.size.height;
+  for (NSView *child in _contentContainer.subviews) {
+    CGRect cf = child.frame;
+    CGFloat y = (containerH - cf.size.height) / 2.0;
+    if (y < 0) y = 0;
+    child.frame = CGRectMake(cf.origin.x + padding, y, cf.size.width, cf.size.height);
   }
 }
 
