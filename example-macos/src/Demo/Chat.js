@@ -137,6 +137,12 @@ export const setTimeout_ = (ms, fn) => {
 export const emojiDir =
   "/Users/mark/Developer/purescript-yoga-react-native/example-macos/macos/YogaReactExample-macOS/emoji";
 
+// Replace custom emoji shortcodes with a placeholder character for sizing
+export const stripCustomEmoji_ = (emojiMap) => (str) =>
+  str.replace(/:([a-zA-Z0-9_]+):/g, (m, name) =>
+    emojiMap[name] ? "\u2003" : m
+  );
+
 // Returns the custom emoji filename if the message is a single custom emoji, otherwise null
 export const singleCustomEmoji_ = (emojiMap) => (str) => {
   var trimmed = str.trim();

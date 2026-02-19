@@ -67,7 +67,11 @@ foreign import isSingleEmoji :: String -> Boolean
 foreign import replaceEmoji :: String -> String
 foreign import setTimeout_ :: EffectFn2 Int (Effect Unit) Unit
 foreign import emojiDir :: String
+foreign import stripCustomEmoji_ :: EmojiMap -> String -> String
 foreign import singleCustomEmoji_ :: EmojiMap -> String -> Nullable String
+
+stripCustomEmoji :: String -> String
+stripCustomEmoji = stripCustomEmoji_ customEmojiMap
 
 singleCustomEmoji :: String -> Maybe String
 singleCustomEmoji = toMaybe <<< singleCustomEmoji_ customEmojiMap
@@ -422,7 +426,7 @@ chatDemo = component "ChatDemo" \dp -> React.do
                                       , opacity: 0.0
                                       }
                                   }
-                                  msg.body
+                                  (stripCustomEmoji msg.body)
                               , nativeRichTextLabel
                                   { text: msg.body
                                   , emojiMap: customEmojiMap
