@@ -8,6 +8,7 @@ import Demo.AiMl (cameraDemo, naturalLanguageDemo, ocrDemo, speechRecognitionDem
 import Demo.Animation (riveDemo)
 import Demo.SpringAnimation (springDemo)
 import Demo.Chat (chatDemo)
+import Demo.Signal (signalDemo)
 import Demo.DataViews (outlineViewDemo, tableViewDemo)
 import Demo.Display (animatedImageDemo, imageDemo, levelIndicatorDemo, pathControlDemo, progressDemo, separatorDemo, videoPlayerDemo)
 import Demo.DragDropFiles (dropZoneDemo, filePickerDemo)
@@ -110,6 +111,7 @@ outlineTree = do
       ]
   , folder "chat" "Chat" "bubble.left.and.bubble.right"
       [ leaf "matrix" "Matrix" "bubble.left.and.bubble.right"
+      , leaf "signal" "Signal" "lock.shield"
       ]
   ]
 
@@ -201,6 +203,7 @@ demoContent dp = case _ of
   "pdfview" -> pdfViewDemo dp
   "webview" -> webViewDemo dp
   "matrix" -> chatDemo dp
+  "signal" -> signalDemo dp
   _ -> placeholder dp
 
 placeholder :: DemoProps -> JSX
