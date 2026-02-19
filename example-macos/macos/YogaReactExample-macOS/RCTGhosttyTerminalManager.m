@@ -82,7 +82,7 @@ static void rt_read_clipboard(void *ud, ghostty_clipboard_e clipboard,
                               void *state) {
   NSPasteboard *pb = [NSPasteboard generalPasteboard];
   NSString *str = [pb stringForType:NSPasteboardTypeString];
-  ghostty_surface_t surface = (__bridge ghostty_surface_t)ud;
+  ghostty_surface_t surface = ud;
   if (str) {
     ghostty_surface_complete_clipboard_request(surface,
                                                str.UTF8String,
@@ -93,7 +93,7 @@ static void rt_read_clipboard(void *ud, ghostty_clipboard_e clipboard,
 static void rt_confirm_read_clipboard(void *ud, const char *text,
                                       void *state,
                                       ghostty_clipboard_request_e req) {
-  ghostty_surface_t surface = (__bridge ghostty_surface_t)ud;
+  ghostty_surface_t surface = ud;
   ghostty_surface_complete_clipboard_request(surface, text, state, true);
 }
 
