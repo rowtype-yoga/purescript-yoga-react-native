@@ -48,6 +48,21 @@
   if (_onPressButton) _onPressButton(@{});
 }
 
+- (void)mouseEntered:(NSEvent *)event {
+  if (_button.wantsLayer) {
+    BOOL isDark = [NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[NSAppearanceNameDarkAqua]] != nil;
+    _button.layer.backgroundColor = isDark
+      ? [NSColor colorWithWhite:1.0 alpha:0.15].CGColor
+      : [NSColor colorWithWhite:0.0 alpha:0.1].CGColor;
+  }
+}
+
+- (void)mouseExited:(NSEvent *)event {
+  if (_button.wantsLayer) {
+    _button.layer.backgroundColor = nil;
+  }
+}
+
 - (void)setTitle:(NSString *)title {
   _title = title;
   if (title.length > 0) {
@@ -83,7 +98,15 @@
   else if ([bezelStyle isEqualToString:@"accessoryBarAction"]) _button.bezelStyle = NSBezelStyleAccessoryBarAction;
   else if ([bezelStyle isEqualToString:@"borderless"]) {
     _button.bordered = NO;
-    _button.showsBorderOnlyWhileMouseInside = YES;
+    _button.wantsLayer = YES;
+    _button.layer.cornerRadius = 6.0;
+    // Add tracking area for hover highlight
+    NSTrackingArea *ta = [[NSTrackingArea alloc]
+      initWithRect:NSZeroRect
+      options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect
+      owner:self
+      userInfo:nil];
+    [_button addTrackingArea:ta];
   }
   else _button.bezelStyle = NSBezelStylePush;
 }
