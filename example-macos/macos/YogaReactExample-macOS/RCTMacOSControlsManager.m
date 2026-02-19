@@ -2469,15 +2469,26 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
   _visible = visible;
   if (visible) {
     if (!_popover.isShown && self.window) {
-      // Start with explicit size if provided, otherwise a generous default
-      CGFloat w = _popoverWidth > 0 ? _popoverWidth : 300;
-      CGFloat h = _popoverHeight > 0 ? _popoverHeight : 60;
+      CGFloat padding = 8.0;
+      // Measure RN content that Yoga has already laid out
+      CGFloat w = _popoverWidth;
+      CGFloat h = _popoverHeight;
+      if (w <= 0 || h <= 0) {
+        CGRect contentRect = CGRectZero;
+        for (NSView *child in _contentContainer.subviews) {
+          contentRect = CGRectUnion(contentRect, child.frame);
+        }
+        if (w <= 0) w = contentRect.size.width + padding * 2;
+        if (h <= 0) h = contentRect.size.height + padding;
+      }
+      if (w < 40) w = 40;
+      if (h < 30) h = 30;
       _popover.contentSize = NSMakeSize(w, h);
       NSRectEdge edge = [self edgeFromString:_preferredEdge];
       NSView *anchor = _reactChildren.count > 0 ? _reactChildren[0] : self;
       [_popover showRelativeToRect:anchor.bounds ofView:anchor preferredEdge:edge];
-      // After RN has laid out children, auto-size and center
-      [self performSelector:@selector(autoSizePopover) withObject:nil afterDelay:0.02];
+      // Center content vertically after the container is sized
+      [self performSelector:@selector(centerContent) withObject:nil afterDelay:0.01];
     }
   } else {
     if (_popover.isShown) [_popover close];
@@ -2536,26 +2547,8 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
   }
 }
 
-- (void)autoSizePopover {
-  // Measure the union of all RN content children
-  CGRect contentRect = CGRectZero;
-  for (NSView *child in _contentContainer.subviews) {
-    contentRect = CGRectUnion(contentRect, child.frame);
-  }
-  if (contentRect.size.width < 1 || contentRect.size.height < 1) return;
-
-  // Only auto-size if no explicit size was provided
+- (void)centerContent {
   CGFloat padding = 8.0;
-  if (_popoverWidth <= 0) {
-    CGFloat newW = contentRect.size.width + padding * 2;
-    _popover.contentSize = NSMakeSize(newW, _popover.contentSize.height);
-  }
-  if (_popoverHeight <= 0) {
-    CGFloat newH = contentRect.size.height + padding;
-    _popover.contentSize = NSMakeSize(_popover.contentSize.width, newH);
-  }
-
-  // Center children vertically in the (possibly resized) container
   CGFloat containerH = _contentContainer.bounds.size.height;
   for (NSView *child in _contentContainer.subviews) {
     CGRect cf = child.frame;
