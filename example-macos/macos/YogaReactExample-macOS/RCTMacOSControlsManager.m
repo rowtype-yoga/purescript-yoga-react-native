@@ -4742,9 +4742,10 @@ RCT_EXPORT_VIEW_PROPERTY(active, BOOL)
 
 - (void)didSetProps:(NSArray<NSString *> *)changedProps
 {
-  NSLog(@"[RichTextLabel] didSetProps: reactTag=%@ measuredSize=%@", self.reactTag, NSStringFromSize(_measuredContentSize));
-  if (!CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
-    [self invalidateIntrinsicContentSize];
+  if (_bridge && !CGSizeEqualToSize(_measuredContentSize, CGSizeZero)) {
+    CGSize size = _measuredContentSize;
+    RCTUIManager *uiManager = [_bridge moduleForClass:[RCTUIManager class]];
+    [uiManager setIntrinsicContentSize:size forView:self];
   }
 }
 
