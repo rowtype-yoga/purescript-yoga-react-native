@@ -2502,6 +2502,11 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
   _visible = visible;
   if (visible) {
     if (!_popover.isShown && self.window) {
+      // Reset children to origin before measuring (centerContent may have shifted them)
+      for (NSView *child in _contentContainer.subviews) {
+        CGRect cf = child.frame;
+        child.frame = CGRectMake(cf.origin.x, 0, cf.size.width, cf.size.height);
+      }
       // Measure RN content that Yoga has already laid out
       CGFloat w = _popoverWidth;
       CGFloat h = _popoverHeight;
