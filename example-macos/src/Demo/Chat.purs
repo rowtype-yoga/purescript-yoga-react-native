@@ -266,9 +266,9 @@ chatDemo = component "ChatDemo" \dp -> React.do
                 ( \_ emoji ->
                     nativeButton
                       { title: emoji
-                      , bezelStyle: T.inline
+                      , bezelStyle: T.borderless
                       , onPress: reactToMessage idx emoji
-                      , style: Style.style { height: 28.0, width: 28.0, marginLeft: 2.0, marginRight: 2.0 }
+                      , style: Style.style { height: 28.0, width: 28.0 }
                       }
                 )
                 reactionEmoji

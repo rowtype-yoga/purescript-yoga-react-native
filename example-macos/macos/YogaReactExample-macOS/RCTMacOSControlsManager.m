@@ -81,6 +81,10 @@
   else if ([bezelStyle isEqualToString:@"inline"]) _button.bezelStyle = NSBezelStyleInline;
   else if ([bezelStyle isEqualToString:@"circular"]) _button.bezelStyle = NSBezelStyleCircular;
   else if ([bezelStyle isEqualToString:@"accessoryBarAction"]) _button.bezelStyle = NSBezelStyleAccessoryBarAction;
+  else if ([bezelStyle isEqualToString:@"borderless"]) {
+    _button.bordered = NO;
+    _button.showsBorderOnlyWhileMouseInside = YES;
+  }
   else _button.bezelStyle = NSBezelStylePush;
 }
 
@@ -2469,7 +2473,6 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
   _visible = visible;
   if (visible) {
     if (!_popover.isShown && self.window) {
-      CGFloat padding = 8.0;
       // Measure RN content that Yoga has already laid out
       CGFloat w = _popoverWidth;
       CGFloat h = _popoverHeight;
@@ -2478,8 +2481,8 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
         for (NSView *child in _contentContainer.subviews) {
           contentRect = CGRectUnion(contentRect, child.frame);
         }
-        if (w <= 0) w = contentRect.size.width + padding * 2;
-        if (h <= 0) h = contentRect.size.height + padding;
+        if (w <= 0) w = contentRect.size.width;
+        if (h <= 0) h = contentRect.size.height;
       }
       if (w < 40) w = 40;
       if (h < 30) h = 30;
@@ -2548,13 +2551,12 @@ RCT_EXPORT_VIEW_PROPERTY(radius, CGFloat)
 }
 
 - (void)centerContent {
-  CGFloat padding = 8.0;
   CGFloat containerH = _contentContainer.bounds.size.height;
   for (NSView *child in _contentContainer.subviews) {
     CGRect cf = child.frame;
     CGFloat y = (containerH - cf.size.height) / 2.0;
     if (y < 0) y = 0;
-    child.frame = CGRectMake(padding, y, cf.size.width, cf.size.height);
+    child.frame = CGRectMake(cf.origin.x, y, cf.size.width, cf.size.height);
   }
 }
 

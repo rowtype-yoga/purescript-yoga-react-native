@@ -20,6 +20,9 @@ inline = BezelStyle "inline"
 circular :: BezelStyle
 circular = BezelStyle "circular"
 
+borderless :: BezelStyle
+borderless = BezelStyle "borderless"
+
 accessoryBarAction :: BezelStyle
 accessoryBarAction = BezelStyle "accessoryBarAction"
 
