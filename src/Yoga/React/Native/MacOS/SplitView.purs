@@ -15,9 +15,7 @@ foreign import splitViewImpl :: forall props. ReactComponent props
 nativeSplitView :: FFINativeComponent NativeSplitViewAttributes
 nativeSplitView = createNativeElement splitViewImpl
 
-type DividerPosition =
-  { position :: Number
-  }
+type DividerPosition = { position :: Number }
 
 type NativeSplitViewAttributes = BaseAttributes
   ( initialPosition :: Number

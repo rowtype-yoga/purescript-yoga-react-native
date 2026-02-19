@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback, Children } from "react";
-import { View } from "react-native";
+import React, { useState, useRef, Children } from "react";
+import { View, PanResponder } from "react-native";
 
 export const splitViewImpl = React.forwardRef((props, ref) => {
   const {
@@ -19,27 +19,31 @@ export const splitViewImpl = React.forwardRef((props, ref) => {
   const [hovered, setHovered] = useState(false);
   const widthRef = useRef(sidebarWidth);
   widthRef.current = sidebarWidth;
-  const startX = useRef(0);
-  const startW = useRef(0);
+  const startWidth = useRef(0);
 
-  const onGrant = useCallback((e) => {
-    startX.current = e.nativeEvent.pageX;
-    startW.current = widthRef.current;
-    setDragging(true);
-  }, []);
-
-  const onMove = useCallback((e) => {
-    const dx = e.nativeEvent.pageX - startX.current;
-    const newWidth = Math.max(minPaneWidth, startW.current + dx);
-    setSidebarWidth(newWidth);
-  }, [minPaneWidth]);
-
-  const onRelease = useCallback(() => {
-    setDragging(false);
-    if (typeof onDividerPosition === "function") {
-      onDividerPosition({ position: widthRef.current })();
-    }
-  }, [onDividerPosition]);
+  const panRef = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        startWidth.current = widthRef.current;
+        setDragging(true);
+      },
+      onPanResponderMove: (_, gesture) => {
+        const newWidth = Math.max(minPaneWidth, startWidth.current + gesture.dx);
+        setSidebarWidth(newWidth);
+      },
+      onPanResponderRelease: () => {
+        setDragging(false);
+        if (typeof onDividerPosition === "function") {
+          onDividerPosition({ position: widthRef.current })();
+        }
+      },
+      onPanResponderTerminate: () => {
+        setDragging(false);
+      },
+    })
+  );
 
   const kids = Children.toArray(children);
   const leftChild = kids[0] || null;
@@ -59,21 +63,28 @@ export const splitViewImpl = React.forwardRef((props, ref) => {
     leftChild && React.cloneElement(leftChild, {
       style: [leftChild.props.style, { width: sidebarWidth }],
     }),
+    // 1px visible line with wider invisible PanResponder hit area
     React.createElement(View, {
-      onStartShouldSetResponder: () => true,
-      onMoveShouldSetResponder: () => true,
-      onResponderGrant: onGrant,
-      onResponderMove: onMove,
-      onResponderRelease: onRelease,
-      onResponderTerminate: onRelease,
-      onMouseEnter: () => setHovered(true),
-      onMouseLeave: () => setHovered(false),
       style: {
         width: dividerThickness,
-        cursor: "col-resize",
         backgroundColor: active ? dHoverColor : dColor,
       },
-    }),
+    },
+      React.createElement(View, {
+        ...panRef.current.panHandlers,
+        onMouseEnter: () => setHovered(true),
+        onMouseLeave: () => setHovered(false),
+        style: {
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: -4,
+          right: -4,
+          cursor: "col-resize",
+          zIndex: 10,
+        },
+      })
+    ),
     rightChild && React.cloneElement(rightChild, {
       style: [rightChild.props.style, { flex: 1 }],
     })
