@@ -55,6 +55,8 @@ module Yoga.React.Native.Reanimated
   , fadeInDuration
   , fadeOutDuration
   , readValue
+  , StyleInterp
+  , useInterpolatedStyle
   ) where
 
 import Prelude
@@ -102,6 +104,22 @@ foreign import useAnimatedStyleImpl :: (Unit -> Style) -> Effect Style
 
 useAnimatedStyle :: (Unit -> Style) -> Hook UseAnimatedStyle Style
 useAnimatedStyle updater = unsafeHook (useAnimatedStyleImpl updater)
+
+-- | Style interpolation config for useInterpolatedStyle.
+-- | Each entry maps a CSS property name to an interpolation range.
+type StyleInterp =
+  { prop :: String
+  , inputRange :: Array Number
+  , outputRange :: Array Number
+  , extrapolation :: ExtrapolationType
+  }
+
+foreign import useInterpolatedStyleImpl :: SharedValue Number -> Array StyleInterp -> Effect Style
+
+-- | Hook that interpolates a shared value into style properties inside a worklet.
+-- | Use this instead of useAnimatedStyle when you need .value reads to be tracked.
+useInterpolatedStyle :: SharedValue Number -> Array StyleInterp -> Hook UseAnimatedStyle Style
+useInterpolatedStyle sv styleMap = unsafeHook (useInterpolatedStyleImpl sv styleMap)
 
 -- Shared value operations
 

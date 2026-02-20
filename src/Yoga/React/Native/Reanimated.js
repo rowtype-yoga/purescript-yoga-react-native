@@ -32,6 +32,20 @@ export const useSharedValueImpl = (initial) => () => useSharedValue(initial);
 export const useAnimatedStyleImpl = (updater) => () =>
   useAnimatedStyle(updater);
 
+// useAnimatedStyle that interpolates a single shared value into style properties.
+// styleMap is an array of { prop, inputRange, outputRange, extrapolation }.
+// This keeps the .value read inside the worklet so Reanimated can track it.
+export const useInterpolatedStyleImpl = (sv) => (styleMap) => () =>
+  useAnimatedStyle(() => {
+    "worklet";
+    const style = {};
+    for (let i = 0; i < styleMap.length; i++) {
+      const { prop, inputRange, outputRange, extrapolation } = styleMap[i];
+      style[prop] = interpolate(sv.value, inputRange, outputRange, extrapolation);
+    }
+    return style;
+  });
+
 // Read shared value
 export const readSharedValue = (sv) => () => sv.value;
 
