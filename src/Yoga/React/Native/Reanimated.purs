@@ -43,6 +43,17 @@ module Yoga.React.Native.Reanimated
   , easingOut
   , easingInOut
   , easingBezier
+  , LayoutAnimation
+  , EnteringAnimation
+  , ExitingAnimation
+  , linearTransition
+  , linearTransitionDuration
+  , fadeIn
+  , fadeOut
+  , fadeInDown
+  , fadeOutUp
+  , fadeInDuration
+  , fadeOutDuration
   ) where
 
 import Prelude
@@ -65,6 +76,15 @@ foreign import data EasingFunction :: Type
 
 -- | Extrapolation type for interpolation
 foreign import data ExtrapolationType :: Type
+
+-- | Layout animation config (e.g. LinearTransition)
+foreign import data LayoutAnimation :: Type
+
+-- | Entering animation config (e.g. FadeIn)
+foreign import data EnteringAnimation :: Type
+
+-- | Exiting animation config (e.g. FadeOut)
+foreign import data ExitingAnimation :: Type
 
 -- Hook phantom types
 foreign import data UseSharedValue :: Type -> Type -> Type
@@ -169,10 +189,24 @@ foreign import easingOut :: EasingFunction -> EasingFunction
 foreign import easingInOut :: EasingFunction -> EasingFunction
 foreign import easingBezier :: Number -> Number -> Number -> Number -> EasingFunction
 
+-- Layout animation imports
+
+foreign import linearTransition :: LayoutAnimation
+foreign import linearTransitionDuration :: Int -> LayoutAnimation
+foreign import fadeIn :: EnteringAnimation
+foreign import fadeOut :: ExitingAnimation
+foreign import fadeInDown :: EnteringAnimation
+foreign import fadeOutUp :: ExitingAnimation
+foreign import fadeInDuration :: Int -> EnteringAnimation
+foreign import fadeOutDuration :: Int -> ExitingAnimation
+
 -- Animated components
 
 type ReanimatedAttributes r = BaseAttributes
   ( opacity :: SharedValue Number
+  , layout :: LayoutAnimation
+  , entering :: EnteringAnimation
+  , exiting :: ExitingAnimation
   | r
   )
 

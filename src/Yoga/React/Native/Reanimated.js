@@ -12,6 +12,11 @@ import Animated, {
   cancelAnimation,
   Easing,
   Extrapolation,
+  LinearTransition,
+  FadeIn,
+  FadeOut,
+  FadeInDown,
+  FadeOutUp,
 } from "react-native-reanimated";
 
 // Animated components
@@ -87,6 +92,16 @@ export const cancelAnimationImpl = (sv) => () => cancelAnimation(sv);
 export const extrapolationClamp = Extrapolation.CLAMP;
 export const extrapolationExtend = Extrapolation.EXTEND;
 export const extrapolationIdentity = Extrapolation.IDENTITY;
+
+// Layout animations
+export const linearTransition = LinearTransition;
+export const linearTransitionDuration = (ms) => LinearTransition.duration(ms);
+export const fadeIn = FadeIn;
+export const fadeOut = FadeOut;
+export const fadeInDown = FadeInDown;
+export const fadeOutUp = FadeOutUp;
+export const fadeInDuration = (ms) => FadeIn.duration(ms);
+export const fadeOutDuration = (ms) => FadeOut.duration(ms);
 
 // Easing functions
 export const easingLinear = Easing.linear;
