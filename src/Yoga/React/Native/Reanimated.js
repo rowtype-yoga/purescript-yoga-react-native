@@ -35,6 +35,9 @@ export const useAnimatedStyleImpl = (updater) => () =>
 // Read shared value
 export const readSharedValue = (sv) => () => sv.value;
 
+// Pure read of shared value (for use in useAnimatedStyle worklets)
+export const readValue = (sv) => sv.value;
+
 // Write shared value (plain assignment)
 export const writeSharedValue = (sv) => (val) => () => {
   sv.value = val;

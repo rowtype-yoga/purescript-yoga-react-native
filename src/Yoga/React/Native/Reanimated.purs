@@ -54,6 +54,7 @@ module Yoga.React.Native.Reanimated
   , fadeOutUp
   , fadeInDuration
   , fadeOutDuration
+  , readValue
   ) where
 
 import Prelude
@@ -106,6 +107,9 @@ useAnimatedStyle updater = unsafeHook (useAnimatedStyleImpl updater)
 
 foreign import readSharedValue :: forall a. SharedValue a -> Effect a
 foreign import writeSharedValue :: forall a. SharedValue a -> a -> Effect Unit
+
+-- | Pure read of a shared value's .value — for use inside useAnimatedStyle worklets
+foreign import readValue :: forall a. SharedValue a -> a
 
 -- | Animate a shared value to a target with spring physics
 foreign import writeSharedValueWithSpring :: forall r. SharedValue Number -> Number -> { | r } -> Effect Unit
