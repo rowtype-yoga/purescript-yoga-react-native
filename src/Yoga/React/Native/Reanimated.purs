@@ -57,6 +57,7 @@ module Yoga.React.Native.Reanimated
   , readValue
   , StyleInterp
   , useInterpolatedStyle
+  , useHeightAnimStyle
   ) where
 
 import Prelude
@@ -120,6 +121,12 @@ foreign import useInterpolatedStyleImpl :: SharedValue Number -> Array StyleInte
 -- | Use this instead of useAnimatedStyle when you need .value reads to be tracked.
 useInterpolatedStyle :: SharedValue Number -> Array StyleInterp -> Hook UseAnimatedStyle Style
 useInterpolatedStyle sv styleMap = unsafeHook (useInterpolatedStyleImpl sv styleMap)
+
+foreign import useHeightAnimStyleImpl :: SharedValue Number -> SharedValue Number -> Effect Style
+
+-- | Animated style that reads height and opacity directly from shared values.
+useHeightAnimStyle :: SharedValue Number -> SharedValue Number -> Hook UseAnimatedStyle Style
+useHeightAnimStyle heightSV opacitySV = unsafeHook (useHeightAnimStyleImpl heightSV opacitySV)
 
 -- Shared value operations
 

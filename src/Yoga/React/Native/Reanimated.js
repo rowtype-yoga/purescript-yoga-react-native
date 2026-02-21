@@ -46,6 +46,13 @@ export const useInterpolatedStyleImpl = (sv) => (styleMap) => () =>
     return style;
   });
 
+// useAnimatedStyle that directly reads shared values for height and opacity.
+export const useHeightAnimStyleImpl = (heightSV) => (opacitySV) => () =>
+  useAnimatedStyle(() => {
+    "worklet";
+    return { height: heightSV.value, opacity: opacitySV.value };
+  });
+
 // Read shared value
 export const readSharedValue = (sv) => () => sv.value;
 
