@@ -46,6 +46,9 @@
             },
             {
               "unsafe-coerce": ">=6.0.0 <7.0.0"
+            },
+            {
+              "yoga-react": ">=1.0.1 <2.0.0"
             }
           ]
         },
@@ -632,10 +635,7 @@
         "git": "https://github.com/mikesol/purescript-hyrule.git",
         "ref": "main"
       },
-      "yoga-react": {
-        "git": "https://github.com/rowtype-yoga/purescript-yoga-react.git",
-        "ref": "main"
-      }
+      "yoga-react": "1.0.1"
     }
   },
   "packages": {
@@ -1908,9 +1908,9 @@
       ]
     },
     "yoga-react": {
-      "type": "git",
-      "url": "https://github.com/rowtype-yoga/purescript-yoga-react.git",
-      "rev": "76ce3f907dcf193dab192553ae7f38e5607db95b",
+      "type": "registry",
+      "version": "1.0.1",
+      "integrity": "sha256-gzcQtkHZEaZZ5oauYU/CSHxggoXIJLVAVsAHf0/+2V4=",
       "dependencies": [
         "effect",
         "prelude",

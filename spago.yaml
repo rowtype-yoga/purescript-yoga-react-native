@@ -1,7 +1,7 @@
 package:
   name: yoga-react-native
   publish:
-    version: 0.1.0
+    version: 0.2.0
     license: MIT
     location:
       githubOwner: rowtype-yoga
@@ -17,6 +17,7 @@ package:
     - prelude: ">=6.0.1 <7.0.0"
     - react-basic: ">=17.0.0 <18.0.0"
     - react-basic-hooks: ">=8.2.0 <9.0.0"
+    - yoga-react: ">=1.0.1 <2.0.0"
     - tuples: ">=7.0.0 <8.0.0"
     - type-equality: ">=4.0.1 <5.0.0"
     - typelevel-prelude: ">=7.0.0 <8.0.0"
@@ -25,9 +26,7 @@ workspace:
   packageSet:
     registry: 58.0.0
   extraPackages:
-    yoga-react:
-      git: https://github.com/rowtype-yoga/purescript-yoga-react.git
-      ref: main
+    yoga-react: "1.0.1"
     deku-core:
       git: https://github.com/mikesol/purescript-deku.git
       ref: main
