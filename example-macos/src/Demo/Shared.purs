@@ -12,8 +12,7 @@ module Demo.Shared
 import Prelude
 
 import React.Basic (JSX)
-import Yoga.React.Native (text, tw, view)
-import Yoga.React.Native.MacOS.ScrollView (nativeScrollView)
+import Yoga.React.Native (scrollView, text, tw, view)
 import Yoga.React.Native.Style as Style
 
 type DemoProps =
@@ -26,7 +25,7 @@ type DemoProps =
 
 scrollWrap :: DemoProps -> Array JSX -> JSX
 scrollWrap _ children =
-  nativeScrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+  scrollView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
     (view { style: tw "px-4 pb-4" } children)
 
 sectionTitle :: String -> String -> JSX

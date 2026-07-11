@@ -4,6 +4,8 @@ module Demo.IOSBindings
 
 import Prelude
 
+import Demo.Shared (DemoProps)
+import Demo.SpringAnimation (springDemo)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Nullable (toMaybe)
@@ -16,7 +18,7 @@ import React.Basic.Events (handler_)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
-import Yoga.React.Native (pressable, scrollView, text, tw)
+import Yoga.React.Native (pressable, scrollView, text, tw, view)
 import Yoga.React.Native.IOS.ActionSheet as ActionSheet
 import Yoga.React.Native.IOS.Appearance as Appearance
 import Yoga.React.Native.IOS.Haptics as Haptics
@@ -27,11 +29,29 @@ import Yoga.React.Native.Style as Style
 iosDemo :: {} -> JSX
 iosDemo = component "IOSDemo" \_ -> React.do
   status /\ setStatus <- useState' "Ready"
-  pure do
+  showSprings /\ setShowSprings <- useState' false
+  let dp =
+        { fg: "#000000"
+        , dimFg: "#666666"
+        , cardBg: "#F2F2F7"
+        , bg: "#FFFFFF"
+        , isDark: false
+        } :: DemoProps
+  pure $
+    if showSprings then
+      SafeArea.safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: dp.bg } }
+        ( view { style: tw "flex-1" }
+            [ view { style: tw "px-4 pt-2" }
+                [ btn "Back to iOS Bindings" (setShowSprings false) ]
+            , springDemo dp
+            ]
+        )
+    else
     SafeArea.safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: "#FFFFFF" } }
       ( scrollView { style: tw "flex-1" <> Style.style { padding: 16.0 } }
           [ heading "iOS Bindings Test"
           , statusLine status
+          , btn "Open Spring Animations" (setShowSprings true)
 
           , section "ActionSheet"
           , btn "Show Action Sheet" do

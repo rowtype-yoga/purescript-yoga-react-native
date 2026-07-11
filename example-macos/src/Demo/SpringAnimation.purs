@@ -3,6 +3,7 @@ module Demo.SpringAnimation (springDemo) where
 import Prelude
 
 import Demo.Shared (DemoProps, card, desc, scrollWrap, sectionTitle)
+import Effect (Effect)
 import React.Basic (JSX)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
@@ -11,8 +12,6 @@ import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.Animated (Damping(..), Mass(..), Milliseconds(..), Opacity(..), Points(..), Progress(..), Scale(..), SpringModel, Stiffness(..), animatedView, animatedView_, interpolate, physicalSpring, toAnimatedValue, useOpacitySpring, useProgressSpring, useScaleSpring, useTranslationSpring, withSpringDelay)
 import React.Basic.Events (handler_)
 import Yoga.React.Native.Pressable (pressable)
-import Yoga.React.Native.MacOS.Button (nativeButton)
-import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.Style as Style
 
 springDemo :: DemoProps -> JSX
@@ -57,12 +56,8 @@ springDemo = component "SpringDemo" \dp -> React.do
 
       , sectionTitle dp.fg "Spring Toggle"
       , desc dp "Slides a box 200px to the right with a spring"
-      , nativeButton
-          { title: if toggled then "Spring Left" else "Spring Right"
-          , bezelStyle: T.push
-          , onPress: setToggled (not toggled)
-          , style: Style.style { height: 24.0, width: 140.0, marginBottom: 8.0 }
-          }
+      , controlButton dp (if toggled then "Spring Left" else "Spring Right")
+          (setToggled (not toggled))
       , animatedView_
           { style: tw "rounded-lg"
               <> Style.style
@@ -75,12 +70,8 @@ springDemo = component "SpringDemo" \dp -> React.do
 
       , sectionTitle dp.fg "Fade In"
       , desc dp "Springs opacity from 0 to 1"
-      , nativeButton
-          { title: if fadeIn then "Fade Out" else "Fade In"
-          , bezelStyle: T.push
-          , onPress: setFadeIn (not fadeIn)
-          , style: Style.style { height: 24.0, width: 120.0, marginBottom: 8.0 }
-          }
+      , controlButton dp (if fadeIn then "Fade Out" else "Fade In")
+          (setFadeIn (not fadeIn))
       , animatedView
           { style: Style.style { opacity } }
           [ card dp.cardBg
@@ -92,12 +83,8 @@ springDemo = component "SpringDemo" \dp -> React.do
 
       , sectionTitle dp.fg "Staggered Items"
       , desc dp "Each item springs in with increasing delay"
-      , nativeButton
-          { title: if showItems then "Hide Items" else "Show Items"
-          , bezelStyle: T.push
-          , onPress: setShowItems (not showItems)
-          , style: Style.style { height: 24.0, width: 120.0, marginBottom: 8.0 }
-          }
+      , controlButton dp (if showItems then "Hide Items" else "Show Items")
+          (setShowItems (not showItems))
       , staggeredItem dp "PureScript" "#007AFF" item0
       , staggeredItem dp "React Native" "#34C759" item1
       , staggeredItem dp "macOS" "#FF9500" item2
@@ -121,6 +108,15 @@ springDemo = component "SpringDemo" \dp -> React.do
       ]
     where
     slideX = interpolate (toAnimatedValue anim) { inputRange: [ 0.0, 1.0 ], outputRange: [ -30.0, 0.0 ], extrapolate: "clamp" }
+
+  controlButton :: DemoProps -> String -> Effect Unit -> JSX
+  controlButton dp title onPress =
+    pressable
+      { onPress: handler_ onPress
+      , style: tw "self-start rounded-md px-4 py-2 mb-2"
+          <> Style.style { backgroundColor: if dp.isDark then "#3A3A3C" else "#E5E5EA" }
+      }
+      (text { style: tw "text-sm font-semibold" <> Style.style { color: dp.fg } } title)
 
   physical :: forall a. Number -> Number -> SpringModel a
   physical stiffness damping = physicalSpring
