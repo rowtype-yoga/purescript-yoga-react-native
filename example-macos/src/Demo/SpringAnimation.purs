@@ -8,7 +8,7 @@ import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (text, tw, view)
-import Yoga.React.Native.Animated (animatedView, animatedView_, interpolate, useSpring)
+import Yoga.React.Native.Animated (Damping(..), Mass(..), Milliseconds(..), Opacity(..), Points(..), Progress(..), Scale(..), SpringModel, Stiffness(..), animatedView, animatedView_, interpolate, physicalSpring, toAnimatedValue, useOpacitySpring, useProgressSpring, useScaleSpring, useTranslationSpring, withSpringDelay)
 import React.Basic.Events (handler_)
 import Yoga.React.Native.Pressable (pressable)
 import Yoga.React.Native.MacOS.Button (nativeButton)
@@ -21,20 +21,20 @@ springDemo = component "SpringDemo" \dp -> React.do
   toggled /\ setToggled <- useState' false
   fadeIn /\ setFadeIn <- useState' false
   showItems /\ setShowItems <- useState' false
-  let scaleTarget = if pressed then 0.92 else 1.0
-  scale <- useSpring scaleTarget { stiffness: 400.0, damping: 15.0 }
-  let toggleTarget = if toggled then 200.0 else 0.0
-  translateX <- useSpring toggleTarget { stiffness: 180.0, damping: 14.0 }
-  let fadeTarget = if fadeIn then 1.0 else 0.0
-  opacity <- useSpring fadeTarget { stiffness: 120.0, damping: 20.0 }
-  item0 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 200.0, damping: 18.0 }
-  item1 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 180.0, damping: 18.0, delay: 50 }
-  item2 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 160.0, damping: 18.0, delay: 100 }
-  item3 <- useSpring (if showItems then 1.0 else 0.0) { stiffness: 140.0, damping: 18.0, delay: 150 }
+  let scaleTarget = if pressed then Scale 0.92 else Scale 1.0
+  scale <- useScaleSpring scaleTarget (physical 400.0 15.0)
+  let toggleTarget = if toggled then Points 200.0 else Points 0.0
+  translateX <- useTranslationSpring toggleTarget (physical 180.0 14.0)
+  let fadeTarget = if fadeIn then Opacity 1.0 else Opacity 0.0
+  opacity <- useOpacitySpring fadeTarget (physical 120.0 20.0)
+  item0 <- useProgressSpring (progressTarget showItems) (physical 200.0 18.0)
+  item1 <- useProgressSpring (progressTarget showItems) (withSpringDelay (Milliseconds 50) (physical 180.0 18.0))
+  item2 <- useProgressSpring (progressTarget showItems) (withSpringDelay (Milliseconds 100) (physical 160.0 18.0))
+  item3 <- useProgressSpring (progressTarget showItems) (withSpringDelay (Milliseconds 150) (physical 140.0 18.0))
   pure do
     scrollWrap dp
       [ sectionTitle dp.fg "Spring Animations"
-      , desc dp "Declarative spring physics using useSpring"
+      , desc dp "Typed spring physics on React Native's native animation driver"
 
       , sectionTitle dp.fg "Scale on Press"
       , desc dp "Hold down the card — it springs to 0.92x, release to bounce back"
@@ -49,7 +49,7 @@ springDemo = component "SpringDemo" \dp -> React.do
                       [ text { style: tw "text-sm font-semibold" <> Style.style { color: dp.fg } }
                           (if pressed then "Pressing..." else "Hold me!")
                       , text { style: tw "text-xs mt-1" <> Style.style { color: dp.dimFg } }
-                          "useSpring { stiffness: 400, damping: 15 }"
+                          "useScaleSpring (Scale 0.92) (physicalSpring ...)"
                       ]
                   ]
               ]
@@ -120,4 +120,14 @@ springDemo = component "SpringDemo" \dp -> React.do
           ]
       ]
     where
-    slideX = interpolate anim { inputRange: [ 0.0, 1.0 ], outputRange: [ -30.0, 0.0 ], extrapolate: "clamp" }
+    slideX = interpolate (toAnimatedValue anim) { inputRange: [ 0.0, 1.0 ], outputRange: [ -30.0, 0.0 ], extrapolate: "clamp" }
+
+  physical :: forall a. Number -> Number -> SpringModel a
+  physical stiffness damping = physicalSpring
+    { stiffness: Stiffness stiffness
+    , damping: Damping damping
+    , mass: Mass 1.0
+    }
+
+  progressTarget :: Boolean -> Progress
+  progressTarget enabled = if enabled then Progress 1.0 else Progress 0.0

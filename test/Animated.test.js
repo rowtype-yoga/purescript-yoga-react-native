@@ -1,4 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from "vitest";
+import React from "react";
+import { create, act } from "react-test-renderer";
+import { Animated } from "react-native";
 import {
   newValueImpl, newValueXYImpl, setValueImpl, setValueXYImpl,
   setOffsetImpl, flattenOffsetImpl, extractOffsetImpl,
@@ -8,8 +11,27 @@ import {
   parallelImpl, sequenceImpl, staggerImpl, delayImpl, loopImpl,
   addImpl, subtractImpl, multiplyImpl, divideImpl, moduloImpl, diffClampImpl,
   _animatedViewImpl, _animatedTextImpl, _animatedImageImpl, _animatedScrollViewImpl,
-  useAnimatedValueImpl,
+  useAnimatedValueImpl, useTypedSpringImpl,
 } from "../src/Yoga/React/Native/Animated.js";
+
+const renderHook = (hook, { initialProps }) => {
+  const result = { current: undefined };
+  const HookContainer = ({ hookProps }) => {
+    result.current = hook(hookProps);
+    return null;
+  };
+  let renderer;
+  act(() => {
+    renderer = create(React.createElement(HookContainer, { hookProps: initialProps }));
+  });
+  return {
+    result,
+    rerender: (hookProps) => {
+      renderer.update(React.createElement(HookContainer, { hookProps }));
+    },
+    unmount: () => renderer.unmount(),
+  };
+};
 
 describe("Animated FFI", () => {
   it("newValueImpl creates an AnimatedValue", () => {
@@ -185,5 +207,153 @@ describe("Animated FFI", () => {
     expect(typeof thunk).toBe("function");
     const v = thunk();
     expect(v._value).toBe(42);
+  });
+});
+
+describe("useTypedSpringImpl", () => {
+  const physical = {
+    family: "physical",
+    stiffness: 180,
+    damping: 18,
+    mass: 1.25,
+    delay: 12,
+    velocity: -0.5,
+    tension: 901,
+    friction: 902,
+    speed: 903,
+    bounciness: 904,
+    toValue: 905,
+    useNativeDriver: "from-model",
+  };
+
+  const hadActEnvironment = Object.hasOwn(
+    globalThis,
+    "IS_REACT_ACT_ENVIRONMENT",
+  );
+  const previousActEnvironment = globalThis.IS_REACT_ACT_ENVIRONMENT;
+
+  beforeAll(() => {
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  });
+
+  afterAll(() => {
+    if (hadActEnvironment) {
+      globalThis.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+    } else {
+      delete globalThis.IS_REACT_ACT_ENVIRONMENT;
+    }
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    {
+      name: "physical",
+      model: physical,
+      familyConfig: { stiffness: 180, damping: 18, mass: 1.25 },
+    },
+    {
+      name: "tension",
+      model: {
+        ...physical,
+        family: "tension",
+        tension: 72,
+        friction: 9,
+      },
+      familyConfig: { tension: 72, friction: 9 },
+    },
+    {
+      name: "bouncy",
+      model: {
+        ...physical,
+        family: "bouncy",
+        speed: 14,
+        bounciness: 7,
+      },
+      familyConfig: { speed: 14, bounciness: 7 },
+    },
+  ])("encodes only the $name family and forwards target/driver last", ({ model, familyConfig }) => {
+    const animation = { start: vi.fn(), stop: vi.fn() };
+    const spring = vi.spyOn(Animated, "spring").mockReturnValue(animation);
+    const { result, rerender, unmount } = renderHook(
+      ({ target, currentModel, native }) =>
+        useTypedSpringImpl(target)(currentModel)(native)(),
+      { initialProps: { target: -10, currentModel: model, native: true } },
+    );
+
+    expect(result.current._value).toBe(-10);
+    expect(spring).not.toHaveBeenCalled();
+
+    act(() => {
+      rerender({ target: 44, currentModel: model, native: false });
+    });
+
+    expect(spring).toHaveBeenCalledTimes(1);
+    expect(spring).toHaveBeenCalledWith(result.current, {
+      ...familyConfig,
+      delay: 12,
+      velocity: -0.5,
+      toValue: 44,
+      useNativeDriver: false,
+    });
+    expect(animation.start).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      unmount();
+    });
+  });
+
+  it("restarts only for scalar target/config changes and stops replaced and unmounted animations", () => {
+    const animations = [
+      { start: vi.fn(), stop: vi.fn() },
+      { start: vi.fn(), stop: vi.fn() },
+    ];
+    const spring = vi
+      .spyOn(Animated, "spring")
+      .mockReturnValueOnce(animations[0])
+      .mockReturnValueOnce(animations[1]);
+    const { rerender, unmount } = renderHook(
+      ({ target, model }) => useTypedSpringImpl(target)(model)(true)(),
+      { initialProps: { target: 10, model: physical } },
+    );
+
+    expect(spring).not.toHaveBeenCalled();
+
+    act(() => {
+      rerender({ target: 20, model: { ...physical } });
+    });
+    expect(spring).toHaveBeenCalledTimes(1);
+    expect(animations[0].start).toHaveBeenCalledTimes(1);
+    expect(animations[0].stop).not.toHaveBeenCalled();
+
+    act(() => {
+      rerender({ target: 20, model: { ...physical } });
+    });
+    expect(spring).toHaveBeenCalledTimes(1);
+    expect(animations[0].stop).not.toHaveBeenCalled();
+
+    const changedModel = { ...physical, damping: 24 };
+    act(() => {
+      rerender({ target: 20, model: changedModel });
+    });
+    expect(animations[0].stop).toHaveBeenCalledTimes(1);
+    expect(spring).toHaveBeenCalledTimes(2);
+    expect(spring).toHaveBeenLastCalledWith(expect.anything(), {
+      stiffness: 180,
+      damping: 24,
+      mass: 1.25,
+      delay: 12,
+      velocity: -0.5,
+      toValue: 20,
+      useNativeDriver: true,
+    });
+    expect(animations[1].start).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      unmount();
+    });
+    expect(animations[1].stop).toHaveBeenCalledTimes(1);
   });
 });

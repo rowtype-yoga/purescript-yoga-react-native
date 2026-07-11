@@ -55,3 +55,72 @@ export const useSpringImpl = (target) => (config) => () => {
   });
   return valueRef.current;
 };
+
+const springConfig = (model, target, useNativeDriver) => {
+  let family;
+  switch (model.family) {
+    case "physical":
+      family = {
+        stiffness: model.stiffness,
+        damping: model.damping,
+        mass: model.mass,
+      };
+      break;
+    case "tension":
+      family = { tension: model.tension, friction: model.friction };
+      break;
+    case "bouncy":
+      family = { speed: model.speed, bounciness: model.bounciness };
+      break;
+    default:
+      throw new Error(`Unknown spring family: ${model.family}`);
+  }
+
+  return {
+    ...family,
+    delay: model.delay,
+    velocity: model.velocity,
+    toValue: target,
+    useNativeDriver,
+  };
+};
+
+export const useTypedSpringImpl = (target) => (model) => (useNativeDriver) => () => {
+  const valueRef = useRef(null);
+  if (valueRef.current === null) {
+    valueRef.current = new Animated.Value(target);
+  }
+
+  const dependencies = [
+    target,
+    model.family,
+    model.stiffness,
+    model.damping,
+    model.mass,
+    model.tension,
+    model.friction,
+    model.speed,
+    model.bounciness,
+    model.delay,
+    model.velocity,
+    useNativeDriver,
+  ];
+  const previousDependenciesRef = useRef(dependencies);
+
+  useEffect(() => {
+    const previousDependencies = previousDependenciesRef.current;
+    previousDependenciesRef.current = dependencies;
+    if (dependencies.every((value, index) => Object.is(value, previousDependencies[index]))) {
+      return;
+    }
+
+    const animation = Animated.spring(
+      valueRef.current,
+      springConfig(model, target, useNativeDriver),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, dependencies);
+
+  return valueRef.current;
+};

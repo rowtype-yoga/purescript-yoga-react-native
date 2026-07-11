@@ -2,6 +2,32 @@ module Yoga.React.Native.Animated
   ( AnimatedValue
   , AnimatedValueXY
   , CompositeAnimation
+  , Animated
+  , toAnimatedValue
+  , Opacity(..)
+  , Scale(..)
+  , Points(..)
+  , Progress(..)
+  , Stiffness(..)
+  , Damping(..)
+  , Mass(..)
+  , Tension(..)
+  , Friction(..)
+  , Bounciness(..)
+  , SpringSpeed(..)
+  , Milliseconds(..)
+  , Velocity(..)
+  , SpringModel
+  , physicalSpring
+  , tensionSpring
+  , bouncySpring
+  , withSpringDelay
+  , withSpringVelocity
+  , useOpacitySpring
+  , useScaleSpring
+  , useTranslationSpring
+  , useProgressSpring
+  , UseTypedSpring
   , newValue
   , newValueXY
   , setValue
@@ -59,6 +85,89 @@ import Yoga.React.Native.Internal (class IsJSX, FFINativeComponent, FFINativeCom
 foreign import data AnimatedValue :: Type
 foreign import data AnimatedValueXY :: Type
 foreign import data CompositeAnimation :: Type
+
+newtype Animated :: Type -> Type
+newtype Animated a = Animated AnimatedValue
+
+toAnimatedValue :: forall a. Animated a -> AnimatedValue
+toAnimatedValue (Animated value) = value
+
+newtype Opacity = Opacity Number
+newtype Scale = Scale Number
+newtype Points = Points Number
+newtype Progress = Progress Number
+
+newtype Stiffness = Stiffness Number
+newtype Damping = Damping Number
+newtype Mass = Mass Number
+newtype Tension = Tension Number
+newtype Friction = Friction Number
+newtype Bounciness = Bounciness Number
+newtype SpringSpeed = SpringSpeed Number
+newtype Milliseconds = Milliseconds Int
+newtype Velocity :: Type -> Type
+newtype Velocity a = Velocity Number
+
+data SpringFamily
+  = Physical Stiffness Damping Mass
+  | TensionFriction Tension Friction
+  | Bouncy SpringSpeed Bounciness
+
+newtype SpringModel :: Type -> Type
+newtype SpringModel a = SpringModel
+  { family :: SpringFamily
+  , delay :: Int
+  , velocity :: Number
+  }
+
+physicalSpring :: forall a. { stiffness :: Stiffness, damping :: Damping, mass :: Mass } -> SpringModel a
+physicalSpring { stiffness, damping, mass } =
+  SpringModel { family: Physical stiffness damping mass, delay: 0, velocity: 0.0 }
+
+tensionSpring :: forall a. { tension :: Tension, friction :: Friction } -> SpringModel a
+tensionSpring { tension, friction } =
+  SpringModel { family: TensionFriction tension friction, delay: 0, velocity: 0.0 }
+
+bouncySpring :: forall a. { speed :: SpringSpeed, bounciness :: Bounciness } -> SpringModel a
+bouncySpring { speed, bounciness } =
+  SpringModel { family: Bouncy speed bounciness, delay: 0, velocity: 0.0 }
+
+withSpringDelay :: forall a. Milliseconds -> SpringModel a -> SpringModel a
+withSpringDelay (Milliseconds milliseconds) (SpringModel model) = SpringModel (model { delay = milliseconds })
+
+withSpringVelocity :: forall a. Velocity a -> SpringModel a -> SpringModel a
+withSpringVelocity (Velocity velocity) (SpringModel model) = SpringModel (model { velocity = velocity })
+
+type SpringModelImpl =
+  { family :: String
+  , stiffness :: Number
+  , damping :: Number
+  , mass :: Number
+  , tension :: Number
+  , friction :: Number
+  , speed :: Number
+  , bounciness :: Number
+  , delay :: Int
+  , velocity :: Number
+  }
+
+springModelImpl :: forall a. SpringModel a -> SpringModelImpl
+springModelImpl (SpringModel model) = case model.family of
+  Physical (Stiffness stiffness) (Damping damping) (Mass mass) ->
+    { family: "physical", stiffness, damping, mass
+    , tension: 0.0, friction: 0.0, speed: 0.0, bounciness: 0.0
+    , delay: model.delay, velocity: model.velocity
+    }
+  TensionFriction (Tension tension) (Friction friction) ->
+    { family: "tension", stiffness: 0.0, damping: 0.0, mass: 0.0
+    , tension, friction, speed: 0.0, bounciness: 0.0
+    , delay: model.delay, velocity: model.velocity
+    }
+  Bouncy (SpringSpeed speed) (Bounciness bounciness) ->
+    { family: "bouncy", stiffness: 0.0, damping: 0.0, mass: 0.0
+    , tension: 0.0, friction: 0.0, speed, bounciness
+    , delay: model.delay, velocity: model.velocity
+    }
 
 instance IsJSX AnimatedValue
 
@@ -283,3 +392,22 @@ foreign import data UseSpring :: Type -> Type
 
 useSpring :: forall r. Number -> { | r } -> Hook UseSpring AnimatedValue
 useSpring target config = unsafeHook (useSpringImpl target config)
+
+foreign import useTypedSpringImpl :: Number -> SpringModelImpl -> Boolean -> Effect AnimatedValue
+
+foreign import data UseTypedSpring :: Type -> Type
+
+useOpacitySpring :: Opacity -> SpringModel Opacity -> Hook UseTypedSpring (Animated Opacity)
+useOpacitySpring (Opacity target) model = typedSpring target model
+
+useScaleSpring :: Scale -> SpringModel Scale -> Hook UseTypedSpring (Animated Scale)
+useScaleSpring (Scale target) model = typedSpring target model
+
+useTranslationSpring :: Points -> SpringModel Points -> Hook UseTypedSpring (Animated Points)
+useTranslationSpring (Points target) model = typedSpring target model
+
+useProgressSpring :: Progress -> SpringModel Progress -> Hook UseTypedSpring (Animated Progress)
+useProgressSpring (Progress target) model = typedSpring target model
+
+typedSpring :: forall a. Number -> SpringModel a -> Hook UseTypedSpring (Animated a)
+typedSpring target model = unsafeHook (Animated <$> useTypedSpringImpl target (springModelImpl model) true)
