@@ -4,11 +4,13 @@ module Demo.IOSBindings
 
 import Prelude
 
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Nullable (toMaybe)
 import Effect (Effect)
-import Effect.Aff (launchAff_)
+import Effect.Aff (attempt, launchAff_)
 import Effect.Class (liftEffect)
+import Effect.Exception (message)
 import React.Basic (JSX)
 import React.Basic.Events (handler_)
 import React.Basic.Hooks (useState', (/\))
@@ -62,6 +64,12 @@ iosDemo = component "IOSDemo" \_ -> React.do
               launchAff_ do
                 can <- LinkingIOS.canOpenURL "https://purescript.org"
                 liftEffect (setStatus ("Can open https: " <> show can))
+          , btn "Open https://purescript.org" do
+              launchAff_ do
+                result <- attempt $ LinkingIOS.openURL "https://purescript.org"
+                case result of
+                  Left err -> liftEffect (setStatus ("Open URL failed: " <> message err))
+                  Right _ -> liftEffect (setStatus "Opened https://purescript.org")
           , btn "Get Initial URL" do
               launchAff_ do
                 mUrl <- LinkingIOS.getInitialURL
