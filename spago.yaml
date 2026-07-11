@@ -7,6 +7,7 @@ package:
       githubOwner: rowtype-yoga
       githubRepo: purescript-yoga-react-native
   dependencies:
+    - arrays: ">=7.3.0 <8.0.0"
     - aff: ">=7.1.0 <8.0.0"
     - effect: ">=4.0.0 <5.0.0"
     - foreign: ">=7.0.0 <8.0.0"
@@ -14,6 +15,7 @@ package:
     - maybe: ">=6.0.0 <7.0.0"
     - newtype: ">=5.0.0 <6.0.0"
     - nullable: ">=6.0.0 <7.0.0"
+    - numbers: ">=9.0.1 <10.0.0"
     - prelude: ">=6.0.1 <7.0.0"
     - react-basic: ">=17.0.0 <18.0.0"
     - react-basic-hooks: ">=8.2.0 <9.0.0"
