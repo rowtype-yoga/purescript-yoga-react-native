@@ -15,18 +15,28 @@ cd example-macos && bun install && cd ..
 cd example-macos/macos && pod install && cd ../..
 cd example-macos/ios && pod install && cd ../..
 
-# Build PureScript
+# Build PureScript before starting Metro
 cd example-macos && bunx spago build
 
-# Run either example target
+# Run macOS, or launch the default iOS simulator
 bun run macos
 bun run ios
+
+# To select an installed simulator explicitly
+bun run ios -- --simulator "iPhone 17 Pro"
+
+# List the exact simulator names available on this Mac
+xcrun simctl list devices available
+
 ```
+
+`output/` is generated and ignored by Git, so the PureScript build is required after every clean checkout. `ios/Pods/`, `ios/build/`, and `.xcode.env.local` are local/generated files; regenerate Pods with `pod install` rather than committing them.
+
+For a physical iPhone, connect and trust the device, select an Apple Development team and a unique bundle identifier in Xcode, then run `bun run ios -- --device "Device Name"`. Distribution additionally requires Apple Developer Program membership, signing/provisioning, an App Store Connect record, an archive, and App Store Connect/TestFlight upload.
 
 ## Using in Your Project
 
 Add to `spago.yaml`:
-
 ```yaml
 extraPackages:
   yoga-react-native:
@@ -84,9 +94,12 @@ myButton = nativeButton
 
 ## Prerequisites
 
-- macOS 14+
-- Xcode 16+
-- Node.js 20+ / Bun
-- PureScript 0.15+ and Spago
-- CocoaPods
+- macOS 14.5+ and Xcode 16.1+ for React Native 0.81
+- Xcode Command Line Tools selected in **Xcode → Settings → Locations**
+- An iOS Simulator runtime installed in **Xcode → Settings → Platforms**, or an iPhone running iOS 15.1+
+- Node.js 20.19.4+ for React Native, CocoaPods, and Xcode build scripts
+- Bun for JavaScript dependency installation and project scripts
+- PureScript 0.15+; the example pins Spago 1.0.3 in `devDependencies`
+- CocoaPods 1.16.2, matching `ios/Podfile.lock`
 
+Watchman is recommended for Metro file-watching performance but is not required. Simulator builds require no Apple account or signing configuration.
