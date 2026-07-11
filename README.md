@@ -1,6 +1,6 @@
 # purescript-yoga-react-native
 
-PureScript bindings for React Native macOS with 55+ native AppKit components.
+PureScript bindings for React Native on macOS and iOS, including 55+ native AppKit components.
 
 ## Quick Start
 
@@ -11,14 +11,16 @@ cd purescript-yoga-react-native
 bun install
 cd example-macos && bun install && cd ..
 
-# Install CocoaPods
-cd example-macos/macos && bundle exec pod install && cd ../..
+# Install CocoaPods for both Apple targets
+cd example-macos/macos && pod install && cd ../..
+cd example-macos/ios && pod install && cd ../..
 
 # Build PureScript
-cd example-macos && bunx spago build && cd ..
+cd example-macos && bunx spago build
 
-# Run the example app
-cd example-macos && npx react-native run-macos
+# Run either example target
+bun run macos
+bun run ios
 ```
 
 ## Using in Your Project

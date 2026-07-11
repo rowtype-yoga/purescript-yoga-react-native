@@ -4,6 +4,8 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Data.Nullable (toNullable)
+import Demo.AndroidBindings (androidDemo)
+import Demo.IOSBindings (iosDemo)
 import Demo.Navigation (demoContent, outlineSidebar)
 import Demo.Shared (DemoProps)
 import Effect (Effect)
@@ -17,13 +19,20 @@ import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.Toolbar (nativeToolbar)
 import Yoga.React.Native.MacOS.Types as T
 import Yoga.React.Native.MacOS.VisualEffect (nativeVisualEffect)
+import Yoga.React.Native.Platform as Platform
 import Yoga.React.Native.Style as Style
 
 main :: Effect Unit
 main = registerComponent "YogaReactExample" \_ -> app {}
 
 app :: {} -> JSX
-app = component "App" \_ -> React.do
+app = case Platform.os of
+  "ios" -> iosDemo
+  "android" -> androidDemo
+  _ -> macosApp
+
+macosApp :: {} -> JSX
+macosApp = component "App" \_ -> React.do
   selectedItem /\ setSelectedItem <- useState' "button"
   colorScheme <- useColorScheme
   let isDark = toNullable (Just "dark") == colorScheme

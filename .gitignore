@@ -5,3 +5,8 @@ node_modules
 .DS_Store
 test/visual/diff/
 docs/dist/
+example-macos/ios/Pods/
+example-macos/ios/build/
+example-macos/ios/.xcode.env.local
+example-macos/ios/**/*.xcuserdatad/
+example-macos/ios/**/*.xcuserdata/

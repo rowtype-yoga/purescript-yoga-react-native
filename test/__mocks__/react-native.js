@@ -194,11 +194,107 @@ const I18nManager = {
 };
 
 // PlatformColor
-const PlatformColor = (color) => ({ semantic: [color] });
+const PlatformColor = (...colors) => ({ semantic: colors });
 
 // Alert
 const Alert = {
-  alert: (title, message, buttons) => {},
+  alert: (title, message, buttons, options) => {},
+};
+
+// ToastAndroid
+const ToastAndroid = {
+  SHORT: 0,
+  LONG: 1,
+  TOP: 0,
+  BOTTOM: 1,
+  CENTER: 2,
+  show: (message, duration) => {},
+  showWithGravity: (message, duration, gravity) => {},
+  showWithGravityAndOffset: (message, duration, gravity, xOff, yOff) => {},
+};
+
+// PermissionsAndroid
+const PermissionsAndroid = {
+  PERMISSIONS: {
+    READ_CALENDAR: "android.permission.READ_CALENDAR",
+    WRITE_CALENDAR: "android.permission.WRITE_CALENDAR",
+    CAMERA: "android.permission.CAMERA",
+    READ_CONTACTS: "android.permission.READ_CONTACTS",
+    WRITE_CONTACTS: "android.permission.WRITE_CONTACTS",
+    GET_ACCOUNTS: "android.permission.GET_ACCOUNTS",
+    ACCESS_FINE_LOCATION: "android.permission.ACCESS_FINE_LOCATION",
+    ACCESS_COARSE_LOCATION: "android.permission.ACCESS_COARSE_LOCATION",
+    ACCESS_BACKGROUND_LOCATION: "android.permission.ACCESS_BACKGROUND_LOCATION",
+    RECORD_AUDIO: "android.permission.RECORD_AUDIO",
+    READ_PHONE_STATE: "android.permission.READ_PHONE_STATE",
+    CALL_PHONE: "android.permission.CALL_PHONE",
+    READ_CALL_LOG: "android.permission.READ_CALL_LOG",
+    WRITE_CALL_LOG: "android.permission.WRITE_CALL_LOG",
+    BODY_SENSORS: "android.permission.BODY_SENSORS",
+    SEND_SMS: "android.permission.SEND_SMS",
+    RECEIVE_SMS: "android.permission.RECEIVE_SMS",
+    READ_SMS: "android.permission.READ_SMS",
+    RECEIVE_WAP_PUSH: "android.permission.RECEIVE_WAP_PUSH",
+    RECEIVE_MMS: "android.permission.RECEIVE_MMS",
+    READ_EXTERNAL_STORAGE: "android.permission.READ_EXTERNAL_STORAGE",
+    WRITE_EXTERNAL_STORAGE: "android.permission.WRITE_EXTERNAL_STORAGE",
+    BLUETOOTH_CONNECT: "android.permission.BLUETOOTH_CONNECT",
+    BLUETOOTH_SCAN: "android.permission.BLUETOOTH_SCAN",
+    BLUETOOTH_ADVERTISE: "android.permission.BLUETOOTH_ADVERTISE",
+    NEARBY_WIFI_DEVICES: "android.permission.NEARBY_WIFI_DEVICES",
+    POST_NOTIFICATIONS: "android.permission.POST_NOTIFICATIONS",
+    READ_MEDIA_IMAGES: "android.permission.READ_MEDIA_IMAGES",
+    READ_MEDIA_VIDEO: "android.permission.READ_MEDIA_VIDEO",
+    READ_MEDIA_AUDIO: "android.permission.READ_MEDIA_AUDIO",
+    ACTIVITY_RECOGNITION: "android.permission.ACTIVITY_RECOGNITION",
+  },
+  RESULTS: {
+    GRANTED: "granted",
+    DENIED: "denied",
+    NEVER_ASK_AGAIN: "never_ask_again",
+  },
+  request: (permission) => Promise.resolve("granted"),
+  requestMultiple: (permissions) => {
+    const result = {};
+    permissions.forEach((p) => { result[p] = "granted"; });
+    return Promise.resolve(result);
+  },
+  check: (permission) => Promise.resolve(true),
+};
+
+// BackHandler
+const BackHandler = {
+  addEventListener: (eventName, handler) => ({ remove: () => {} }),
+  exitApp: () => {},
+};
+
+// DrawerLayoutAndroid
+const DrawerLayoutAndroid = {
+  positions: { Left: "left", Right: "right" },
+};
+
+// Vibration
+const Vibration = {
+  vibrate: (pattern, repeat) => {},
+  cancel: () => {},
+};
+
+// Settings (iOS)
+const Settings = {
+  get: (key) => undefined,
+  set: (values) => {},
+  watchKeys: (keys, callback) => 42,
+  clearWatch: (watchId) => {},
+};
+
+// DynamicColorIOS
+const DynamicColorIOS = ({ light, dark }) => ({ dynamic: { light, dark } });
+
+// TouchableNativeFeedback
+const TouchableNativeFeedback = {
+  SelectableBackground: () => ({ type: "selectableBackground" }),
+  SelectableBackgroundBorderless: () => ({ type: "selectableBackgroundBorderless" }),
+  Ripple: (color, borderless, radius) => ({ type: "ripple", color, borderless, radius }),
 };
 
 // Appearance
@@ -245,6 +341,7 @@ const Linking = {
   canOpenURL: (url) => Promise.resolve(true),
   getInitialURL: () => Promise.resolve(null),
   openSettings: () => Promise.resolve(),
+  addEventListener: (eventName, handler) => ({ remove: () => {} }),
 };
 
 // Platform
@@ -375,4 +472,12 @@ export {
   UIManager,
   requireNativeComponent,
   NativeModules,
+  ToastAndroid,
+  PermissionsAndroid,
+  BackHandler,
+  DrawerLayoutAndroid,
+  Vibration,
+  Settings,
+  DynamicColorIOS,
+  TouchableNativeFeedback,
 };

@@ -54,11 +54,13 @@ import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import React.Basic (ReactComponent)
 import React.Basic.Hooks (Hook, unsafeHook)
 import Yoga.React.Native.Attributes (BaseAttributes)
-import Yoga.React.Native.Internal (FFINativeComponent, FFINativeComponent_, createNativeElement, createNativeElement_)
+import Yoga.React.Native.Internal (class IsJSX, FFINativeComponent, FFINativeComponent_, createNativeElement, createNativeElement_)
 
 foreign import data AnimatedValue :: Type
 foreign import data AnimatedValueXY :: Type
 foreign import data CompositeAnimation :: Type
+
+instance IsJSX AnimatedValue
 
 foreign import newValueImpl :: EffectFn1 Number AnimatedValue
 

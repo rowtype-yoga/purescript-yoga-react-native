@@ -47,7 +47,6 @@ export const useSpringImpl = (target) => (config) => () => {
       prevTargetRef.current = target;
       const anim = Animated.spring(valueRef.current, {
         toValue: target,
-        useNativeDriver: false,
         ...config,
       });
       anim.start();
