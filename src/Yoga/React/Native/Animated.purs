@@ -18,6 +18,8 @@ module Yoga.React.Native.Animated
   , Milliseconds(..)
   , Velocity(..)
   , SpringModel
+  , SpringModelImpl
+  , springModelImpl
   , physicalSpring
   , tensionSpring
   , bouncySpring

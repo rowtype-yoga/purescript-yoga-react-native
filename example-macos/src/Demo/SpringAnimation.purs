@@ -2,6 +2,7 @@ module Demo.SpringAnimation (springDemo) where
 
 import Prelude
 
+import Data.Array.NonEmpty as NEA
 import Demo.Shared (DemoProps, card, desc, scrollWrap, sectionTitle)
 import Effect (Effect)
 import React.Basic (JSX)
@@ -13,6 +14,7 @@ import Yoga.React.Native.Animated (Damping(..), Mass(..), Milliseconds(..), Opac
 import React.Basic.Events (handler_)
 import Yoga.React.Native.Pressable (pressable)
 import Yoga.React.Native.Style as Style
+import Yoga.React.Native.GestureHandler as Gesture
 
 springDemo :: DemoProps -> JSX
 springDemo = component "SpringDemo" \dp -> React.do
@@ -30,6 +32,9 @@ springDemo = component "SpringDemo" \dp -> React.do
   item1 <- useProgressSpring (progressTarget showItems) (withSpringDelay (Milliseconds 50) (physical 180.0 18.0))
   item2 <- useProgressSpring (progressTarget showItems) (withSpringDelay (Milliseconds 100) (physical 160.0 18.0))
   item3 <- useProgressSpring (progressTarget showItems) (withSpringDelay (Milliseconds 150) (physical 140.0 18.0))
+  let snapPoints = NEA.cons' (Points 0.0) [ Points 120.0, Points 240.0 ]
+  nativePan <- Gesture.useNativeSnapPan (Points 0.0) snapPoints 0.2 (physical 260.0 24.0)
+  let panX = Gesture.position nativePan
   pure do
     scrollWrap dp
       [ sectionTitle dp.fg "Spring Animations"
@@ -67,6 +72,23 @@ springDemo = component "SpringDemo" \dp -> React.do
                 , transform: [ { translateX } ]
                 }
           }
+
+      , sectionTitle dp.fg "Native Pan + Snap"
+      , desc dp "Drag horizontally — release velocity selects a typed snap point; retouch interrupts the spring"
+      , Gesture.panGestureView nativePan $
+          animatedView
+            { style: tw "rounded-lg"
+                <> Style.style
+                  { width: 72.0
+                  , height: 72.0
+                  , backgroundColor: "#FF2D55"
+                  , transform: [ { translateX: panX } ]
+                  }
+            }
+            [ view { style: tw "flex-1 items-center justify-center" }
+                [ text { style: tw "text-xs font-semibold" <> Style.style { color: "#FFFFFF" } } "Drag me"
+                ]
+            ]
 
       , sectionTitle dp.fg "Fade In"
       , desc dp "Springs opacity from 0 to 1"

@@ -77,6 +77,7 @@ const Animated = {
   stagger: (time, anims) => mockCompositeAnimation(),
   delay: (time) => mockCompositeAnimation(),
   loop: (anim, config) => mockCompositeAnimation(),
+  event: (mapping, config) => () => {},
   add: (a, b) => ({ _type: "add", a, b }),
   subtract: (a, b) => ({ _type: "subtract", a, b }),
   multiply: (a, b) => ({ _type: "multiply", a, b }),

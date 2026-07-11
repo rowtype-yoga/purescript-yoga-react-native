@@ -10,6 +10,10 @@ export default defineConfig({
         "./test/__mocks__/react-native.js",
         import.meta.url,
       ).pathname,
+      "react-native-gesture-handler": new URL(
+        "./test/__mocks__/react-native-gesture-handler.js",
+        import.meta.url,
+      ).pathname,
       "react-native-macos": new URL(
         "./test/__mocks__/react-native-macos.js",
         import.meta.url,

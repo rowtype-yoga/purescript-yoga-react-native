@@ -15,6 +15,7 @@ import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (registerComponent, safeAreaView, tw, view)
 import Yoga.React.Native.Appearance (useColorScheme)
+import Yoga.React.Native.GestureHandler (gestureHandlerRootView)
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.Toolbar (nativeToolbar)
 import Yoga.React.Native.MacOS.Types as T
@@ -26,10 +27,10 @@ main :: Effect Unit
 main = registerComponent "YogaReactExample" \_ -> app {}
 
 app :: {} -> JSX
-app = case Platform.os of
-  "ios" -> iosDemo
-  "android" -> androidDemo
-  _ -> macosApp
+app props = gestureHandlerRootView $ case Platform.os of
+  "ios" -> iosDemo props
+  "android" -> androidDemo props
+  _ -> macosApp props
 
 macosApp :: {} -> JSX
 macosApp = component "App" \_ -> React.do
