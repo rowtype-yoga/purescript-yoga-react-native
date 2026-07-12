@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { _viewImpl } from "../src/Yoga/React/Native/View.js";
 import { _textImpl } from "../src/Yoga/React/Native/Text.js";
@@ -83,8 +84,8 @@ describe("Component FFI exports", () => {
     expect(_modalImpl).toBe("Modal");
   });
 
-  it("SafeAreaView exports the component", () => {
-    expect(_safeAreaViewImpl).toBe("SafeAreaView");
+  it("SafeAreaView delegates to react-native-safe-area-context", () => {
+    expect(_safeAreaViewImpl).toBe(SafeAreaView);
   });
 
   it("KeyboardAvoidingView exports the component", () => {

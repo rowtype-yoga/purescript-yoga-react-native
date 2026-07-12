@@ -13,9 +13,10 @@ import React.Basic (JSX)
 import React.Basic.Hooks (useState', (/\))
 import React.Basic.Hooks as React
 import Yoga.React (component)
-import Yoga.React.Native (registerComponent, safeAreaView, tw, view)
+import Yoga.React.Native (registerComponent, tw, view)
 import Yoga.React.Native.Appearance (useColorScheme)
 import Yoga.React.Native.GestureHandler (gestureHandlerRootView)
+import Yoga.React.Native.IOS.SafeArea as SafeArea
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
 import Yoga.React.Native.MacOS.Toolbar (nativeToolbar)
 import Yoga.React.Native.MacOS.Types as T
@@ -28,7 +29,7 @@ main = registerComponent "YogaReactExample" \_ -> app {}
 
 app :: {} -> JSX
 app props = gestureHandlerRootView $ case Platform.os of
-  "ios" -> iosDemo props
+  "ios" -> SafeArea.safeAreaProvider {} (iosDemo props)
   "android" -> androidDemo props
   _ -> macosApp props
 
@@ -47,7 +48,7 @@ macosApp = component "App" \_ -> React.do
       { materialName: T.windowBackground
       , style: tw "flex-1"
       }
-      ( safeAreaView { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
+      ( view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
           ( view { style: tw "flex-1" <> Style.style { backgroundColor: "transparent" } }
               [ nativeToolbar
                   { items: []

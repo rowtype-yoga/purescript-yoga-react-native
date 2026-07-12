@@ -5,6 +5,7 @@ import Prelude
 import Data.Function.Uncurried (Fn1, Fn2)
 import Effect.Uncurried (EffectFn1)
 import React.Basic (JSX, ReactComponent)
+import Foreign (Foreign)
 import Yoga.React.Native.Attributes (BaseAttributes)
 import Yoga.React.Native.Internal (FFINativeComponent_, createNativeElement_)
 import Yoga.React.Native.Style (Style)
@@ -17,6 +18,7 @@ flatList = createNativeElement_ _flatListImpl
 type FlatListAttributes a = BaseAttributes
   ( data :: Array a
   , renderItem :: Fn1 { item :: a, index :: Int } JSX
+  , extraData :: Foreign
   , keyExtractor :: Fn2 a Int String
   , contentContainerStyle :: Style
   , horizontal :: Boolean

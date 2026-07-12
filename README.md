@@ -52,10 +52,10 @@ workspace:
       ref: main
 ```
 
-The gesture bindings have one required JavaScript peer dependency. Install the React Native 0.81-compatible release with Bun:
+The gesture and modern safe-area bindings require JavaScript peer dependencies. Install the React Native 0.81-compatible releases with Bun:
 
 ```bash
-bun add react-native-gesture-handler@2.28.0
+bun add react-native-gesture-handler@2.28.0 react-native-safe-area-context@^5.5.2
 ```
 
 Autolink the native dependency on each Apple target after installation:
@@ -66,16 +66,17 @@ cd ios && pod install && cd ..
 cd macos && pod install && cd ..
 ```
 
-Wrap the registered application with `GestureHandlerRootView` before rendering gesture-backed components:
+Wrap the registered application with both native root providers:
 
 ```purescript
 import Yoga.React.Native.GestureHandler (gestureHandlerRootView)
+import Yoga.React.Native.IOS.SafeArea (safeAreaProvider)
 
 app :: {} -> JSX
-app _ = gestureHandlerRootView application
+app _ = gestureHandlerRootView (safeAreaProvider {} application)
 ```
 
-`Yoga.React.Native.GestureHandler` imports `react-native-gesture-handler` directly; applications that use this module must provide the JavaScript package and linked native pod. The wrapper must be above every `panGestureView` in the rendered tree.
+`Yoga.React.Native.GestureHandler` imports `react-native-gesture-handler` directly; applications that use it must provide the JavaScript package and linked native pod. The shared `Yoga.React.Native.SafeAreaView` and `Yoga.React.Native.IOS.SafeArea` bindings import `react-native-safe-area-context`; place `safeAreaProvider` at the application root before using either safe-area view. The gesture wrapper must be above every `panGestureView` in the rendered tree.
 
 ```purescript
 import Yoga.React.Native (text, tw, view)

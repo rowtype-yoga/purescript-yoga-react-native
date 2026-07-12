@@ -22,6 +22,10 @@ export default defineConfig({
         "./test/__mocks__/react-native-fs.js",
         import.meta.url,
       ).pathname,
+      "react-native-safe-area-context": new URL(
+        "./test/__mocks__/react-native-safe-area-context.js",
+        import.meta.url,
+      ).pathname,
       twrnc: new URL("./test/__mocks__/twrnc.js", import.meta.url).pathname,
     },
   },

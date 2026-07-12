@@ -1,5 +1,6 @@
 module Yoga.React.Native.IOS.SafeArea
   ( safeAreaView
+  , safeAreaProvider
   , SafeAreaViewAttributes
   , Edges
   , allEdges
@@ -18,6 +19,11 @@ foreign import allEdges :: Edges
 foreign import noEdges :: Edges
 foreign import topOnly :: Edges
 foreign import bottomOnly :: Edges
+
+foreign import safeAreaProviderImpl :: forall props. ReactComponent props
+
+safeAreaProvider :: FFINativeComponent ()
+safeAreaProvider = createNativeElement safeAreaProviderImpl
 
 foreign import safeAreaViewImpl :: forall props. ReactComponent props
 
