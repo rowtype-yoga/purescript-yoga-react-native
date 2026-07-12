@@ -84,6 +84,7 @@
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
 {
+  [searchBar resignFirstResponder];
   if (self.onSubmit != nil) {
     self.onSubmit(@{ @"text": searchBar.text ?: @"" });
   }
@@ -91,6 +92,7 @@
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar
 {
+  [searchBar resignFirstResponder];
   if (self.onCancel != nil) {
     self.onCancel(@{});
   }
