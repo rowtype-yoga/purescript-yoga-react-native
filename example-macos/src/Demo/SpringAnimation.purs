@@ -73,8 +73,8 @@ springDemo = component "SpringDemo" \dp -> React.do
                 }
           }
 
-      , sectionTitle dp.fg "Native Pan + Snap"
-      , desc dp "Drag horizontally — release velocity selects a typed snap point; retouch interrupts the spring"
+      , sectionTitle dp.fg "Pan + Snap"
+      , desc dp "Snap engine: PanResponder v6 · horizontal intent snaps to 0, 120, and 240 points"
       , Gesture.panGestureView nativePan $
           animatedView
             { style: tw "rounded-lg"

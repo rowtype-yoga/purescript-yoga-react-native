@@ -25,9 +25,9 @@ export const iosNativeStackImpl = Content => {
       name,
       options: {
         headerShown: false,
-        gestureEnabled: name !== "landing",
-        fullScreenGestureEnabled: name !== "landing",
-        customAnimationOnGesture: true,
+        gestureEnabled: name !== "landing" && name !== "springs",
+        fullScreenGestureEnabled: name !== "landing" && name !== "springs",
+        customAnimationOnGesture: name !== "springs",
       },
       children: ({ navigation }) =>
         React.createElement(Content, {

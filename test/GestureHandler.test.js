@@ -1,17 +1,11 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import React from "react";
 import { act, create } from "react-test-renderer";
-import { Animated } from "react-native";
-import { State } from "react-native-gesture-handler";
-import { useNativeSnapPanImpl } from "../src/Yoga/React/Native/GestureHandler.js";
+import { Animated, PanResponder } from "react-native";
+import {
+  panGestureView,
+  useNativeSnapPanImpl,
+} from "../src/Yoga/React/Native/GestureHandler.js";
 
 const model = {
   family: "physical",
@@ -21,42 +15,77 @@ const model = {
   delay: 12,
 };
 
-const renderHook = (hook, { initialProps, strict = false }) => {
-  const result = { current: undefined };
-  const HookContainer = ({ hookProps }) => {
-    result.current = hook(hookProps);
-    return null;
-  };
-  const render = (hookProps) => {
-    const child = React.createElement(HookContainer, { hookProps });
-    return strict ? React.createElement(React.StrictMode, null, child) : child;
-  };
-
-  let renderer;
-  act(() => {
-    renderer = create(render(initialProps), { unstable_strictMode: strict });
-  });
-
-  return {
-    result,
-    rerender: (hookProps) => act(() => renderer.update(render(hookProps))),
-    unmount: () => act(() => renderer.unmount()),
-  };
-};
-
 const usePan = ({ initial = 10, snapPoints = [-100, 100], chooseTarget }) =>
   useNativeSnapPanImpl(initial)(snapPoints)(chooseTarget)(model)();
-
-const stateEvent = (state, sample = {}) => ({
-  nativeEvent: { state, ...sample },
-});
 
 const deferredAnimation = () => ({
   start: vi.fn(),
   stop: vi.fn(),
 });
 
-describe("useNativeSnapPanImpl", () => {
+const responderFromConfig = (config) => ({
+  panHandlers: {
+    onStartShouldSetResponder: config.onStartShouldSetPanResponder,
+    onMoveShouldSetResponder: config.onMoveShouldSetPanResponder,
+    onResponderGrant: config.onPanResponderGrant,
+    onResponderMove: config.onPanResponderMove,
+    onResponderRelease: config.onPanResponderRelease,
+    onResponderTerminate: config.onPanResponderTerminate,
+  },
+});
+
+const mountPan = ({ initial = 10, chooseTarget, strict = false }) => {
+  const result = { current: undefined };
+
+  const PanContainer = ({ hookProps }) => {
+    const pan = usePan(hookProps);
+    result.current = pan;
+    return panGestureView(pan)(
+      React.createElement(Animated.View, {
+        testID: "snap-thumb",
+        accessibilityLabel: "Draggable snap thumb",
+        style: { transform: [{ translateX: pan.position }] },
+      }),
+    );
+  };
+
+  const render = (hookProps) => {
+    const child = React.createElement(PanContainer, { hookProps });
+    return strict ? React.createElement(React.StrictMode, null, child) : child;
+  };
+
+  let renderer;
+  act(() => {
+    renderer = create(render({ initial, chooseTarget }), {
+      unstable_strictMode: strict,
+    });
+  });
+
+  return {
+    renderer,
+    result,
+    handlers: () => {
+      expect(result.current.panHandlers).toBeDefined();
+      return result.current.panHandlers;
+    },
+    rerender: (props = { initial, chooseTarget }) =>
+      act(() => renderer.update(render(props))),
+    thumb: () => renderer.root.findByProps({ testID: "snap-thumb" }),
+    unmount: () => act(() => renderer.unmount()),
+  };
+};
+
+const expectedSpringConfig = (toValue, velocity) => ({
+  stiffness: 180,
+  damping: 18,
+  mass: 1.25,
+  delay: 12,
+  velocity,
+  toValue,
+  useNativeDriver: false,
+});
+
+describe("useNativeSnapPanImpl PanResponder orchestration", () => {
   const hadActEnvironment = Object.hasOwn(
     globalThis,
     "IS_REACT_ACT_ENVIRONMENT",
@@ -79,241 +108,209 @@ describe("useNativeSnapPanImpl", () => {
     vi.restoreAllMocks();
   });
 
-  it("maps translationX directly to the drag value with the native driver", () => {
-    const nativeHandler = vi.fn();
-    const event = vi.spyOn(Animated, "event").mockReturnValue(nativeHandler);
+  it("creates one responder and keeps its handlers and Animated.Value stable across rerenders", () => {
+    const createResponder = vi
+      .spyOn(PanResponder, "create")
+      .mockImplementation(responderFromConfig);
     const chooseTarget = vi.fn(() => 100);
-    const { result, rerender, unmount } = renderHook(usePan, {
-      initialProps: { chooseTarget },
-    });
-    const drag = result.current.position.b;
+    const mounted = mountPan({ initial: 23, chooseTarget });
 
-    expect(event).toHaveBeenCalledWith(
-      [{ nativeEvent: { translationX: drag } }],
-      { useNativeDriver: true },
+    expect(createResponder).toHaveBeenCalledTimes(1);
+    const position = mounted.result.current.position;
+    const panHandlers = mounted.handlers();
+
+    mounted.rerender({ initial: 999, chooseTarget });
+
+    expect(createResponder).toHaveBeenCalledTimes(1);
+    expect(mounted.result.current.position).toBe(position);
+    expect(mounted.result.current.panHandlers).toBe(panHandlers);
+    mounted.unmount();
+  });
+
+  it("claims only horizontal movement beyond the drag threshold", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
+    const mounted = mountPan({ chooseTarget: vi.fn(() => 100) });
+    const handlers = mounted.handlers();
+
+    expect(
+      handlers.onStartShouldSetResponder({}, { dx: 20, dy: 0 }),
+    ).toBe(false);
+
+    const moveCases = [
+      { name: "positive threshold", gesture: { dx: 4, dy: 0 }, expected: false },
+      { name: "negative threshold", gesture: { dx: -4, dy: 0 }, expected: false },
+      { name: "vertical dominant", gesture: { dx: 5, dy: 6 }, expected: false },
+      { name: "equal axes", gesture: { dx: -5, dy: 5 }, expected: false },
+      { name: "rightward drag", gesture: { dx: 5, dy: 4 }, expected: true },
+      { name: "leftward drag", gesture: { dx: -5, dy: 4 }, expected: true },
+    ];
+
+    for (const { name, gesture, expected } of moveCases) {
+      expect(handlers.onMoveShouldSetResponder({}, gesture), name).toBe(expected);
+    }
+
+    mounted.unmount();
+  });
+
+  it("clones the animated child and attaches responder handlers directly to it", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
+    const mounted = mountPan({ chooseTarget: vi.fn(() => 100) });
+    const thumb = mounted.thumb();
+    const handlers = mounted.handlers();
+
+    expect(mounted.renderer.toJSON()).toMatchObject({
+      type: "Animated.View",
+      props: {
+        testID: "snap-thumb",
+        accessibilityLabel: "Draggable snap thumb",
+      },
+    });
+    expect(thumb.props.onResponderGrant).toBe(handlers.onResponderGrant);
+    expect(thumb.props.onResponderMove).toBe(handlers.onResponderMove);
+    expect(thumb.props.onResponderRelease).toBe(handlers.onResponderRelease);
+    expect(thumb.props.onResponderTerminate).toBe(handlers.onResponderTerminate);
+    mounted.unmount();
+  });
+
+  it("captures the visible value on grant and writes base plus dx on every move", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
+    const mounted = mountPan({ chooseTarget: vi.fn(() => 100) });
+    const position = mounted.result.current.position;
+    const stopAnimation = vi
+      .spyOn(position, "stopAnimation")
+      .mockImplementation((callback) => callback?.(41));
+    const setValue = vi.spyOn(position, "setValue");
+    const handlers = mounted.handlers();
+
+    act(() => handlers.onResponderGrant({}, { dx: 900, vx: 900 }));
+    act(() => handlers.onResponderMove({}, { dx: 9, vx: 2 }));
+    act(() => handlers.onResponderMove({}, { dx: -6, vx: -3 }));
+
+    expect(stopAnimation).toHaveBeenCalledTimes(1);
+    expect(setValue.mock.calls).toEqual([[50], [35]]);
+    mounted.unmount();
+  });
+
+  it("samples the absolute release position and velocity, then springs the same value", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
+    const animation = deferredAnimation();
+    const spring = vi.spyOn(Animated, "spring").mockReturnValue(animation);
+    const chooseTarget = vi.fn(({ position }) => (position < 50 ? -100 : 100));
+    const mounted = mountPan({ initial: 10, chooseTarget });
+    const position = mounted.result.current.position;
+    vi.spyOn(position, "stopAnimation").mockImplementation((callback) =>
+      callback?.(34),
     );
-    expect(result.current.onGestureEvent).toBe(nativeHandler);
+    const setValue = vi.spyOn(position, "setValue");
+    const handlers = mounted.handlers();
 
-    rerender({ chooseTarget });
-    expect(event).toHaveBeenCalledTimes(1);
-    expect(result.current.onGestureEvent).toBe(nativeHandler);
+    act(() => handlers.onResponderGrant({}, { dx: 0, vx: 0 }));
+    act(() => handlers.onResponderMove({}, { dx: 12, vx: -1 }));
+    act(() => handlers.onResponderRelease({}, { dx: 19, vx: 5 }));
 
-    unmount();
+    expect(setValue.mock.calls).toEqual([[46], [53]]);
+    expect(chooseTarget).toHaveBeenCalledOnce();
+    expect(chooseTarget).toHaveBeenCalledWith({ position: 53, velocity: 5 });
+    expect(spring).toHaveBeenCalledOnce();
+    expect(spring).toHaveBeenCalledWith(
+      position,
+      expectedSpringConfig(100, 5),
+    );
+    expect(animation.start).toHaveBeenCalledOnce();
+    mounted.unmount();
   });
 
-  it("interrupts a running spring on retouch and snaps from its captured presentation position", () => {
-    const animations = [deferredAnimation(), deferredAnimation()];
-    const spring = vi
-      .spyOn(Animated, "spring")
-      .mockReturnValueOnce(animations[0])
-      .mockReturnValueOnce(animations[1]);
-    const chooseTarget = vi.fn(({ position }) => (position < 0 ? -100 : 100));
-    const { result, unmount } = renderHook(usePan, {
-      initialProps: { chooseTarget },
-    });
-    const base = result.current.position.a;
-    const drag = result.current.position.b;
+  it("stops an active spring on retouch and continues from its captured visible value", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
+    const animation = deferredAnimation();
+    vi.spyOn(Animated, "spring").mockReturnValue(animation);
+    const mounted = mountPan({ initial: 10, chooseTarget: vi.fn(() => 100) });
+    const position = mounted.result.current.position;
+    const stopAnimation = vi
+      .spyOn(position, "stopAnimation")
+      .mockImplementation((callback) => callback?.(10));
+    const setValue = vi.spyOn(position, "setValue");
+    const handlers = mounted.handlers();
 
-    act(() => {
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: 20, velocityX: 5 }),
-      );
-    });
-    expect(chooseTarget).toHaveBeenLastCalledWith({ position: 30, velocity: 5 });
+    act(() => handlers.onResponderRelease({}, { dx: 20, vx: 4 }));
+    stopAnimation.mockImplementation((callback) => callback?.(47));
+    setValue.mockClear();
 
-    const stopBase = vi
-      .spyOn(base, "stopAnimation")
-      .mockImplementation((callback) => callback?.(47));
-    const stopDrag = vi.spyOn(drag, "stopAnimation");
-    act(() => {
-      result.current.onHandlerStateChange(stateEvent(State.BEGAN));
-    });
+    act(() => handlers.onResponderGrant({}, { dx: 0, vx: 0 }));
+    act(() => handlers.onResponderMove({}, { dx: -7, vx: -2 }));
 
-    expect(animations[0].stop).toHaveBeenCalledTimes(1);
-    expect(stopBase).toHaveBeenCalledTimes(1);
-    expect(stopDrag).toHaveBeenCalledTimes(1);
-    expect(base._value).toBe(47);
-    expect(drag._value).toBe(0);
-
-    act(() => {
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: -2, velocityX: -6 }),
-      );
-    });
-
-    expect(chooseTarget).toHaveBeenLastCalledWith({ position: 45, velocity: -6 });
-    expect(spring).toHaveBeenLastCalledWith(base, {
-      stiffness: 180,
-      damping: 18,
-      mass: 1.25,
-      delay: 12,
-      velocity: -6,
-      toValue: 100,
-      useNativeDriver: true,
-    });
-    expect(animations[1].start).toHaveBeenCalledTimes(1);
-
-    unmount();
+    expect(animation.stop).toHaveBeenCalledTimes(1);
+    expect(stopAnimation).toHaveBeenCalledTimes(1);
+    expect(setValue).toHaveBeenCalledOnce();
+    expect(setValue).toHaveBeenCalledWith(40);
+    mounted.unmount();
   });
 
-  it("queues END until an asynchronous retouch capture resolves", () => {
-    const animations = [deferredAnimation(), deferredAnimation()];
-    const spring = vi
-      .spyOn(Animated, "spring")
-      .mockReturnValueOnce(animations[0])
-      .mockReturnValueOnce(animations[1]);
-    const chooseTarget = vi.fn(({ position }) => (position < 50 ? -100 : 100));
-    const { result, unmount } = renderHook(usePan, {
-      initialProps: { chooseTarget },
-    });
-    const base = result.current.position.a;
-
-    act(() => {
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: 10, velocityX: 1 }),
-      );
-    });
-
-    let resolveCapture;
-    vi.spyOn(base, "stopAnimation").mockImplementation((callback) => {
-      resolveCapture = callback;
-    });
-    act(() => {
-      result.current.onHandlerStateChange(stateEvent(State.BEGAN));
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: -7, velocityX: 9 }),
-      );
-    });
-
-    expect(animations[0].stop).toHaveBeenCalledTimes(1);
-    expect(chooseTarget).toHaveBeenCalledTimes(1);
-    expect(spring).toHaveBeenCalledTimes(1);
-    expect(animations[1].start).not.toHaveBeenCalled();
-
-    act(() => {
-      resolveCapture(42);
-    });
-
-    expect(chooseTarget).toHaveBeenNthCalledWith(2, { position: 35, velocity: 9 });
-    expect(spring).toHaveBeenNthCalledWith(2, base, {
-      stiffness: 180,
-      damping: 18,
-      mass: 1.25,
-      delay: 12,
-      velocity: 9,
-      toValue: -100,
-      useNativeDriver: true,
-    });
-    expect(base._value).toBe(35);
-    expect(animations[1].start).toHaveBeenCalledTimes(1);
-
-    unmount();
-  });
-
-  it("stops a replaced native spring before starting the next settlement", () => {
-    const animations = [deferredAnimation(), deferredAnimation()];
-    vi.spyOn(Animated, "spring")
-      .mockReturnValueOnce(animations[0])
-      .mockReturnValueOnce(animations[1]);
-    const chooseTarget = vi.fn(({ position }) => (position < 50 ? -100 : 100));
-    const { result, unmount } = renderHook(usePan, {
-      initialProps: { initial: 0, chooseTarget },
-    });
-
-    act(() => {
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: 20, velocityX: 2 }),
-      );
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: 40, velocityX: 3 }),
-      );
-    });
-
-    expect(chooseTarget).toHaveBeenNthCalledWith(1, { position: 20, velocity: 2 });
-    expect(chooseTarget).toHaveBeenNthCalledWith(2, { position: 60, velocity: 3 });
-    expect(animations[0].stop).toHaveBeenCalledTimes(1);
-    expect(animations[1].start).toHaveBeenCalledTimes(1);
-
-    unmount();
-  });
-
-  it.each([
-    ["cancelled", State.CANCELLED],
-    ["failed", State.FAILED],
-  ])("settles a %s gesture with a zero sample when RNGH omits motion fields", (_name, state) => {
+  it("terminates at the absolute gesture position with zero release velocity", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
     const animation = deferredAnimation();
     const spring = vi.spyOn(Animated, "spring").mockReturnValue(animation);
     const chooseTarget = vi.fn(() => -100);
-    const { result, unmount } = renderHook(usePan, {
-      initialProps: { initial: 25, chooseTarget },
-    });
-    const base = result.current.position.a;
+    const mounted = mountPan({ initial: 25, chooseTarget });
+    const position = mounted.result.current.position;
+    vi.spyOn(position, "stopAnimation").mockImplementation((callback) =>
+      callback?.(25),
+    );
+    const setValue = vi.spyOn(position, "setValue");
+    const handlers = mounted.handlers();
 
-    act(() => {
-      result.current.onHandlerStateChange(stateEvent(state));
-    });
+    act(() => handlers.onResponderGrant({}, { dx: 0, vx: 0 }));
+    act(() => handlers.onResponderTerminate({}, { dx: 6, vx: 99 }));
 
-    expect(chooseTarget).toHaveBeenCalledWith({ position: 25, velocity: 0 });
-    expect(spring).toHaveBeenCalledWith(base, {
-      stiffness: 180,
-      damping: 18,
-      mass: 1.25,
-      delay: 12,
-      velocity: 0,
-      toValue: -100,
-      useNativeDriver: true,
-    });
-    expect(animation.start).toHaveBeenCalledTimes(1);
-
-    unmount();
+    expect(setValue).toHaveBeenCalledOnce();
+    expect(setValue).toHaveBeenCalledWith(31);
+    expect(chooseTarget).toHaveBeenCalledWith({ position: 31, velocity: 0 });
+    expect(spring).toHaveBeenCalledWith(
+      position,
+      expectedSpringConfig(-100, 0),
+    );
+    expect(animation.start).toHaveBeenCalledOnce();
+    mounted.unmount();
   });
 
-  it("stops the active spring and both animated values on unmount", () => {
+  it("remains interactive after the StrictMode effect cleanup probe", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
     const animation = deferredAnimation();
-    vi.spyOn(Animated, "spring").mockReturnValue(animation);
-    const { result, unmount } = renderHook(usePan, {
-      initialProps: { chooseTarget: () => 100 },
-    });
-    const base = result.current.position.a;
-    const drag = result.current.position.b;
-    const stopBase = vi.spyOn(base, "stopAnimation");
-    const stopDrag = vi.spyOn(drag, "stopAnimation");
-
-    act(() => {
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: 12, velocityX: 4 }),
-      );
-    });
-    const dragStopsBeforeUnmount = stopDrag.mock.calls.length;
-
-    unmount();
-
-    expect(animation.stop).toHaveBeenCalledTimes(1);
-    expect(stopBase).toHaveBeenCalledTimes(1);
-    expect(stopDrag).toHaveBeenCalledTimes(dragStopsBeforeUnmount + 1);
-  });
-
-  it("recaptures spring position after the StrictMode effect cleanup probe", () => {
-    const animation = deferredAnimation();
-    vi.spyOn(Animated, "spring").mockReturnValue(animation);
+    const spring = vi.spyOn(Animated, "spring").mockReturnValue(animation);
     const chooseTarget = vi.fn(() => 100);
-    const { result, unmount } = renderHook(usePan, {
-      initialProps: { initial: 5, chooseTarget },
-      strict: true,
-    });
-    const base = result.current.position.a;
-    vi.spyOn(base, "stopAnimation").mockImplementation((callback) => callback?.(61));
+    const mounted = mountPan({ initial: 5, chooseTarget, strict: true });
+    const position = mounted.result.current.position;
+    vi.spyOn(position, "stopAnimation").mockImplementation((callback) =>
+      callback?.(61),
+    );
+    const handlers = mounted.handlers();
 
-    act(() => {
-      result.current.onHandlerStateChange(stateEvent(State.BEGAN));
-      result.current.onHandlerStateChange(
-        stateEvent(State.END, { translationX: 4, velocityX: 2 }),
-      );
-    });
+    act(() => handlers.onResponderGrant({}, { dx: 0, vx: 0 }));
+    act(() => handlers.onResponderRelease({}, { dx: 4, vx: 2 }));
 
     expect(chooseTarget).toHaveBeenCalledWith({ position: 65, velocity: 2 });
-    expect(animation.start).toHaveBeenCalledTimes(1);
+    expect(spring).toHaveBeenCalledWith(
+      position,
+      expectedSpringConfig(100, 2),
+    );
+    expect(animation.start).toHaveBeenCalledOnce();
+    mounted.unmount();
+  });
 
-    unmount();
+  it("stops both the active spring and Animated.Value when unmounted", () => {
+    vi.spyOn(PanResponder, "create").mockImplementation(responderFromConfig);
+    const animation = deferredAnimation();
+    vi.spyOn(Animated, "spring").mockReturnValue(animation);
+    const mounted = mountPan({ chooseTarget: vi.fn(() => 100) });
+    const position = mounted.result.current.position;
+    const stopAnimation = vi.spyOn(position, "stopAnimation");
+    const handlers = mounted.handlers();
+
+    act(() => handlers.onResponderRelease({}, { dx: 8, vx: 3 }));
+    stopAnimation.mockClear();
+    mounted.unmount();
+
+    expect(animation.stop).toHaveBeenCalledOnce();
+    expect(stopAnimation).toHaveBeenCalledOnce();
   });
 });

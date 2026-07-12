@@ -143,7 +143,7 @@ iosScreen = component "IOSScreen" \props -> React.do
             else if props.page == uikitPage then uikitWidgets dp dateValue setDateValue segmentId setSegmentId segmentIndex setSegmentIndex searchText setSearchText searchStatus setSearchStatus
             else if props.page == feedbackPage then feedback dp busy setBusy modalVisible setModalVisible status setStatus
             else if props.page == dataPage then dataAndMedia dp imageStatus setImageStatus (navigate listPage)
-            else platformServices dp status setStatus (navigate springsPage)
+            else platformServices dp status setStatus
           ]
 palette :: Boolean -> DemoProps
 palette isDark =
@@ -173,7 +173,8 @@ landing dp navigate status =
     , category dp "03" "UIKit widgets" "Genuine UIKit date picker, segmented control and search bar" (navigate uikitPage)
     , category dp "04" "Feedback & overlays" "Progress, alert, modal and explicit dismissal results" (navigate feedbackPage)
     , category dp "05" "Data & media" "Image, image background, virtualized list and refresh" (navigate dataPage)
-    , category dp "06" "Apple services" "Action sheet, haptics, appearance, links, safe area and springs" (navigate platformPage)
+    , category dp "06" "Apple services" "Action sheet, haptics, appearance, links and safe area" (navigate platformPage)
+    , category dp "07" "Springs & gestures" "Native-driver springs, press transitions, stagger and pan-to-snap" (navigate springsPage)
     ]
 
 category :: DemoProps -> String -> String -> String -> Effect Unit -> JSX
@@ -479,8 +480,8 @@ listDemo dp backButton listStatus setListStatus selectedId setSelectedId refresh
         }
     ]
 
-platformServices :: DemoProps -> String -> (String -> Effect Unit) -> Effect Unit -> JSX
-platformServices dp status setStatus openSprings =
+platformServices :: DemoProps -> String -> (String -> Effect Unit) -> JSX
+platformServices dp status setStatus =
   view {}
     [ pageHeader dp "Apple services" "Platform calls retain the original demos and add observable results."
     , statusPanel dp "Latest platform result" status
@@ -558,8 +559,6 @@ platformServices dp status setStatus openSprings =
         ]
     , example dp "Safe area" "Expected: every page clears the notch, home indicator and rounded corners."
         [ result dp "Result: SafeAreaView wraps the entire catalogue and modal." ]
-    , example dp "Spring & gesture lab" "Expected: opens the preserved spring, press, fade, stagger and native pan demonstrations."
-        [ primaryButton "Open spring animations" openSprings ]
     ]
 
 pageHeader :: DemoProps -> String -> String -> JSX

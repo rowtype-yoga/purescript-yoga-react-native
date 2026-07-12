@@ -14,7 +14,8 @@ vi.mock("@react-navigation/native", async () => {
 vi.mock("@react-navigation/native-stack", async () => {
   const React = await import("react");
 
-  const Screen = () => null;
+  const Screen = ({ children: _children, ...props }) =>
+    React.createElement("NativeStackScreen", props);
   const Navigator = ({ children, initialRouteName }) => {
     const [route, setRoute] = React.useState(initialRouteName);
     const screens = React.Children.toArray(children);
@@ -22,12 +23,24 @@ vi.mock("@react-navigation/native-stack", async () => {
 
     if (activeScreen == null) return null;
 
-    return activeScreen.props.children({
-      navigation: {
-        navigate: setRoute,
-        goBack: () => setRoute("landing"),
-      },
-    });
+    const renderedScreens = screens.map((screen) =>
+      React.cloneElement(screen, {
+        key: screen.props.name,
+        children: undefined,
+      }),
+    );
+
+    return React.createElement(
+      React.Fragment,
+      null,
+      renderedScreens,
+      activeScreen.props.children({
+        navigation: {
+          navigate: setRoute,
+          goBack: () => setRoute("landing"),
+        },
+      }),
+    );
   };
 
   return {
@@ -65,6 +78,9 @@ const press = (renderer, accessibilityLabel) => {
   act(() => target.props.onPress());
 };
 
+const nativeStackOptions = (renderer, name) =>
+  renderer.root.findByProps({ name }).props.options;
+
 describe("iOS catalogue UIKit routing", () => {
   const hadActEnvironment = Object.hasOwn(
     globalThis,
@@ -82,6 +98,32 @@ describe("iOS catalogue UIKit routing", () => {
     } else {
       delete globalThis.IS_REACT_ACT_ENVIRONMENT;
     }
+  });
+
+  it("disables native back gestures only where drags or landing require it", () => {
+    let renderer;
+    act(() => {
+      renderer = create(
+        React.createElement(SafeAreaProvider, null, iosDemo({})),
+      );
+    });
+
+    expect(nativeStackOptions(renderer, "springs")).toMatchObject({
+      gestureEnabled: false,
+      fullScreenGestureEnabled: false,
+      customAnimationOnGesture: false,
+    });
+    expect(nativeStackOptions(renderer, "landing")).toMatchObject({
+      gestureEnabled: false,
+      fullScreenGestureEnabled: false,
+    });
+    expect(nativeStackOptions(renderer, "controls")).toMatchObject({
+      gestureEnabled: true,
+      fullScreenGestureEnabled: true,
+      customAnimationOnGesture: true,
+    });
+
+    act(() => renderer.unmount());
   });
 
   it("routes to a dedicated screen containing the genuine UIKit controls", () => {

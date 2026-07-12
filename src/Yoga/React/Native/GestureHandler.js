@@ -1,12 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Animated } from "react-native";
-import {
-  GestureHandlerRootView,
-  PanGestureHandler,
-  State,
-} from "react-native-gesture-handler";
-
-const settleStates = new Set([State.END, State.CANCELLED, State.FAILED]);
+import { Animated, PanResponder } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const springConfig = (model, target, velocity) => {
   let family;
@@ -39,65 +33,27 @@ const springConfig = (model, target, velocity) => {
 
 export const useNativeSnapPanImpl =
   (initial) => (snapPoints) => (chooseTarget) => (model) => () => {
-    const baseRef = useRef(null);
-    const dragRef = useRef(null);
     const positionRef = useRef(null);
     const basePositionRef = useRef(initial);
     const animationRef = useRef(null);
     const mountedRef = useRef(true);
-    const captureGenerationRef = useRef(0);
-    const capturePendingRef = useRef(false);
-    const pendingSettleRef = useRef(null);
+    const responderRef = useRef(null);
 
-    if (baseRef.current === null) {
-      baseRef.current = new Animated.Value(initial);
-      dragRef.current = new Animated.Value(0);
-      positionRef.current = Animated.add(baseRef.current, dragRef.current);
+    if (positionRef.current === null) {
+      positionRef.current = new Animated.Value(initial);
     }
 
-    const gestureEventRef = useRef(null);
-    if (gestureEventRef.current === null) {
-      gestureEventRef.current = Animated.event(
-        [{ nativeEvent: { translationX: dragRef.current } }],
-        { useNativeDriver: true },
-      );
-    }
-
-    const begin = () => {
-      const captureGeneration = ++captureGenerationRef.current;
-      capturePendingRef.current = true;
-      pendingSettleRef.current = null;
-      animationRef.current?.stop();
-      animationRef.current = null;
-      baseRef.current.stopAnimation((current) => {
-        if (!mountedRef.current || captureGeneration !== captureGenerationRef.current) return;
-        basePositionRef.current = current;
-        baseRef.current.setValue(current);
-        capturePendingRef.current = false;
-        if (pendingSettleRef.current !== null) {
-          const pending = pendingSettleRef.current;
-          pendingSettleRef.current = null;
-          settleValues(pending.translation, pending.velocity);
-        }
-      });
-      dragRef.current.stopAnimation();
-      dragRef.current.setValue(0);
-    };
-
-    const settleValues = (translation, velocity) => {
-      const current = basePositionRef.current + translation;
+    const settle = (dx, velocity) => {
+      const current = basePositionRef.current + dx;
       const target = chooseTarget({ position: current, velocity });
-
-      dragRef.current.stopAnimation();
-      dragRef.current.setValue(0);
+      positionRef.current.setValue(current);
       basePositionRef.current = current;
-      baseRef.current.setValue(current);
 
       animationRef.current?.stop();
-      const animation = Animated.spring(
-        baseRef.current,
-        springConfig(model, target, velocity),
-      );
+      const animation = Animated.spring(positionRef.current, {
+        ...springConfig(model, target, velocity),
+        useNativeDriver: false,
+      });
       animationRef.current = animation;
       animation.start(({ finished }) => {
         if (finished) basePositionRef.current = target;
@@ -105,40 +61,45 @@ export const useNativeSnapPanImpl =
       });
     };
 
-    const settle = (event, includeVelocity) => {
-      const translation = event.nativeEvent.translationX ?? 0;
-      const velocity = includeVelocity ? (event.nativeEvent.velocityX ?? 0) : 0;
-      if (capturePendingRef.current) {
-        pendingSettleRef.current = { translation, velocity };
-      } else {
-        settleValues(translation, velocity);
-      }
-    };
-
-    const stateChangeRef = useRef(null);
-    stateChangeRef.current = (event) => {
-      const state = event.nativeEvent.state;
-      if (state === State.BEGAN) begin();
-      else if (settleStates.has(state)) settle(event, state === State.END);
-    };
+    if (responderRef.current === null) {
+      responderRef.current = PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_event, gesture) =>
+          Math.abs(gesture.dx) > 4 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+        onPanResponderGrant: () => {
+          animationRef.current?.stop();
+          animationRef.current = null;
+          positionRef.current.stopAnimation((current) => {
+            if (!mountedRef.current) return;
+            basePositionRef.current = current;
+          });
+        },
+        onPanResponderMove: (_event, gesture) => {
+          positionRef.current.setValue(basePositionRef.current + gesture.dx);
+        },
+        onPanResponderRelease: (_event, gesture) => {
+          settle(gesture.dx, gesture.vx);
+        },
+        onPanResponderTerminate: (_event, gesture) => {
+          settle(gesture.dx, 0);
+        },
+        onPanResponderTerminationRequest: () => false,
+      });
+    }
 
     useEffect(() => {
       mountedRef.current = true;
       return () => {
         mountedRef.current = false;
-        captureGenerationRef.current += 1;
-        pendingSettleRef.current = null;
         animationRef.current?.stop();
-        baseRef.current.stopAnimation();
-        dragRef.current.stopAnimation();
+        positionRef.current.stopAnimation();
       };
     }, []);
 
     return {
       position: positionRef.current,
       snapPoints,
-      onGestureEvent: gestureEventRef.current,
-      onHandlerStateChange: (event) => stateChangeRef.current(event),
+      panHandlers: responderRef.current.panHandlers,
     };
   };
 
@@ -148,13 +109,4 @@ export const gestureHandlerRootView = (child) =>
   React.createElement(GestureHandlerRootView, { style: { flex: 1 } }, child);
 
 export const panGestureView = (pan) => (child) =>
-  React.createElement(
-    PanGestureHandler,
-    {
-      activeOffsetX: [-4, 4],
-      failOffsetY: [-12, 12],
-      onGestureEvent: pan.onGestureEvent,
-      onHandlerStateChange: pan.onHandlerStateChange,
-    },
-    child,
-  );
+  React.cloneElement(child, pan.panHandlers);

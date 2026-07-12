@@ -43,6 +43,7 @@ foreign import panGestureView :: NativeSnapPan -> JSX -> JSX
 position :: NativeSnapPan -> Animated Points
 position = unsafeCoerce <<< positionImpl
 
+
 useNativeSnapPan
   :: Points
   -> NonEmptyArray Points
