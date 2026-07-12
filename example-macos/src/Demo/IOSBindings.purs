@@ -133,6 +133,9 @@ iosScreen = component "IOSScreen" \props -> React.do
           { style: tw "flex-1"
           , contentContainerStyle: tw "px-4 pb-8"
           , showsVerticalScrollIndicator: true
+          , automaticallyAdjustKeyboardInsets: true
+          , keyboardDismissMode: "interactive"
+          , keyboardShouldPersistTaps: "never"
           }
           [ view { style: tw "pt-2 mb-3" } [ backButton ]
           , if props.page == controlsPage then controls dp pressCount setPressCount isPressed setIsPressed switchOn setSwitchOn

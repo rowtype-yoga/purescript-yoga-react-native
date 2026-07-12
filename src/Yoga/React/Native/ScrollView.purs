@@ -22,6 +22,9 @@ type ScrollViewAttributes = BaseAttributes
   , scrollEnabled :: Boolean
   , pagingEnabled :: Boolean
   , bounces :: Boolean
+  , automaticallyAdjustKeyboardInsets :: Boolean
+  , keyboardDismissMode :: String
+  , keyboardShouldPersistTaps :: String
   , onScroll :: EventHandler
   , refreshControl :: JSX
   )

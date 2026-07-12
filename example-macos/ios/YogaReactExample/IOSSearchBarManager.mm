@@ -1,7 +1,7 @@
 #import <React/RCTViewManager.h>
 #import <UIKit/UIKit.h>
 
-@interface YogaIOSSearchBar : UIView <UISearchBarDelegate>
+@interface YogaIOSSearchBar : UIView <UISearchBarDelegate, UIGestureRecognizerDelegate>
 
 @property (nonatomic, copy) NSString *text;
 @property (nonatomic, copy) NSString *placeholder;
@@ -16,6 +16,7 @@
 @implementation YogaIOSSearchBar {
   UISearchBar *_searchBar;
   BOOL _applyingControlledText;
+  UITapGestureRecognizer *_outsideTapRecognizer;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -70,6 +71,53 @@
   _enabled = enabled;
   _searchBar.userInteractionEnabled = enabled;
   _searchBar.searchTextField.enabled = enabled;
+}
+
+- (void)removeOutsideTapRecognizer
+{
+  if (_outsideTapRecognizer != nil) {
+    [_outsideTapRecognizer.view removeGestureRecognizer:_outsideTapRecognizer];
+    _outsideTapRecognizer = nil;
+  }
+}
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar
+{
+  [self removeOutsideTapRecognizer];
+  if (self.window == nil) {
+    return;
+  }
+  _outsideTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(outsideViewTapped:)];
+  _outsideTapRecognizer.cancelsTouchesInView = NO;
+  _outsideTapRecognizer.delaysTouchesBegan = NO;
+  _outsideTapRecognizer.delegate = self;
+  [self.window addGestureRecognizer:_outsideTapRecognizer];
+}
+
+- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar
+{
+  [self removeOutsideTapRecognizer];
+}
+
+- (void)outsideViewTapped:(UITapGestureRecognizer *)recognizer
+{
+  [_searchBar resignFirstResponder];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+  return ![touch.view isDescendantOfView:self];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+  return YES;
+}
+
+- (void)dealloc
+{
+  [self removeOutsideTapRecognizer];
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
