@@ -16,16 +16,15 @@ const hapticFeedback = {};
 let haptics;
 
 beforeAll(async () => {
-  NativeModules.HapticFeedback = hapticFeedback;
-  Platform.OS = "ios";
   haptics = await import("../src/Yoga/React/Native/IOS/Haptics.js");
 });
 
 beforeEach(() => {
   Platform.OS = "ios";
-  delete hapticFeedback.selectionChanged;
-  delete hapticFeedback.impact;
-  delete hapticFeedback.notification;
+  NativeModules.HapticFeedback = hapticFeedback;
+  hapticFeedback.selectionChanged = vi.fn();
+  hapticFeedback.impact = vi.fn();
+  hapticFeedback.notification = vi.fn();
 });
 
 afterEach(() => {
@@ -42,60 +41,96 @@ afterAll(() => {
 });
 
 describe("iOS Haptics FFI", () => {
-  it("forwards one-shot and patterned vibration requests and cancels vibration", () => {
+  it("forwards vibration duration, pattern repeat state, and cancellation exactly", () => {
+    Platform.OS = "android";
     const vibrate = vi.spyOn(Vibration, "vibrate");
     const cancel = vi.spyOn(Vibration, "cancel");
 
     haptics.vibrateImpl(125);
-    haptics.vibrateWithPatternImpl([0, 20, 40], true);
+    haptics.vibrateWithPatternImpl([0, 20, 40], false);
+    haptics.vibrateWithPatternImpl([10, 30], true);
     haptics.cancelImpl();
 
+    expect(vibrate).toHaveBeenCalledTimes(3);
     expect(vibrate).toHaveBeenNthCalledWith(1, 125);
-    expect(vibrate).toHaveBeenNthCalledWith(2, [0, 20, 40], true);
+    expect(vibrate).toHaveBeenNthCalledWith(2, [0, 20, 40], false);
+    expect(vibrate).toHaveBeenNthCalledWith(3, [10, 30], true);
     expect(cancel).toHaveBeenCalledOnce();
   });
 
-  it("dispatches selection, impact, and notification events to the native haptics module", () => {
-    hapticFeedback.selectionChanged = vi.fn();
-    hapticFeedback.impact = vi.fn();
-    hapticFeedback.notification = vi.fn();
-    const vibrate = vi.spyOn(Vibration, "vibrate");
+  it.each([
+    {
+      operation: "selection change",
+      method: "selectionChanged",
+      invoke: () => haptics.selectionChangedImpl(),
+      argument: undefined,
+    },
+    {
+      operation: "impact",
+      method: "impact",
+      invoke: () => haptics.impactImpl("heavy"),
+      argument: "heavy",
+    },
+    {
+      operation: "notification",
+      method: "notification",
+      invoke: () => haptics.notificationImpl("warning"),
+      argument: "warning",
+    },
+  ])(
+    "invokes the native $operation method once and reports available",
+    ({ method, invoke, argument }) => {
+      const vibrate = vi.spyOn(Vibration, "vibrate");
 
-    haptics.selectionChangedImpl();
-    haptics.impactImpl(haptics.impactHeavy);
-    haptics.notificationImpl(haptics.notificationWarning);
+      expect(invoke()).toBe(0);
 
-    expect(hapticFeedback.selectionChanged).toHaveBeenCalledOnce();
-    expect(hapticFeedback.impact).toHaveBeenCalledWith("heavy");
-    expect(hapticFeedback.notification).toHaveBeenCalledWith("warning");
-    expect(vibrate).not.toHaveBeenCalled();
+      expect(hapticFeedback[method]).toHaveBeenCalledOnce();
+      if (argument === undefined) {
+        expect(hapticFeedback[method]).toHaveBeenCalledWith();
+      } else {
+        expect(hapticFeedback[method]).toHaveBeenCalledWith(argument);
+      }
+      expect(vibrate).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ["selection change", () => haptics.selectionChangedImpl()],
+    ["impact", () => haptics.impactImpl("light")],
+    ["notification", () => haptics.notificationImpl("success")],
+  ])("reports unsupported platform for %s without invoking native haptics", (_operation, invoke) => {
+    Platform.OS = "android";
+
+    expect(invoke()).toBe(1);
+
+    expect(hapticFeedback.selectionChanged).not.toHaveBeenCalled();
+    expect(hapticFeedback.impact).not.toHaveBeenCalled();
+    expect(hapticFeedback.notification).not.toHaveBeenCalled();
   });
 
   it.each([
-    { operation: "selection", invoke: () => haptics.selectionChangedImpl(), expected: 10 },
-    { operation: "light impact", invoke: () => haptics.impactImpl(haptics.impactLight), expected: 10 },
-    { operation: "medium impact", invoke: () => haptics.impactImpl(haptics.impactMedium), expected: 30 },
-    { operation: "heavy impact", invoke: () => haptics.impactImpl(haptics.impactHeavy), expected: 50 },
-    { operation: "success notification", invoke: () => haptics.notificationImpl(haptics.notificationSuccess), expected: 30 },
-    { operation: "warning notification", invoke: () => haptics.notificationImpl(haptics.notificationWarning), expected: [0, 30, 30] },
-    { operation: "error notification", invoke: () => haptics.notificationImpl(haptics.notificationError), expected: [0, 50, 50, 50] },
-  ])("uses the iOS vibration fallback for $operation", ({ invoke, expected }) => {
-    const vibrate = vi.spyOn(Vibration, "vibrate");
+    ["selection change", () => haptics.selectionChangedImpl()],
+    ["impact", () => haptics.impactImpl("medium")],
+    ["notification", () => haptics.notificationImpl("error")],
+  ])("reports a missing native module for %s when the module is absent", (_operation, invoke) => {
+    delete NativeModules.HapticFeedback;
 
-    invoke();
-
-    expect(vibrate).toHaveBeenCalledOnce();
-    expect(vibrate).toHaveBeenCalledWith(expected);
+    expect(invoke()).toBe(2);
   });
 
-  it("does not synthesize haptics with vibration off iOS", () => {
-    Platform.OS = "android";
-    const vibrate = vi.spyOn(Vibration, "vibrate");
+  it.each([
+    ["selectionChanged", () => haptics.selectionChangedImpl()],
+    ["impact", () => haptics.impactImpl("medium")],
+    ["notification", () => haptics.notificationImpl("error")],
+  ])("reports a missing native module when %s is not callable", (method, invoke) => {
+    hapticFeedback[method] = undefined;
 
-    haptics.selectionChangedImpl();
-    haptics.impactImpl(haptics.impactHeavy);
-    haptics.notificationImpl(haptics.notificationError);
+    expect(invoke()).toBe(2);
 
-    expect(vibrate).not.toHaveBeenCalled();
+    for (const nativeMethod of ["selectionChanged", "impact", "notification"]) {
+      if (nativeMethod !== method) {
+        expect(hapticFeedback[nativeMethod]).not.toHaveBeenCalled();
+      }
+    }
   });
 });

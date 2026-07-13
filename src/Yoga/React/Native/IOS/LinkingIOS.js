@@ -1,25 +1,27 @@
 import { Linking } from "react-native";
 
-export const openSettingsImpl = (onError, onSuccess) => {
-  Linking.openSettings().then(onSuccess, onError);
-  return (cancelError, onCancelerError, onCancelerSuccess) => onCancelerSuccess();
-};
+const disposedSubscriptions = new WeakSet();
 
-export const canOpenURLImpl = (url) => (onError, onSuccess) => {
-  Linking.canOpenURL(url).then(onSuccess, onError);
-  return (cancelError, onCancelerError, onCancelerSuccess) => onCancelerSuccess();
-};
+export const openSettingsImpl = () =>
+  Linking.openSettings().then(() => undefined);
 
-export const openURLImpl = (url) => (onError, onSuccess) => {
-  Linking.openURL(url).then(onSuccess, onError);
-  return (cancelError, onCancelerError, onCancelerSuccess) => onCancelerSuccess();
-};
+export const canOpenURLImpl = (url) => Linking.canOpenURL(url);
 
-export const getInitialURLImpl = (onError, onSuccess) => {
-  Linking.getInitialURL().then(onSuccess, onError);
-  return (cancelError, onCancelerError, onCancelerSuccess) => onCancelerSuccess();
-};
+export const openURLImpl = (url) =>
+  Linking.openURL(url).then(() => undefined);
 
-export const addEventListenerImpl = (eventName, handler) => {
-  return Linking.addEventListener(eventName, ({ url }) => handler(url)());
+export const getInitialURLImpl = () => Linking.getInitialURL();
+
+export const addURLListenerImpl = (handler) =>
+  Linking.addEventListener("url", (event) => {
+    if (event != null && typeof event.url === "string") {
+      handler(event.url);
+    }
+  });
+
+export const disposeLinkingSubscriptionImpl = (subscription) => {
+  if (disposedSubscriptions.has(subscription)) return;
+
+  disposedSubscriptions.add(subscription);
+  subscription.remove();
 };

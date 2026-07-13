@@ -7,6 +7,7 @@ module Yoga.React.Native.Animated
   , Opacity(..)
   , Scale(..)
   , Points(..)
+  , Degrees(..)
   , Progress(..)
   , Stiffness(..)
   , Damping(..)
@@ -40,6 +41,8 @@ module Yoga.React.Native.Animated
   , stopAnimation
   , resetAnimation
   , interpolate
+  , interpolateRotation
+  , RotationInterpolationConfig
   , timing
   , spring
   , decay
@@ -97,6 +100,7 @@ toAnimatedValue (Animated value) = value
 newtype Opacity = Opacity Number
 newtype Scale = Scale Number
 newtype Points = Points Number
+newtype Degrees = Degrees Number
 newtype Progress = Progress Number
 
 newtype Stiffness = Stiffness Number
@@ -228,6 +232,25 @@ foreign import interpolateImpl :: AnimatedValue -> InterpolationConfig -> Animat
 
 interpolate :: AnimatedValue -> InterpolationConfig -> AnimatedValue
 interpolate = interpolateImpl
+
+type RotationInterpolationConfig =
+  { inputRange :: Array Points
+  , outputRange :: Array Degrees
+  , extrapolate :: String
+  }
+
+foreign import interpolateRotationImpl
+  :: AnimatedValue
+  -> { inputRange :: Array Number, outputRange :: Array Number, extrapolate :: String }
+  -> AnimatedValue
+
+interpolateRotation :: Animated Points -> RotationInterpolationConfig -> AnimatedValue
+interpolateRotation (Animated value) config =
+  interpolateRotationImpl value
+    { inputRange: map (\(Points point) -> point) config.inputRange
+    , outputRange: map (\(Degrees degrees) -> degrees) config.outputRange
+    , extrapolate: config.extrapolate
+    }
 
 type TimingConfig =
   ( toValue :: Number

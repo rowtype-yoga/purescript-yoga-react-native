@@ -1,14 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import React from "react";
 import { act, create } from "react-test-renderer";
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-} from "react-native-safe-area-context";
-import {
-  safeAreaProviderImpl,
-  safeAreaViewImpl,
-} from "../src/Yoga/React/Native/IOS/SafeArea.js";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { safeAreaViewImpl } from "../src/Yoga/React/Native/IOS/SafeArea.js";
 
 describe("iOS SafeArea FFI", () => {
   const hadActEnvironment = Object.hasOwn(
@@ -29,24 +23,36 @@ describe("iOS SafeArea FFI", () => {
     }
   });
 
-  it("delegates the provider export to react-native-safe-area-context", () => {
-    expect(safeAreaProviderImpl).toBe(SafeAreaProvider);
-  });
 
-  it("renders the dependency view with props, children, and ref intact", () => {
+  it("encodes typed edges and mode while forwarding children, ref, and base props", () => {
+    const typedEdges = Object.freeze({ kind: "opaque-edges" });
+    const typedMode = Symbol("opaque-safe-area-mode");
+    const style = { paddingHorizontal: 12 };
     const nativeView = { kind: "safe-area-view" };
     const ref = React.createRef();
+    const SafeAreaBridge = safeAreaViewImpl(
+      (edges) => {
+        if (edges !== typedEdges) throw new Error("unexpected typed edges");
+        return ["top", "right", "bottom", "left"];
+      },
+      (mode) => {
+        if (mode !== typedMode) throw new Error("unexpected typed mode");
+        return "margin";
+      },
+    );
     let renderer;
 
     act(() => {
       renderer = create(
         React.createElement(
-          safeAreaViewImpl,
+          SafeAreaBridge,
           {
             ref,
-            edges: ["top", "bottom"],
-            mode: "margin",
+            edges: typedEdges,
+            mode: typedMode,
             testID: "catalogue-safe-area",
+            accessibilityLabel: "Safe content",
+            style,
           },
           React.createElement("MockChild", { label: "catalogue content" }),
         ),
@@ -61,10 +67,13 @@ describe("iOS SafeArea FFI", () => {
     const child = renderer.root.findByType("MockChild");
 
     expect(dependencyView.props).toMatchObject({
-      edges: ["top", "bottom"],
+      edges: ["top", "right", "bottom", "left"],
       mode: "margin",
       testID: "catalogue-safe-area",
+      accessibilityLabel: "Safe content",
+      style,
     });
+    expect(dependencyView.props.style).toBe(style);
     expect(child.props.label).toBe("catalogue content");
     expect(ref.current).toBe(nativeView);
 

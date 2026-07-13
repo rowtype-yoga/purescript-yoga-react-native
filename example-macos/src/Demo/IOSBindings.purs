@@ -4,10 +4,13 @@ module Demo.IOSBindings
 
 import Prelude
 
+import Data.Array.NonEmpty as NonEmptyArray
+import Data.DateTime.Instant (Instant, instant, toDateTime)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits as String
-import Data.Nullable (toMaybe)
+import Data.Time.Duration (Milliseconds(..))
+import Demo.DatingDemo (datingDemo)
 import Demo.Shared (DemoProps)
 import Demo.SpringAnimation (springDemo)
 import Effect (Effect)
@@ -36,18 +39,113 @@ import Yoga.React.Native
   , view
   )
 import Yoga.React.Native.Alert as Alert
-import Yoga.React.Native.Appearance (useColorScheme)
+import Yoga.React.Native.Appearance as Appearance
 import Yoga.React.Native.IOS.ActionSheet as ActionSheet
-import Yoga.React.Native.IOS.Appearance as Appearance
-import Yoga.React.Native.IOS.Haptics as Haptics
+import Yoga.React.Native.IOS.CollectionView as CollectionView
 import Yoga.React.Native.IOS.DatePicker as DatePicker
-import Yoga.React.Native.IOS.SearchBar as SearchBar
-import Yoga.React.Native.IOS.SegmentedControl as SegmentedControl
-import Yoga.React.Native.IOS.CollectionView (collectionView)
+import Yoga.React.Native.IOS.Haptics as Haptics
 import Yoga.React.Native.IOS.LinkingIOS as LinkingIOS
 import Yoga.React.Native.IOS.SafeArea as SafeArea
+import Yoga.React.Native.IOS.SearchBar as SearchBar
+import Yoga.React.Native.IOS.SegmentedControl as SegmentedControl
 import Yoga.React.Native.Image (uri)
 import Yoga.React.Native.Style as Style
+import Yoga.React.Native.Types (Availability(..), AvailabilityReason(..), ColorScheme(..), ControlState(..), ItemId(..), RefreshState(..), URL(..))
+
+data CatalogueSegment
+  = OverviewSegment
+  | DetailsSegment
+  | MetricsSegment
+
+derive instance Eq CatalogueSegment
+
+instance Show CatalogueSegment where
+  show OverviewSegment = "overview"
+  show DetailsSegment = "details"
+  show MetricsSegment = "metrics"
+
+segmentIndex :: CatalogueSegment -> Int
+segmentIndex = case _ of
+  OverviewSegment -> 0
+  DetailsSegment -> 1
+  MetricsSegment -> 2
+
+catalogueSegments :: NonEmptyArray.NonEmptyArray (SegmentedControl.Segment CatalogueSegment)
+catalogueSegments = NonEmptyArray.cons'
+  { value: OverviewSegment, label: "Overview" }
+  [ { value: DetailsSegment, label: "Details" }
+  , { value: MetricsSegment, label: "Metrics" }
+  ]
+
+type CatalogueCollectionValue =
+  { id :: ItemId
+  , index :: Int
+  }
+
+catalogueCollectionItems :: Either CollectionView.CollectionItemsError (CollectionView.CollectionItems CatalogueCollectionValue)
+catalogueCollectionItems = CollectionView.collectionItems
+  [ collectionItem 0 "pressable" "Pressable"
+  , collectionItem 1 "text-input" "TextInput"
+  , collectionItem 2 "switch" "Switch"
+  , collectionItem 3 "modal" "Modal"
+  , collectionItem 4 "image" "Image"
+  , collectionItem 5 "collection-view" "UICollectionView"
+  , collectionItem 6 "safe-area" "SafeAreaView"
+  , collectionItem 7 "keyboard-avoiding" "KeyboardAvoidingView"
+  , collectionItem 8 "activity-indicator" "ActivityIndicator"
+  , collectionItem 9 "refresh-control" "UIRefreshControl"
+  , collectionItem 10 "status-bar" "StatusBar"
+  ]
+  where
+  collectionItem indexValue id title =
+    let itemId = ItemId id
+    in { id: itemId, value: { id: itemId, index: indexValue }, title }
+
+data CatalogueAction
+  = CancelCatalogueAction
+  | SaveCatalogueAction
+  | DeleteCatalogueAction
+
+derive instance Eq CatalogueAction
+
+instance Show CatalogueAction where
+  show CancelCatalogueAction = "Cancel"
+  show SaveCatalogueAction = "Save"
+  show DeleteCatalogueAction = "Delete"
+
+catalogueActions :: Either ActionSheet.ActionSheetConfigurationError (ActionSheet.Actions CatalogueAction)
+catalogueActions = ActionSheet.actions $ NonEmptyArray.cons'
+  { value: CancelCatalogueAction, label: "Cancel", style: ActionSheet.CancelAction, state: Enabled }
+  [ { value: SaveCatalogueAction, label: "Save", style: ActionSheet.DefaultAction, state: Enabled }
+  , { value: DeleteCatalogueAction, label: "Delete", style: ActionSheet.DestructiveAction, state: Enabled }
+  ]
+
+initialDateValue :: Maybe Instant
+initialDateValue = instant (Milliseconds 1783848600000.0)
+
+catalogueDateBounds :: Either DatePicker.DatePickerConfigurationError DatePicker.DatePickerBounds
+catalogueDateBounds = DatePicker.datePickerBounds Nothing Nothing
+
+vibration400ms :: Maybe Haptics.VibrationDuration
+vibration400ms = Haptics.vibrationDuration 400.0
+
+pureScriptWebsite :: URL
+pureScriptWebsite = URL "https://purescript.org"
+
+showItemId :: ItemId -> String
+showItemId (ItemId value) = value
+
+showURL :: URL -> String
+showURL (URL value) = value
+
+availabilityStatus :: String -> Availability Unit -> String
+availabilityStatus action = case _ of
+  Available _ -> "Dispatched " <> action <> "."
+  Unavailable UnsupportedPlatform -> action <> " unavailable: unsupported platform."
+  Unavailable MissingNativeModule -> action <> " unavailable: native module missing."
+
+dateValueLabel :: Instant -> String
+dateValueLabel = show <<< toDateTime
 
 type Page = String
 
@@ -78,6 +176,9 @@ platformPage = "platform"
 springsPage :: Page
 springsPage = "springs"
 
+datingPage :: Page
+datingPage = "dating"
+
 type IOSScreenProps =
   { page :: Page
   , navigate :: Page -> Effect Unit
@@ -99,19 +200,18 @@ iosScreen = component "IOSScreen" \props -> React.do
   password /\ setPassword <- useState' ""
   notes /\ setNotes <- useState' ""
   inputStatus /\ setInputStatus <- useState' "No field edited yet."
-  dateValue /\ setDateValue <- useState' "2026-07-12T09:30:00.000Z"
-  segmentId /\ setSegmentId <- useState' "overview"
-  segmentIndex /\ setSegmentIndex <- useState' 0
-  searchText /\ setSearchText <- useState' ""
+  dateValue /\ setDateValue <- useState' initialDateValue
+  selectedSegment /\ setSelectedSegment <- useState' OverviewSegment
+  searchText /\ setSearchText <- useState' (SearchBar.SearchText "")
   searchStatus /\ setSearchStatus <- useState' "Result: no search event yet."
   busy /\ setBusy <- useState' true
   modalVisible /\ setModalVisible <- useState' false
   imageStatus /\ setImageStatus <- useState' "Image waiting to load."
   listStatus /\ setListStatus <- useState' "Tap a row or pull to refresh."
-  selectedId /\ setSelectedId <- useState' ""
+  selectedId /\ setSelectedId <- useState' Nothing
   refreshCount /\ setRefreshCount <- useState' 0
-  colorScheme <- useColorScheme
-  let isDark = toMaybe colorScheme == Just "dark"
+  colorScheme <- Appearance.useColorScheme
+  let isDark = colorScheme == Just Dark
   let dp = palette isDark
   let navigate next = do
         setStatus "Ready — follow the expected result on this screen."
@@ -128,6 +228,8 @@ iosScreen = component "IOSScreen" \props -> React.do
         listDemo dp backButton listStatus setListStatus selectedId setSelectedId refreshCount setRefreshCount
       else if props.page == landingPage then
         landing dp navigate status
+      else if props.page == datingPage then
+        datingDemo backButton
       else
         scrollView
           { style: tw "flex-1"
@@ -140,7 +242,7 @@ iosScreen = component "IOSScreen" \props -> React.do
           [ view { style: tw "pt-2 mb-3" } [ backButton ]
           , if props.page == controlsPage then controls dp pressCount setPressCount isPressed setIsPressed switchOn setSwitchOn
             else if props.page == inputsPage then inputs dp name setName password setPassword notes setNotes inputStatus setInputStatus
-            else if props.page == uikitPage then uikitWidgets dp dateValue setDateValue segmentId setSegmentId segmentIndex setSegmentIndex searchText setSearchText searchStatus setSearchStatus
+            else if props.page == uikitPage then uikitWidgets dp dateValue setDateValue selectedSegment setSelectedSegment searchText setSearchText searchStatus setSearchStatus
             else if props.page == feedbackPage then feedback dp busy setBusy modalVisible setModalVisible status setStatus
             else if props.page == dataPage then dataAndMedia dp imageStatus setImageStatus (navigate listPage)
             else platformServices dp status setStatus
@@ -175,6 +277,7 @@ landing dp navigate status =
     , category dp "05" "Data & media" "Image, image background, virtualized list and refresh" (navigate dataPage)
     , category dp "06" "Apple services" "Action sheet, haptics, appearance, links and safe area" (navigate platformPage)
     , category dp "07" "Springs & gestures" "Native-driver springs, press transitions, stagger and pan-to-snap" (navigate springsPage)
+    , category dp "08" "Lumen dating demo" "A polished UI-only dating discovery experience" (navigate datingPage)
     ]
 
 category :: DemoProps -> String -> String -> String -> Effect Unit -> JSX
@@ -288,51 +391,54 @@ inputs dp name setName password setPassword notes setNotes status setStatus =
     , statusPanel dp "Input event status" status
     ]
 
-uikitWidgets :: DemoProps -> String -> (String -> Effect Unit) -> String -> (String -> Effect Unit) -> Int -> (Int -> Effect Unit) -> String -> (String -> Effect Unit) -> String -> (String -> Effect Unit) -> JSX
-uikitWidgets dp dateValue setDateValue segmentId setSegmentId segmentIndex setSegmentIndex searchText setSearchText searchStatus setSearchStatus =
+uikitWidgets
+  :: DemoProps
+  -> Maybe Instant
+  -> (Maybe Instant -> Effect Unit)
+  -> CatalogueSegment
+  -> (CatalogueSegment -> Effect Unit)
+  -> SearchBar.SearchText
+  -> (SearchBar.SearchText -> Effect Unit)
+  -> String
+  -> (String -> Effect Unit)
+  -> JSX
+uikitWidgets dp maybeDateValue setDateValue selectedSegment setSelectedSegment searchText setSearchText searchStatus setSearchStatus =
   view {}
     [ pageHeader dp "UIKit widgets" "These exercises render genuine UIKit widgets rather than portable React Native controls."
-    , example dp "Genuine UIKit UIDatePicker" "Expected: the native date-time wheel starts at the controlled ISO value and every change updates that value below."
-        [ DatePicker.datePicker
-            { value: dateValue
-            , mode: DatePicker.dateTime
-            , enabled: true
-            , onChange: setDateValue
-            , accessibilityLabel: "Genuine UIKit date and time picker"
-            , style: Style.style { width: "100%", height: 216.0 }
-            }
-        , result dp ("Result: controlled ISO value = " <> dateValue)
-        ]
+    , case maybeDateValue, catalogueDateBounds of
+        Nothing, _ -> configurationError dp "Date picker configuration error: initial instant is outside the supported range."
+        _, Left DatePicker.MinimumAfterMaximum -> configurationError dp "Date picker configuration error: minimum is after maximum."
+        Just dateValue, Right bounds ->
+          example dp "Genuine UIKit UIDatePicker" "Expected: the native date-time wheel starts at the controlled instant and every change updates that value below."
+            [ DatePicker.datePicker dateValue DatePicker.DateAndTime (setDateValue <<< Just)
+                { bounds
+                , state: Enabled
+                , accessibilityLabel: "Genuine UIKit date and time picker"
+                , style: Style.style { width: "100%", height: 216.0 }
+                }
+            , result dp ("Result: controlled instant = " <> dateValueLabel dateValue)
+            ]
     , example dp "Genuine UIKit UISegmentedControl" "Expected: selecting one of three stable segments reports its id and zero-based index."
-        [ SegmentedControl.segmentedControl
-            { items:
-                [ { id: "overview", title: "Overview" }
-                , { id: "details", title: "Details" }
-                , { id: "metrics", title: "Metrics" }
-                ]
-            , selectedId: segmentId
-            , enabled: true
-            , onSelect: \selection -> do
-                setSegmentId selection.id
-                setSegmentIndex selection.index
+        [ SegmentedControl.segmentedControl catalogueSegments selectedSegment setSelectedSegment
+            { state: Enabled
             , accessibilityLabel: "Genuine UIKit three-option segmented control"
             , style: Style.style { width: "100%", height: 40.0 }
             }
-        , result dp ("Result: selected id = " <> segmentId <> "; index = " <> show segmentIndex <> ".")
+        , result dp ("Result: selected id = " <> show selectedSegment <> "; index = " <> show (segmentIndex selectedSegment) <> ".")
         ]
     , example dp "Genuine UIKit UISearchBar" "Expected: text remains controlled; editing, Search submission and Cancel each report their native callback."
-        [ SearchBar.searchBar
-            { text: searchText
-            , placeholder: "Search the catalogue"
-            , showsCancelButton: true
-            , enabled: true
-            , onChangeText: \value -> do
-                setSearchText value
-                setSearchStatus ("Result: change = “" <> value <> "”.")
-            , onSubmit: \value ->
+        [ SearchBar.searchBar searchText
+            (\value@(SearchBar.SearchText textValue) -> do
+              setSearchText value
+              setSearchStatus ("Result: change = “" <> textValue <> "”.")
+            )
+            { placeholder: Just "Search the catalogue"
+            , cancelButton: SearchBar.ShowCancelButton
+            , state: Enabled
+            , onSubmit: Just \(SearchBar.SearchText value) ->
                 setSearchStatus ("Result: submitted = “" <> value <> "”.")
-            , onCancel: do
-                setSearchText ""
+            , onCancel: Just do
+                setSearchText (SearchBar.SearchText "")
                 setSearchStatus "Result: cancel received; controlled text cleared."
             , accessibilityLabel: "Genuine UIKit catalogue search bar"
             , style: Style.style { width: "100%", height: 56.0 }
@@ -446,38 +552,33 @@ dataAndMedia dp imageStatus setImageStatus openList =
         [ primaryButton "Open native collection" openList ]
     ]
 
-listDemo :: DemoProps -> JSX -> String -> (String -> Effect Unit) -> String -> (String -> Effect Unit) -> Int -> (Int -> Effect Unit) -> JSX
+listDemo :: DemoProps -> JSX -> String -> (String -> Effect Unit) -> Maybe ItemId -> (Maybe ItemId -> Effect Unit) -> Int -> (Int -> Effect Unit) -> JSX
 listDemo dp backButton listStatus setListStatus selectedId setSelectedId refreshes setRefreshes =
   view { style: tw "flex-1 px-4" }
     [ view { style: tw "pt-2 mb-3" } [ backButton ]
     , pageHeader dp "Native UIKit collection" "UICollectionView owns scrolling, cell reuse, selection visuals, accessibility state, and pull-to-refresh."
     , result dp (listStatus <> " · refreshes: " <> show refreshes)
-    , collectionView
-        { items:
-            [ { id: "pressable", title: "Pressable" }
-            , { id: "text-input", title: "TextInput" }
-            , { id: "switch", title: "Switch" }
-            , { id: "modal", title: "Modal" }
-            , { id: "image", title: "Image" }
-            , { id: "collection-view", title: "UICollectionView" }
-            , { id: "safe-area", title: "SafeAreaView" }
-            , { id: "keyboard-avoiding", title: "KeyboardAvoidingView" }
-            , { id: "activity-indicator", title: "ActivityIndicator" }
-            , { id: "refresh-control", title: "UIRefreshControl" }
-            , { id: "status-bar", title: "StatusBar" }
-            ]
-        , selectedId
-        , refreshing: false
-        , onSelectItem: \selection -> do
-            Haptics.selectionChanged
-            setSelectedId selection.id
-            setListStatus ("Selected native row " <> show selection.index <> ": " <> selection.id)
-        , onRefresh: do
+    , case catalogueCollectionItems of
+        Left CollectionView.EmptyItemId -> configurationError dp "Collection configuration error: an item id is empty."
+        Left (CollectionView.DuplicateItemId duplicate) -> configurationError dp ("Collection configuration error: duplicate item id “" <> showItemId duplicate <> "”.")
+        Right items -> CollectionView.collectionView items
+          (\selection -> do
+            availability <- Haptics.selectionChanged
+            setSelectedId (Just selection.id)
+            setListStatus
+              ( "Selected native row " <> show selection.index <> ": " <> showItemId selection.id
+                  <> " · " <> availabilityStatus "selection feedback" availability
+              )
+          )
+          (do
             setRefreshes (refreshes + 1)
             setListStatus ("Native refresh completed · " <> show (refreshes + 1))
-        , accessibilityLabel: "Native UIKit component collection"
-        , style: tw "flex-1"
-        }
+          )
+          { selected: selectedId
+          , refreshState: RefreshIdle
+          , accessibilityLabel: "Native UIKit component collection"
+          , style: tw "flex-1"
+          }
     ]
 
 platformServices :: DemoProps -> String -> (String -> Effect Unit) -> JSX
@@ -485,42 +586,47 @@ platformServices dp status setStatus =
   view {}
     [ pageHeader dp "Apple services" "Platform calls retain the original demos and add observable results."
     , statusPanel dp "Latest platform result" status
-    , example dp "Action sheet" "Expected: selected option and index appear in the status panel."
-        [ primaryButton "Show action sheet" $
-            ActionSheet.showActionSheet
-              { options: [ "Cancel", "Save", "Delete" ]
-              , cancelButtonIndex: 0
-              , destructiveButtonIndex: 2
-              , title: "Choose Action"
-              }
-              \idx -> setStatus ("Action sheet selected index " <> show idx <> ".")
-        ]
-    , example dp "Haptics" "Expected: device produces the named physical feedback; status confirms dispatch."
+    , case catalogueActions of
+        Left ActionSheet.MultipleCancelActions -> configurationError dp "Action sheet configuration error: multiple cancel actions."
+        Right configuredActions ->
+          example dp "Action sheet" "Expected: selecting or dismissing the sheet appears in the status panel."
+            [ primaryButton "Show action sheet" $
+                ActionSheet.showActionSheet configuredActions
+                  { title: Just "Choose Action" }
+                  \actionResult -> setStatus case actionResult of
+                    Left ActionSheet.ActionSheetUnavailable -> "Action sheet unavailable."
+                    Left ActionSheet.InvalidNativeActionResponse -> "Action sheet returned an invalid native response."
+                    Right ActionSheet.DismissedActionSheet -> "Action sheet dismissed."
+                    Right (ActionSheet.SelectedAction selectedAction) -> "Action sheet selected “" <> show selectedAction <> "”."
+            ]
+    , example dp "Haptics" "Expected: device produces the named physical feedback; status reports availability."
         [ compactButtons
-            [ primaryButton "Vibrate 400ms" do
-                Haptics.vibrate 400
-                setStatus "Dispatched 400ms vibration."
+            [ primaryButton "Vibrate 400ms" case vibration400ms of
+                Nothing -> setStatus "Vibration configuration error: 400ms duration is invalid."
+                Just duration -> do
+                  Haptics.vibrate duration
+                  setStatus "Dispatched 400ms vibration."
             , primaryButton "Impact light" do
-                Haptics.impact Haptics.impactLight
-                setStatus "Dispatched light impact."
+                availability <- Haptics.impact Haptics.ImpactLight
+                setStatus (availabilityStatus "light impact" availability)
             , primaryButton "Impact medium" do
-                Haptics.impact Haptics.impactMedium
-                setStatus "Dispatched medium impact."
+                availability <- Haptics.impact Haptics.ImpactMedium
+                setStatus (availabilityStatus "medium impact" availability)
             , primaryButton "Impact heavy" do
-                Haptics.impact Haptics.impactHeavy
-                setStatus "Dispatched heavy impact."
+                availability <- Haptics.impact Haptics.ImpactHeavy
+                setStatus (availabilityStatus "heavy impact" availability)
             , primaryButton "Success" do
-                Haptics.notification Haptics.notificationSuccess
-                setStatus "Dispatched success notification."
+                availability <- Haptics.notification Haptics.NotificationSuccess
+                setStatus (availabilityStatus "success notification" availability)
             , primaryButton "Warning" do
-                Haptics.notification Haptics.notificationWarning
-                setStatus "Dispatched warning notification."
+                availability <- Haptics.notification Haptics.NotificationWarning
+                setStatus (availabilityStatus "warning notification" availability)
             , primaryButton "Error" do
-                Haptics.notification Haptics.notificationError
-                setStatus "Dispatched error notification."
+                availability <- Haptics.notification Haptics.NotificationError
+                setStatus (availabilityStatus "error notification" availability)
             , primaryButton "Selection" do
-                Haptics.selectionChanged
-                setStatus "Dispatched selection change."
+                availability <- Haptics.selectionChanged
+                setStatus (availabilityStatus "selection change" availability)
             , quietButton dp "Cancel vibration" do
                 Haptics.cancel
                 setStatus "Cancelled vibration."
@@ -529,26 +635,29 @@ platformServices dp status setStatus =
     , example dp "Appearance" "Expected: reports the current native color scheme; catalogue colors remain legible."
         [ primaryButton "Read color scheme" do
             scheme <- Appearance.getColorScheme
-            setStatus ("Native color scheme: " <> scheme <> ".")
+            setStatus case scheme of
+              Just Light -> "Native color scheme: light."
+              Just Dark -> "Native color scheme: dark."
+              Nothing -> "Native color scheme unavailable."
         ]
     , example dp "Linking" "Expected: capability and initial URL report here; opening a link preserves failure details."
         [ compactButtons
             [ primaryButton "Can open website?" do
                 launchAff_ do
-                  can <- LinkingIOS.canOpenURL "https://purescript.org"
+                  can <- LinkingIOS.canOpenURL pureScriptWebsite
                   liftEffect (setStatus ("Can open https: " <> show can <> "."))
             , primaryButton "Open PureScript.org" do
                 launchAff_ do
-                  opened <- attempt $ LinkingIOS.openURL "https://purescript.org"
+                  opened <- attempt $ LinkingIOS.openURL pureScriptWebsite
                   case opened of
                     Left err -> liftEffect (setStatus ("Open URL failed: " <> message err))
                     Right _ -> liftEffect (setStatus "Opened https://purescript.org.")
             , primaryButton "Get initial URL" do
                 launchAff_ do
                   initial <- LinkingIOS.getInitialURL
-                  liftEffect $ setStatus case toMaybe initial of
+                  liftEffect $ setStatus case initial of
                     Nothing -> "Initial URL: none."
-                    Just urlValue -> "Initial URL: " <> urlValue
+                    Just urlValue -> "Initial URL: " <> showURL urlValue
             , primaryButton "Open Settings" do
                 launchAff_ do
                   opened <- attempt LinkingIOS.openSettings
@@ -568,6 +677,11 @@ pageHeader dp title subtitle =
     , text { style: tw "text-2xl font-bold" <> Style.style { color: dp.fg } } title
     , text { style: tw "text-sm mt-2" <> Style.style { color: dp.dimFg, lineHeight: 20.0 } } subtitle
     ]
+
+configurationError :: DemoProps -> String -> JSX
+configurationError dp errorMessage =
+  example dp "Configuration error" "This static typed configuration must be corrected before the native control can render."
+    [ result dp errorMessage ]
 
 example :: DemoProps -> String -> String -> Array JSX -> JSX
 example dp title expected children =

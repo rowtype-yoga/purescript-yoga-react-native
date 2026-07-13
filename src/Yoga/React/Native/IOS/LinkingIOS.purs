@@ -1,39 +1,53 @@
 module Yoga.React.Native.IOS.LinkingIOS
-  ( openSettings
+  ( LinkingSubscription
+  , openSettings
   , canOpenURL
   , openURL
   , getInitialURL
-  , addEventListener
-  , LinkingSubscription
+  , addURLListener
+  , disposeLinkingSubscription
   ) where
 
 import Prelude
 
-import Data.Nullable (Nullable)
+import Data.Maybe (Maybe)
+import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
-import Effect.Uncurried (EffectFn2, runEffectFn2)
+import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1)
+import Promise (Promise)
+import Promise.Aff (toAffE)
+import Yoga.React.Native.Types (URL(..))
 
 foreign import data LinkingSubscription :: Type
 
-foreign import openSettingsImpl :: EffectFnAff Unit
-foreign import canOpenURLImpl :: String -> EffectFnAff Boolean
-foreign import openURLImpl :: String -> EffectFnAff Unit
-foreign import getInitialURLImpl :: EffectFnAff (Nullable String)
-foreign import addEventListenerImpl :: EffectFn2 String (String -> Effect Unit) LinkingSubscription
+foreign import openSettingsImpl :: Effect (Promise Unit)
 
 openSettings :: Aff Unit
-openSettings = fromEffectFnAff openSettingsImpl
+openSettings = toAffE openSettingsImpl
 
-canOpenURL :: String -> Aff Boolean
-canOpenURL = canOpenURLImpl >>> fromEffectFnAff
+foreign import canOpenURLImpl :: EffectFn1 String (Promise Boolean)
 
-openURL :: String -> Aff Unit
-openURL = openURLImpl >>> fromEffectFnAff
+canOpenURL :: URL -> Aff Boolean
+canOpenURL (URL url) = toAffE (runEffectFn1 canOpenURLImpl url)
 
-getInitialURL :: Aff (Nullable String)
-getInitialURL = fromEffectFnAff getInitialURLImpl
+foreign import openURLImpl :: EffectFn1 String (Promise Unit)
 
-addEventListener :: String -> (String -> Effect Unit) -> Effect LinkingSubscription
-addEventListener = runEffectFn2 addEventListenerImpl
+openURL :: URL -> Aff Unit
+openURL (URL url) = toAffE (runEffectFn1 openURLImpl url)
+
+foreign import getInitialURLImpl :: Effect (Promise (Nullable String))
+
+getInitialURL :: Aff (Maybe URL)
+getInitialURL = map (map URL <<< toMaybe) (toAffE getInitialURLImpl)
+
+foreign import addURLListenerImpl :: EffectFn1 (EffectFn1 String Unit) LinkingSubscription
+
+addURLListener :: (URL -> Effect Unit) -> Effect LinkingSubscription
+addURLListener callback =
+  runEffectFn1 addURLListenerImpl (mkEffectFn1 (callback <<< URL))
+
+foreign import disposeLinkingSubscriptionImpl :: EffectFn1 LinkingSubscription Unit
+
+disposeLinkingSubscription :: LinkingSubscription -> Effect Unit
+disposeLinkingSubscription = runEffectFn1 disposeLinkingSubscriptionImpl

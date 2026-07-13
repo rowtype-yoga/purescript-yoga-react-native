@@ -1,13 +1,5 @@
 import { Vibration, Platform, NativeModules } from "react-native";
 
-export const impactLight = "light";
-export const impactMedium = "medium";
-export const impactHeavy = "heavy";
-
-export const notificationSuccess = "success";
-export const notificationWarning = "warning";
-export const notificationError = "error";
-
 export const vibrateImpl = (duration) => {
   Vibration.vibrate(duration);
 };
@@ -20,33 +12,31 @@ export const cancelImpl = () => {
   Vibration.cancel();
 };
 
-const haptics =
-  Platform.OS === "ios" && NativeModules.HapticFeedback
-    ? NativeModules.HapticFeedback
-    : null;
+const AVAILABLE = 0;
+const UNSUPPORTED_PLATFORM = 1;
+const MISSING_NATIVE_MODULE = 2;
 
-export const selectionChangedImpl = () => {
-  if (haptics && haptics.selectionChanged) {
-    haptics.selectionChanged();
-  } else if (Platform.OS === "ios") {
-    Vibration.vibrate(10);
+const invokeHaptic = (method, argument) => {
+  if (Platform.OS !== "ios") {
+    return UNSUPPORTED_PLATFORM;
   }
+
+  const haptics = NativeModules.HapticFeedback;
+  if (!haptics || typeof haptics[method] !== "function") {
+    return MISSING_NATIVE_MODULE;
+  }
+
+  if (argument === undefined) {
+    haptics[method]();
+  } else {
+    haptics[method](argument);
+  }
+  return AVAILABLE;
 };
 
-export const impactImpl = (style) => {
-  if (haptics && haptics.impact) {
-    haptics.impact(style);
-  } else if (Platform.OS === "ios") {
-    Vibration.vibrate(style === "heavy" ? 50 : style === "medium" ? 30 : 10);
-  }
-};
+export const selectionChangedImpl = () =>
+  invokeHaptic("selectionChanged");
 
-export const notificationImpl = (type) => {
-  if (haptics && haptics.notification) {
-    haptics.notification(type);
-  } else if (Platform.OS === "ios") {
-    Vibration.vibrate(
-      type === "error" ? [0, 50, 50, 50] : type === "warning" ? [0, 30, 30] : 30
-    );
-  }
-};
+export const impactImpl = (style) => invokeHaptic("impact", style);
+
+export const notificationImpl = (type) => invokeHaptic("notification", type);

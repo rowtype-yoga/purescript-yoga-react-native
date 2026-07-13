@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Linking } from "react-native";
 import {
+  addURLListenerImpl,
   canOpenURLImpl,
+  disposeLinkingSubscriptionImpl,
+  getInitialURLImpl,
+  openSettingsImpl,
   openURLImpl,
 } from "../src/Yoga/React/Native/IOS/LinkingIOS.js";
 
@@ -10,69 +14,116 @@ afterEach(() => {
 });
 
 describe("iOS Linking FFI", () => {
-  it("forwards the exact URL to Linking.openURL and invokes Aff success when it resolves", async () => {
-    const url = "https://example.com/path?query=a%20b#section";
-    const openURL = vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
-    const onError = vi.fn();
-    const onSuccess = vi.fn();
+  it("returns openURL's Promise result after forwarding the exact URL", async () => {
+    const url = "custom-scheme://host/path?query=a%20b#section";
+    const openURL = vi.spyOn(Linking, "openURL").mockResolvedValue("ignored");
 
-    openURLImpl(url)(onError, onSuccess);
-    await openURL.mock.results[0].value;
+    await expect(openURLImpl(url)).resolves.toBeUndefined();
 
     expect(openURL).toHaveBeenCalledOnce();
     expect(openURL).toHaveBeenCalledWith(url);
-    expect(onSuccess).toHaveBeenCalledOnce();
-    expect(onSuccess).toHaveBeenCalledWith(undefined);
-    expect(onError).not.toHaveBeenCalled();
   });
 
-  it("invokes Aff error with the native rejection and never reports success", async () => {
-    const rejection = new Error("Unable to open external URL");
-    const openURL = vi.spyOn(Linking, "openURL").mockRejectedValue(rejection);
-    const onError = vi.fn();
-    const onSuccess = vi.fn();
+  it.each([
+    {
+      operation: "openURL",
+      invoke: () => openURLImpl("https://example.com/unavailable"),
+    },
+    {
+      operation: "canOpenURL",
+      invoke: () => canOpenURLImpl("custom-scheme://unavailable"),
+    },
+    { operation: "getInitialURL", invoke: () => getInitialURLImpl() },
+    { operation: "openSettings", invoke: () => openSettingsImpl() },
+  ])(
+    "preserves the native $operation rejection identity",
+    async ({ operation, invoke }) => {
+      const rejection = new Error(`${operation} rejected`);
+      vi.spyOn(Linking, operation).mockRejectedValue(rejection);
 
-    openURLImpl("https://example.com/unavailable")(onError, onSuccess);
-    await expect(openURL.mock.results[0].value).rejects.toBe(rejection);
-    await Promise.resolve();
+      await expect(invoke()).rejects.toBe(rejection);
+    },
+  );
 
-    expect(onError).toHaveBeenCalledOnce();
-    expect(onError).toHaveBeenCalledWith(rejection);
-    expect(onSuccess).not.toHaveBeenCalled();
-  });
-
-  it("returns a canceler that completes successfully", () => {
-    vi.spyOn(Linking, "openURL").mockReturnValue(new Promise(() => {}));
-    const cancelError = new Error("cancelled");
-    const onCancelerError = vi.fn();
-    const onCancelerSuccess = vi.fn();
-
-    const canceler = openURLImpl("https://example.com/pending")(
-      vi.fn(),
-      vi.fn(),
-    );
-    canceler(cancelError, onCancelerError, onCancelerSuccess);
-
-    expect(onCancelerSuccess).toHaveBeenCalledOnce();
-    expect(onCancelerSuccess).toHaveBeenCalledWith();
-    expect(onCancelerError).not.toHaveBeenCalled();
-  });
-
-  it("canOpenURL reports capability without opening the URL", async () => {
-    const url = "https://example.com/capability-only";
+  it("reports URL capability without opening the URL", async () => {
+    const url = "custom-scheme://capability-only";
     const canOpenURL = vi.spyOn(Linking, "canOpenURL").mockResolvedValue(false);
     const openURL = vi.spyOn(Linking, "openURL");
-    const onError = vi.fn();
-    const onSuccess = vi.fn();
 
-    canOpenURLImpl(url)(onError, onSuccess);
-    await canOpenURL.mock.results[0].value;
+    await expect(canOpenURLImpl(url)).resolves.toBe(false);
 
     expect(canOpenURL).toHaveBeenCalledOnce();
     expect(canOpenURL).toHaveBeenCalledWith(url);
-    expect(onSuccess).toHaveBeenCalledOnce();
-    expect(onSuccess).toHaveBeenCalledWith(false);
-    expect(onError).not.toHaveBeenCalled();
     expect(openURL).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { nativeURL: null, expected: null },
+    { nativeURL: "custom-scheme://initial", expected: "custom-scheme://initial" },
+  ])(
+    "preserves the native initial URL result $nativeURL",
+    async ({ nativeURL, expected }) => {
+      vi.spyOn(Linking, "getInitialURL").mockResolvedValue(nativeURL);
+
+      await expect(getInitialURLImpl()).resolves.toBe(expected);
+    },
+  );
+
+  it("resolves openSettings to Unit", async () => {
+    const openSettings = vi
+      .spyOn(Linking, "openSettings")
+      .mockResolvedValue("ignored");
+
+    await expect(openSettingsImpl()).resolves.toBeUndefined();
+    expect(openSettings).toHaveBeenCalledOnce();
+  });
+
+  it("hardcodes the url event and delivers only string URL payloads", () => {
+    let nativeListener;
+    const subscription = { remove: vi.fn() };
+    const addEventListener = vi
+      .spyOn(Linking, "addEventListener")
+      .mockImplementation((eventName, listener) => {
+        nativeListener = listener;
+        return subscription;
+      });
+    const callback = vi.fn();
+
+    expect(addURLListenerImpl(callback)).toBe(subscription);
+    expect(addEventListener).toHaveBeenCalledOnce();
+    expect(addEventListener).toHaveBeenCalledWith("url", nativeListener);
+
+    nativeListener({ url: "custom-scheme://valid" });
+    nativeListener({ url: "" });
+    nativeListener({ url: 42 });
+    nativeListener({});
+    nativeListener(null);
+
+    expect(callback.mock.calls).toEqual([
+      ["custom-scheme://valid"],
+      [""],
+    ]);
+  });
+
+  it("removes the same native subscription at most once", () => {
+    const remove = vi.fn();
+    const subscription = { remove };
+
+    disposeLinkingSubscriptionImpl(subscription);
+    disposeLinkingSubscriptionImpl(subscription);
+
+    expect(remove).toHaveBeenCalledOnce();
+  });
+
+  it("does not retry native removal after remove throws", () => {
+    const rejection = new Error("native removal failed");
+    const remove = vi.fn(() => {
+      throw rejection;
+    });
+    const subscription = { remove };
+
+    expect(() => disposeLinkingSubscriptionImpl(subscription)).toThrow(rejection);
+    expect(() => disposeLinkingSubscriptionImpl(subscription)).not.toThrow();
+    expect(remove).toHaveBeenCalledOnce();
   });
 });

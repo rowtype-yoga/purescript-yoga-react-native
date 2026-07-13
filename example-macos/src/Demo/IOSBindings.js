@@ -16,6 +16,7 @@ const routes = [
   "list",
   "platform",
   "springs",
+  "dating",
 ];
 
 export const iosNativeStackImpl = Content => {
@@ -25,9 +26,9 @@ export const iosNativeStackImpl = Content => {
       name,
       options: {
         headerShown: false,
-        gestureEnabled: name !== "landing" && name !== "springs",
-        fullScreenGestureEnabled: name !== "landing" && name !== "springs",
-        customAnimationOnGesture: name !== "springs",
+        gestureEnabled: name !== "landing" && name !== "springs" && name !== "dating",
+        fullScreenGestureEnabled: name !== "landing" && name !== "springs" && name !== "dating",
+        customAnimationOnGesture: name !== "springs" && name !== "dating",
       },
       children: ({ navigation }) =>
         React.createElement(Content, {

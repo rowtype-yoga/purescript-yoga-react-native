@@ -11,6 +11,11 @@ export const extractOffsetImpl = (v) => v.extractOffset();
 export const stopAnimationImpl = (v) => v.stopAnimation();
 export const resetAnimationImpl = (v) => v.resetAnimation();
 export const interpolateImpl = (v) => (config) => v.interpolate(config);
+export const interpolateRotationImpl = (value) => (config) =>
+  value.interpolate({
+    ...config,
+    outputRange: config.outputRange.map((degrees) => `${degrees}deg`),
+  });
 export const timingImpl = (v) => (config) => Animated.timing(v, config);
 export const springImpl = (v) => (config) => Animated.spring(v, config);
 export const decayImpl = (v) => (config) => Animated.decay(v, config);

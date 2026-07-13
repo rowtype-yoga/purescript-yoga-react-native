@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import React from "react";
 import { act, create } from "react-test-renderer";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -50,6 +59,13 @@ vi.mock("@react-navigation/native-stack", async () => {
 
 vi.mock("react-native-screens", () => ({ enableScreens: vi.fn() }));
 import { iosDemo } from "../output/Demo.IOSBindings/index.js";
+import {
+  ActionSheetIOS,
+  Appearance,
+  Linking,
+  NativeModules,
+  Platform,
+} from "react-native";
 
 vi.mock("react-native", async (importOriginal) => {
   const [React, native] = await Promise.all([
@@ -78,6 +94,23 @@ const press = (renderer, accessibilityLabel) => {
   act(() => target.props.onPress());
 };
 
+const renderCatalogue = () => {
+  let renderer;
+  act(() => {
+    renderer = create(
+      React.createElement(SafeAreaProvider, null, iosDemo({})),
+    );
+  });
+  return renderer;
+};
+
+const visibleText = (renderer) =>
+  renderer.root.findAllByType("Text").map(({ children }) => children.join(""));
+
+const expectVisible = (renderer, text) => {
+  expect(visibleText(renderer)).toContain(text);
+};
+
 const nativeStackOptions = (renderer, name) =>
   renderer.root.findByProps({ name }).props.options;
 
@@ -87,9 +120,30 @@ describe("iOS catalogue UIKit routing", () => {
     "IS_REACT_ACT_ENVIRONMENT",
   );
   const previousActEnvironment = globalThis.IS_REACT_ACT_ENVIRONMENT;
+  const originalOS = Platform.OS;
+  const originalHapticFeedback = NativeModules.HapticFeedback;
 
   beforeAll(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  });
+
+  beforeEach(() => {
+    Platform.OS = "ios";
+    NativeModules.HapticFeedback = {
+      selectionChanged: vi.fn(),
+      impact: vi.fn(),
+      notification: vi.fn(),
+    };
+  });
+
+  afterEach(() => {
+    Platform.OS = originalOS;
+    if (originalHapticFeedback === undefined) {
+      delete NativeModules.HapticFeedback;
+    } else {
+      NativeModules.HapticFeedback = originalHapticFeedback;
+    }
+    vi.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -101,12 +155,7 @@ describe("iOS catalogue UIKit routing", () => {
   });
 
   it("disables native back gestures only where drags or landing require it", () => {
-    let renderer;
-    act(() => {
-      renderer = create(
-        React.createElement(SafeAreaProvider, null, iosDemo({})),
-      );
-    });
+    const renderer = renderCatalogue();
 
     expect(nativeStackOptions(renderer, "springs")).toMatchObject({
       gestureEnabled: false,
@@ -126,61 +175,198 @@ describe("iOS catalogue UIKit routing", () => {
     act(() => renderer.unmount());
   });
 
-  it("routes to a dedicated screen containing the genuine UIKit controls", () => {
-    let renderer;
-    act(() => {
-      renderer = create(
-        React.createElement(SafeAreaProvider, null, iosDemo({})),
-      );
-    });
-
+  it("updates typed UIKit control results and ignores malformed native events", () => {
+    const renderer = renderCatalogue();
     press(renderer, "Open UIKit widgets examples");
 
-    const visibleText = renderer.root
-      .findAllByType("Text")
-      .map(({ children }) => children.join(""));
-    expect(visibleText).toContain("UIKit widgets");
-    expect(visibleText).toContain("Genuine UIKit UIDatePicker");
-    expect(visibleText).toContain("Genuine UIKit UISegmentedControl");
-    expect(visibleText).toContain("Genuine UIKit UISearchBar");
-    expect(renderer.root.findAllByType("IOSDatePicker")).toHaveLength(1);
-    expect(renderer.root.findAllByType("IOSSegmentedControl")).toHaveLength(1);
-    expect(renderer.root.findAllByType("IOSSearchBar")).toHaveLength(1);
+    expectVisible(renderer, "UIKit widgets");
+    expectVisible(renderer, "Genuine UIKit UIDatePicker");
+    expectVisible(renderer, "Genuine UIKit UISegmentedControl");
+    expectVisible(renderer, "Genuine UIKit UISearchBar");
+
+    const initialDate = "2026-07-12T09:30:00.000Z";
+    const changedDate = "2026-08-01T15:45:00.000Z";
+    expect(renderer.root.findByType("IOSDatePicker").props.value).toBe(
+      initialDate,
+    );
+    act(() => {
+      renderer.root.findByType("IOSDatePicker").props.onDateChange({
+        nativeEvent: { value: "2026-08-01" },
+      });
+    });
+    expect(renderer.root.findByType("IOSDatePicker").props.value).toBe(
+      initialDate,
+    );
+    act(() => {
+      renderer.root.findByType("IOSDatePicker").props.onDateChange({
+        nativeEvent: { value: changedDate },
+      });
+    });
+    expect(renderer.root.findByType("IOSDatePicker").props.value).toBe(
+      changedDate,
+    );
+    expect(
+      visibleText(renderer).find((text) =>
+        text.startsWith("Result: controlled instant = "),
+      ),
+    ).toContain("August");
+
+    const initialSegmentResult = "Result: selected id = overview; index = 0.";
+    expectVisible(renderer, initialSegmentResult);
+    act(() => {
+      for (const event of [
+        { nativeEvent: { id: "0", index: 0.5 } },
+        { nativeEvent: { id: "-1", index: -1 } },
+        { nativeEvent: { id: "1", index: 0 } },
+        { nativeEvent: { id: "unknown", index: 1 } },
+      ]) {
+        renderer.root.findByType("IOSSegmentedControl").props.onSelect(event);
+      }
+    });
+    expectVisible(renderer, initialSegmentResult);
+    act(() => {
+      renderer.root.findByType("IOSSegmentedControl").props.onSelect({
+        nativeEvent: { id: "1", index: 1 },
+      });
+    });
+    expect(renderer.root.findByType("IOSSegmentedControl").props.selectedId).toBe(
+      "1",
+    );
+    expectVisible(renderer, "Result: selected id = details; index = 1.");
+
+    const initialSearchResult = "Result: no search event yet.";
+    act(() => {
+      renderer.root.findByType("IOSSearchBar").props.onChangeText({
+        nativeEvent: { text: 42 },
+      });
+      renderer.root.findByType("IOSSearchBar").props.onSubmit({
+        nativeEvent: { text: null },
+      });
+    });
+    expect(renderer.root.findByType("IOSSearchBar").props.text).toBe("");
+    expectVisible(renderer, initialSearchResult);
+
+    act(() => {
+      renderer.root.findByType("IOSSearchBar").props.onChangeText({
+        nativeEvent: { text: "typed UIKit" },
+      });
+    });
+    expect(renderer.root.findByType("IOSSearchBar").props.text).toBe(
+      "typed UIKit",
+    );
+    expectVisible(renderer, "Result: change = “typed UIKit”.");
+    act(() => {
+      renderer.root.findByType("IOSSearchBar").props.onSubmit({
+        nativeEvent: { text: "typed UIKit" },
+      });
+    });
+    expectVisible(renderer, "Result: submitted = “typed UIKit”.");
+    act(() => renderer.root.findByType("IOSSearchBar").props.onCancel());
+    expect(renderer.root.findByType("IOSSearchBar").props.text).toBe("");
+    expectVisible(
+      renderer,
+      "Result: cancel received; controlled text cleared.",
+    );
 
     act(() => renderer.unmount());
   });
 
-  it("routes to the genuine UIKit collection and reflects native selection", () => {
-    let renderer;
-    act(() => {
-      renderer = create(
-        React.createElement(SafeAreaProvider, null, iosDemo({})),
-      );
-    });
-
+  it("omits absent collection selection and changes state only for matching native items", () => {
+    const renderer = renderCatalogue();
     press(renderer, "Open Data & media examples");
     press(renderer, "Open native collection");
 
-    const collection = renderer.root.findByType("IOSCollectionView");
-    expect(collection.props).toMatchObject({
-      selectedId: "",
+    const initialCollection = renderer.root.findByType("IOSCollectionView");
+    expect(initialCollection.props).not.toHaveProperty("selectedId");
+    expect(initialCollection.props).toMatchObject({
       refreshing: false,
       accessibilityLabel: "Native UIKit component collection",
     });
+    expectVisible(renderer, "Tap a row or pull to refresh. · refreshes: 0");
 
     act(() => {
-      collection.props.onSelectItem({
+      for (const event of [
+        { nativeEvent: { id: "pressable", index: 0.5 } },
+        { nativeEvent: { id: "pressable", index: -1 } },
+        { nativeEvent: { id: "text-input", index: 0 } },
+        { nativeEvent: { id: "unknown", index: 1 } },
+      ]) {
+        renderer.root.findByType("IOSCollectionView").props.onSelectItem(event);
+      }
+    });
+    expect(renderer.root.findByType("IOSCollectionView").props).not.toHaveProperty(
+      "selectedId",
+    );
+    expectVisible(renderer, "Tap a row or pull to refresh. · refreshes: 0");
+
+    act(() => {
+      renderer.root.findByType("IOSCollectionView").props.onSelectItem({
         nativeEvent: { id: "pressable", index: 0 },
       });
     });
-
     expect(renderer.root.findByType("IOSCollectionView").props.selectedId).toBe(
       "pressable",
     );
-    const visibleText = renderer.root
-      .findAllByType("Text")
-      .map(({ children }) => children.join(""));
-    expect(visibleText).toContain("Selected native row 0: pressable · refreshes: 0");
+    expectVisible(
+      renderer,
+      "Selected native row 0: pressable · Dispatched selection feedback. · refreshes: 0",
+    );
+    expect(NativeModules.HapticFeedback.selectionChanged).toHaveBeenCalledOnce();
+
+    act(() => renderer.root.findByType("IOSCollectionView").props.onRefresh());
+    expectVisible(renderer, "Native refresh completed · 1 · refreshes: 1");
+
+    act(() => renderer.unmount());
+  });
+
+  it("shows typed action, haptic, Appearance, and Linking outcomes", async () => {
+    const renderer = renderCatalogue();
+    press(renderer, "Open Apple services examples");
+
+    const showActionSheet = vi.spyOn(
+      ActionSheetIOS,
+      "showActionSheetWithOptions",
+    );
+    showActionSheet.mockImplementationOnce((_options, onSelect) => onSelect(99));
+    press(renderer, "Show action sheet");
+    expectVisible(renderer, "Action sheet returned an invalid native response.");
+    showActionSheet.mockImplementationOnce((_options, onSelect) => onSelect(1));
+    press(renderer, "Show action sheet");
+    expectVisible(renderer, "Action sheet selected “Save”.");
+
+    press(renderer, "Impact light");
+    expectVisible(renderer, "Dispatched light impact.");
+    expect(NativeModules.HapticFeedback.impact).toHaveBeenCalledOnce();
+    expect(NativeModules.HapticFeedback.impact).toHaveBeenCalledWith("light");
+
+    vi.spyOn(Appearance, "getColorScheme").mockReturnValue("sepia");
+    press(renderer, "Read color scheme");
+    expectVisible(renderer, "Native color scheme unavailable.");
+    Appearance.getColorScheme.mockReturnValue("dark");
+    press(renderer, "Read color scheme");
+    expectVisible(renderer, "Native color scheme: dark.");
+
+    vi.spyOn(Linking, "canOpenURL").mockResolvedValue(false);
+    const canOpen = renderer.root.findByProps({
+      accessibilityLabel: "Can open website?",
+    });
+    await act(async () => {
+      canOpen.props.onPress();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expectVisible(renderer, "Can open https: false.");
+
+    vi.spyOn(Linking, "getInitialURL").mockResolvedValue(null);
+    const getInitialURL = renderer.root.findByProps({
+      accessibilityLabel: "Get initial URL",
+    });
+    await act(async () => {
+      getInitialURL.props.onPress();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expectVisible(renderer, "Initial URL: none.");
 
     act(() => renderer.unmount());
   });

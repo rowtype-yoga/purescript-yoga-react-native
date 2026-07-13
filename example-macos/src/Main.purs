@@ -3,7 +3,6 @@ module Main where
 import Prelude
 
 import Data.Maybe (Maybe(..))
-import Data.Nullable (toNullable)
 import Demo.AndroidBindings (androidDemo)
 import Demo.IOSBindings (iosDemo)
 import Demo.Navigation (demoContent, outlineSidebar)
@@ -15,6 +14,7 @@ import React.Basic.Hooks as React
 import Yoga.React (component)
 import Yoga.React.Native (registerComponent, tw, view)
 import Yoga.React.Native.Appearance (useColorScheme)
+import Yoga.React.Native.Types (ColorScheme(..))
 import Yoga.React.Native.GestureHandler (gestureHandlerRootView)
 import Yoga.React.Native.IOS.SafeArea as SafeArea
 import Yoga.React.Native.MacOS.Sidebar (sidebarLayout)
@@ -37,7 +37,7 @@ macosApp :: {} -> JSX
 macosApp = component "App" \_ -> React.do
   selectedItem /\ setSelectedItem <- useState' "button"
   colorScheme <- useColorScheme
-  let isDark = toNullable (Just "dark") == colorScheme
+  let isDark = colorScheme == Just Dark
   let fg = if isDark then "#FFFFFF" else "#000000"
   let dimFg = if isDark then "#999999" else "#666666"
   let cardBg = if isDark then "#2A2A2A" else "#F0F0F0"

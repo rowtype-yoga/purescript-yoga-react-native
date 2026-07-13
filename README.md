@@ -78,6 +78,54 @@ app _ = gestureHandlerRootView (safeAreaProvider {} application)
 
 `Yoga.React.Native.GestureHandler` imports `react-native-gesture-handler` directly; applications that use it must provide the JavaScript package and linked native pod. The shared `Yoga.React.Native.SafeAreaView` and `Yoga.React.Native.IOS.SafeArea` bindings import `react-native-safe-area-context`; place `safeAreaProvider` at the application root before using either safe-area view. The gesture wrapper must be above every `panGestureView` in the rendered tree.
 
+### Swipeable cards from PureScript
+
+`Yoga.React.Native.GestureHandler` includes a reusable dismissal gesture for card decks. Application code stays in PureScript; the package privately owns the React Native `PanResponder` and `Animated` FFI.
+
+```purescript
+import Prelude
+
+import React.Basic.Hooks as React
+import Yoga.React (component)
+import Yoga.React.Native.Animated
+  ( Damping(..)
+  , Mass(..)
+  , Points(..)
+  , Stiffness(..)
+  , Velocity(..)
+  , animatedView
+  , physicalSpring
+  )
+import Yoga.React.Native.GestureHandler
+  ( SwipeDirection(..)
+  , swipeGestureView
+  , swipePosition
+  , useNativeSwipe
+  )
+import Yoga.React.Native.Style as Style
+
+swipeableCard = component "SwipeableCard" \{ card, onPass, onLike } -> React.do
+  swipe <- useNativeSwipe
+    { dismissalDistance: Points 110.0
+    , dismissalVelocity: Velocity 0.72
+    , returnSpring: physicalSpring
+        { stiffness: Stiffness 280.0, damping: Damping 24.0, mass: Mass 0.9 }
+    , dismissalSpring: physicalSpring
+        { stiffness: Stiffness 210.0, damping: Damping 22.0, mass: Mass 0.9 }
+    }
+    case _ of
+      SwipeLeft -> onPass
+      SwipeRight -> onLike
+
+  let x = swipePosition swipe
+  pure $ swipeGestureView swipe $
+    animatedView
+      { style: Style.style { transform: [ { translateX: x } ] } }
+      [ card ]
+```
+
+The callback runs once, after a committed card finishes moving offscreen. Short or vertically dominant drags do not dismiss; interrupted gestures return to center. `swipeProgress` exposes typed absolute progress from `0.0` at rest to `1.0` at either dismissal threshold, which can promote a pre-rendered card underneath with opacity, translation, or scale interpolation. Keep `gestureHandlerRootView` above the deck. On iOS, disable any parent full-screen back gesture for the card route so it does not compete for the same horizontal drag.
+
 ```purescript
 import Yoga.React.Native (text, tw, view)
 import Yoga.React.Native.MacOS.Button (nativeButton)

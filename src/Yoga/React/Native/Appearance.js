@@ -1,7 +1,33 @@
 import { Appearance, useColorScheme } from "react-native";
 
-export const getColorScheme = () => Appearance.getColorScheme();
+const disposedSubscriptions = new WeakSet();
 
-export const setColorScheme = (scheme) => () => Appearance.setColorScheme(scheme);
+const normalizeColorScheme = (scheme) =>
+  typeof scheme === "string" ? scheme : null;
 
-export const useColorSchemeImpl = useColorScheme;
+export const getColorSchemeImpl = () =>
+  normalizeColorScheme(Appearance.getColorScheme());
+
+export const setColorSchemeImpl = (scheme) => {
+  Appearance.setColorScheme(scheme);
+};
+
+export const useColorSchemeImpl = () => normalizeColorScheme(useColorScheme());
+
+export const addChangeListenerImpl = (callback) =>
+  Appearance.addChangeListener((event) => {
+    callback(normalizeColorScheme(event?.colorScheme));
+  });
+
+export const disposeAppearanceSubscriptionImpl = (subscription) => {
+  if (
+    subscription == null ||
+    (typeof subscription !== "object" && typeof subscription !== "function") ||
+    disposedSubscriptions.has(subscription)
+  ) {
+    return;
+  }
+
+  disposedSubscriptions.add(subscription);
+  subscription.remove?.();
+};

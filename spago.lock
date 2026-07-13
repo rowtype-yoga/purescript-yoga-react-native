@@ -12,13 +12,25 @@
               "arrays": ">=7.3.0 <8.0.0"
             },
             {
+              "datetime": ">=6.1.0 <7.0.0"
+            },
+            {
               "effect": ">=4.0.0 <5.0.0"
+            },
+            {
+              "either": ">=6.1.0 <7.0.0"
             },
             {
               "foreign": ">=7.0.0 <8.0.0"
             },
             {
               "functions": ">=6.0.0 <7.0.0"
+            },
+            {
+              "js-promise": ">=1.0.0 <2.0.0"
+            },
+            {
+              "js-promise-aff": ">=1.0.0 <2.0.0"
             },
             {
               "maybe": ">=6.0.0 <7.0.0"
@@ -31,6 +43,9 @@
             },
             {
               "numbers": ">=9.0.1 <10.0.0"
+            },
+            {
+              "ordered-collections": ">=3.2.0 <4.0.0"
             },
             {
               "prelude": ">=6.0.1 <7.0.0"
@@ -83,6 +98,7 @@
             "aff",
             "arrays",
             "console",
+            "datetime",
             "effect",
             "either",
             "foldable-traversable",
@@ -1223,6 +1239,37 @@
         "integers",
         "maybe",
         "prelude"
+      ]
+    },
+    "js-promise": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-u+6+ofIwT5XhT2fbMu4dShwkyWGfPRt9642Cnzw/Wvk=",
+      "dependencies": [
+        "effect",
+        "exceptions",
+        "foldable-traversable",
+        "functions",
+        "maybe",
+        "newtype",
+        "prelude"
+      ]
+    },
+    "js-promise-aff": {
+      "type": "registry",
+      "version": "1.0.0",
+      "integrity": "sha256-gEKAdNnTWjXS+tTp/AhYl/ezloKfuoQFcBKrdOx2USo=",
+      "dependencies": [
+        "aff",
+        "control",
+        "effect",
+        "either",
+        "exceptions",
+        "foreign",
+        "js-promise",
+        "maybe",
+        "prelude",
+        "transformers"
       ]
     },
     "js-timers": {

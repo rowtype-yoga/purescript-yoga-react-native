@@ -23,7 +23,7 @@ module Yoga.React.Native
   , module Yoga.React.Native.Style
   , module Yoga.React.Native.Internal
   , module Yoga.React.Native.Events
-  , module Yoga.React.Native.DynamicColorMacOS
+  , module Yoga.React.Native.PlatformColor
   , module Yoga.React.Native.ColorWithSystemEffectMacOS
   , string
   , registerComponent
@@ -37,7 +37,7 @@ import React.Basic (JSX)
 import Yoga.React.Native.ActivityIndicator (activityIndicator, ActivityIndicatorAttributes)
 import Yoga.React.Native.Button (button, ButtonAttributes)
 import Yoga.React.Native.ColorWithSystemEffectMacOS (colorWithSystemEffect)
-import Yoga.React.Native.DynamicColorMacOS (dynamicColor)
+import Yoga.React.Native.PlatformColor (ColorLiteral(..), ColorValue, PlatformColorName(..), dynamicColor, literalColor, platformColor)
 import Yoga.React.Native.Events (nativeEvent)
 import Yoga.React.Native.FlatList (flatList, FlatListAttributes)
 import Yoga.React.Native.Image (image, ImageAttributes, ImageSource, uri)

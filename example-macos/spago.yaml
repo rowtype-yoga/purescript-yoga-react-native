@@ -3,6 +3,7 @@ package:
     - aff
     - arrays
     - console
+    - datetime
     - effect
     - either
     - foldable-traversable
